@@ -17,7 +17,7 @@ namespace DeuxCentsCardGame
 
         public override string ToString()
         {
-            return cardFace + "(" + cardFaceValue + ")" + " of " + cardSuit + " = " + cardPointValue + " points";
+            return cardFace + " of " + cardSuit + " = " + cardPointValue + " points";
         }
     }
 }

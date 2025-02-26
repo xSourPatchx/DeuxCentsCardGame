@@ -2,7 +2,7 @@ using System;
 
 namespace DeuxCentsCardGame
 {
-    public class deck // initialize Cards
+    public class Deck
     {
         public List<Card> Cards { get; set;}
 
@@ -11,9 +11,9 @@ namespace DeuxCentsCardGame
             Cards = new List<Card>();
             InitializeCards();
         }
-        void InitializeCards()
+        private void InitializeCards()
         {
-            // append each card to Cards
+            // append each Card to Cards list
             Cards.Add(new Card("5", "clubs", 1, 5)); // clubs
             Cards.Add(new Card("6", "clubs", 2, 0));
             Cards.Add(new Card("7", "clubs", 3, 0));
@@ -54,6 +54,20 @@ namespace DeuxCentsCardGame
             Cards.Add(new Card("Q", "spades", 8, 0));
             Cards.Add(new Card("K", "spades", 9, 0));
             Cards.Add(new Card("A", "spades", 10, 10));
+        }
+    
+        public void Shuffle() // method to shuffle deck
+        {
+            Random random = new Random();
+            int i = 0;
+            while (i < Cards.Count)
+                {
+                    int randomCardIndex = random.Next(i, Cards.Count);
+                    Card temp = Cards[randomCardIndex];
+                    Cards[randomCardIndex] = Cards[i];
+                    Cards[i] = temp;
+                    i++;
+                }
         }
     }
 }
