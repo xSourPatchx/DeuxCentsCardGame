@@ -1,3 +1,12 @@
-﻿// See https://aka.ms/new-console-template for more information
-Console.WriteLine("Hello, World!");
-// test to see if github work
+﻿using System;
+
+namespace DeuxCentsCardGame
+{
+    class Program
+    {
+        static void Main(string[] args)
+        {
+            // create a Game object and call the game method
+        }
+    }
+}
