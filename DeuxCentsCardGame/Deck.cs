@@ -2,11 +2,11 @@ using System;
 
 namespace DeuxCentsCardGame
 {
-    public class Deck
+    class Deck
     {
-        public List<Card> Cards { get; set;}
+        List<Card> Cards { get; set;}
 
-        public Deck()
+        Deck()
         {
             Cards = new List<Card>();
             InitializeCards();
@@ -56,7 +56,7 @@ namespace DeuxCentsCardGame
             Cards.Add(new Card("A", "spades", 10, 10));
         }
     
-        public void Shuffle() // method to shuffle deck
+        void Shuffle() // method to shuffle deck
         {
             Random random = new Random();
             int i = 0;

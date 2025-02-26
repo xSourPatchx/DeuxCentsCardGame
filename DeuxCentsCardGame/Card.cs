@@ -1,6 +1,6 @@
 namespace DeuxCentsCardGame
 {
-    public class Card // initializing Card object
+    class Card // initializing Card object
     {
         // fields
         public string cardFace; // 5, 6, 7, 8, 9, 10, J, Q, K, A
