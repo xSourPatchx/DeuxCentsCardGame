@@ -17,11 +17,18 @@ namespace DeuxCentsCardGame
             deck.ShuffleDeck();
             deck.ShuffleDeck();
 
-        }
+            // DealCards()
+            // DisplayHand() // x4 for each player
+            // BettingRound() // display result within method
+            // DisplayHand() // bet winner's hand
+            // SelectTrumpSuit // display trump selection within method
+            // PlayRound() // display points within method
 
-    
-        // left off here
-        // begin initialize game varaible/object
-        // go though game logic
+
+            // left off here
+            // begin initialize game varaible/object
+            // go though game logic
+
+        }
     }
 }
