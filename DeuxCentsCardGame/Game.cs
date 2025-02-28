@@ -4,10 +4,20 @@ namespace DeuxCentsCardGame
     {
         // List<Card> deck = new List<Card>();
         private Deck deck;
+        private List<Player> players;
+        List<Card>[] playersDecks;
 
         public Game()
         {
             deck = new Deck();
+            players = new List<Player>
+            {
+                new Player("Player 1"),
+                new Player("Player 2"),
+                new Player("Player 3"),
+                new Player("Player 4"),
+            };
+            
         }
 
         public void Start()
@@ -28,7 +38,12 @@ namespace DeuxCentsCardGame
             // left off here
             // begin initialize game varaible/object
             // go though game logic
-
         }
+
+        public void DealCards()
+        {
+            
+        }
+
     }
 }
