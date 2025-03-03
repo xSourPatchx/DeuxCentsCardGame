@@ -13,6 +13,12 @@ namespace DeuxCentsCardGame
             Hand = new List<Card>();
         }
 
+        // add card method
+        public void AddCard(Card card)
+        {
+            Hand.Add(card);
+        }
+
         // remove card method
         public void RemoveCard(Card card)
         {
@@ -26,6 +32,21 @@ namespace DeuxCentsCardGame
             {
                 Console.WriteLine($"{i}: {Hand[i]}");
             }
+            Thread.Sleep(300);
+            Console.WriteLine();
+        }
+
+        public static void DisplayPlayerHand(Player player, int left, int top)
+        {
+            Console.SetCursorPosition(left, top);
+            Console.WriteLine($"{player.Name}'s hand:");
+            for (int i = 0; i < player.Hand.Count; i++)
+            {
+                Thread.Sleep(20);
+                Console.SetCursorPosition(left, top + i + 1);
+                Console.WriteLine($"{i} : {player.Hand[i]}");
+            }
+            Thread.Sleep(300);
         }
     }
 }

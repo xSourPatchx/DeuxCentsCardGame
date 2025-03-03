@@ -56,6 +56,7 @@ namespace DeuxCentsCardGame
     
         public void ShuffleDeck() // method to shuffle deck
         {
+            Thread.Sleep(200);
             Random random = new Random();
             int i = 0;
             while (i < Cards.Count)
