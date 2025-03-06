@@ -25,12 +25,13 @@ namespace DeuxCentsCardGame
             Hand.Remove(card); // in original code, i remove index, not "Card" object
         }
 
-        public void DisplayHand()
+        public static void DisplayHand(Player player)
         {
-            Console.WriteLine($"{Name}'s hand:");
-            for (int i = 0; i < Hand.Count; i++)
+            Console.WriteLine($"{player.Name}'s hand:");
+            for (int i = 0; i < player.Hand.Count; i++)
             {
-                Console.WriteLine($"{i}: {Hand[i]}");
+                Thread.Sleep(20);
+                Console.WriteLine($"{i}: {player.Hand[i]}");
             }
             Thread.Sleep(300);
             Console.WriteLine();
@@ -46,8 +47,7 @@ namespace DeuxCentsCardGame
                 Console.SetCursorPosition(left, top + i + 1);
                 Console.WriteLine($"{i} : {player.Hand[i]}");
             }
-            Thread.Sleep(300);
+            Thread.Sleep(200);
         }
     }
 }
-
