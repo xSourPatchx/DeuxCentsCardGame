@@ -7,7 +7,10 @@ namespace DeuxCentsCardGame
         private List<Player> players;
         private int highestBid;
         private int winningPlayerIndex;
-        string trumpSuit;
+        private string trumpSuit;
+        private int teamOnePoints = 0;
+        private int teamTwoPoints = 0;
+
 
         public Game()
         {
@@ -23,12 +26,13 @@ namespace DeuxCentsCardGame
 
         public void Start()
         {
-            // shuffle deck 3 times
             Console.WriteLine("Shuffling and dealing cards...");
+            // shuffle deck 3 times
             deck.ShuffleDeck();
             deck.ShuffleDeck();
             deck.ShuffleDeck();
-
+            
+            // deal cards to all (Player) players
             DealCards();
 
             // to display hands normally
@@ -211,7 +215,115 @@ namespace DeuxCentsCardGame
 
         private void PlayRound()
         {
-            Console.WriteLine("delete me later");
+            int currentPlayerIndex = winningPlayerIndex;
+            string leadingSuit = null;
+            int playerIndex;
+            Player currentPlayer;
+            bool validInput = false;
+            int cardIndex = -1; // initializing invalid input
+            int trickPoints = 0;
+
+            // for the 10 tricks
+            for (int trick = 0; trick < 10; trick++)
+            {
+                Console.WriteLine("\n#########################\n");
+                Console.WriteLine($"Trick #{trick + 1}:");
+
+                List<Card> currentTrick = new List<Card>(); // empty list to hold tricks
+
+                for (int i = 0; i < 4; i++)
+                {
+                    playerIndex = (currentPlayerIndex + i) % 4; // ensuring player who won the bet goes first
+                    currentPlayer = players[playerIndex];
+
+                    Player.DisplayHand(currentPlayer); // display current players hand
+
+                    // adding loop to validate user input
+                    while (!validInput)
+                    {
+                        Console.WriteLine($"{currentPlayer.Name}, choose a card to play (enter index 0-{currentPlayer.Hand.Count - 1}, leading suit is {leadingSuit} and trump suit is {trumpSuit}):");
+                        string Input = Console.ReadLine();
+
+                        if (int.TryParse(Input, out cardIndex) && cardIndex < currentPlayer.Hand.Count && cardIndex >= 0)
+                        {
+                            if (i == 0)
+                            {
+                                validInput = true;
+                            }
+                            else
+                            {
+                                if (currentPlayer.Hand[cardIndex].cardSuit != leadingSuit && currentPlayer.Hand.Any(card => card.cardSuit == leadingSuit))
+                                {
+                                    Console.WriteLine();
+                                    Console.WriteLine($"You must play a card of ({leadingSuit}) since its in your deck, try again.");
+                                    Console.WriteLine();
+                                }
+                                else
+                                {
+                                    validInput = true;
+                                }
+                            }
+                        }
+                        else
+                        {
+                            Console.WriteLine($"{cardIndex} is an invalid input, please try again.");
+                        }
+                    }
+
+                    Card playedCard = currentPlayer.Hand[cardIndex];
+                    currentPlayer.RemoveCard(playedCard);
+
+                    if (i == 0)
+                    {
+                        leadingSuit = playedCard.cardSuit;
+                    }
+
+                    currentTrick.Add(playedCard);
+                    Console.WriteLine($"{currentPlayer.Name} played {playedCard}");
+                }
+
+                // determine the winner of the trick
+                winningPlayerIndex = DetermineTrickWinnerIndex(currentTrick, trumpSuit);
+                currentPlayerIndex = (currentPlayerIndex + winningPlayerIndex) % 4;
+                Console.WriteLine($"{players[currentPlayerIndex].Name} won the trick with {currentTrick[winningPlayerIndex]}");
+
+                // adding all points to trickPoints
+                trickPoints = currentTrick.Sum(card => card.cardPointValue);
+                if (currentPlayerIndex == 0 || currentPlayerIndex == 2)
+                {
+                    Console.WriteLine($"{players[currentPlayerIndex].Name} collected {trickPoints} points for Team 1");
+                    teamOnePoints += trickPoints;
+                }
+                else
+                {
+                    Console.WriteLine($"{players[currentPlayerIndex].Name} collected {trickPoints} points for Team 2");
+                    teamTwoPoints += trickPoints;
+                }
+            }
+        }
+
+        private int DetermineTrickWinnerIndex(List<Card> trick, string trumpSuit)
+        {
+            winningPlayerIndex = 0;
+
+            for (int i = 1; i < trick.Count; i++)
+            {
+                // Check if the current card is a trump card AND the winning card is not a trump card
+                if (trick[i].cardSuit == trumpSuit && trick[winningPlayerIndex].cardSuit != trumpSuit)
+                {
+                    winningPlayerIndex = i;
+                }
+                // Check if both cards are trump cards or both are not trump cards
+                else if (trick[i].cardSuit == trick[winningPlayerIndex].cardSuit)
+                {
+                    if (trick[i].cardFaceValue > trick[winningPlayerIndex].cardFaceValue)
+                    {
+                        winningPlayerIndex = i;
+                    }
+                }
+            }
+
+            return winningPlayerIndex;    
         }
     }
 }
