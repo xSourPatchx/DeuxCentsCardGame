@@ -44,11 +44,10 @@ namespace DeuxCentsCardGame
 
             // diplay hands using quadrants, could be optimized by putting all in method
             Player.DisplayPlayerHand(players[0], 0, 0);
-            Console.WriteLine("\n#########################\n");
+            Console.WriteLine("\n########################################################################################################################\n");
             Player.DisplayPlayerHand(players[1], Console.WindowWidth / 2, 0);
-            Console.WriteLine("\n#########################\n");
             Player.DisplayPlayerHand(players[2], 0, Console.WindowHeight / 2);
-            Console.WriteLine("\n#########################\n");
+            Console.WriteLine("\n########################################################################################################################\n");
             Player.DisplayPlayerHand(players[3], Console.WindowWidth / 2, Console.WindowHeight / 2); 
             Console.WriteLine("\n#########################\n");
 
@@ -138,7 +137,7 @@ namespace DeuxCentsCardGame
                                             bets.Add(-1);
                                         else
                                             bets[j] = -1;
-                                        Console.WriteLine($"{players[j].Name} automatically passes.");
+                                        //Console.WriteLine($"{players[j].Name} automatically passes.");
                                     }
                                 }
                                 break; // Exit the for loop

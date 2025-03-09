@@ -34,7 +34,6 @@ namespace DeuxCentsCardGame
                 Console.WriteLine($"{i}: {player.Hand[i]}");
             }
             Thread.Sleep(300);
-            Console.WriteLine();
         }
 
         public static void DisplayPlayerHand(Player player, int left, int top)
