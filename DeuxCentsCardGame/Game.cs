@@ -31,10 +31,8 @@ namespace DeuxCentsCardGame
             deck.ShuffleDeck();
             deck.ShuffleDeck();
             DealCards();
-            // Player.DisplayAllPlayersHand(players[0], players[1], players[2], players[3]);
             Player.DisplayAllPlayersHandQuadrant(players[0], players[1], players[2], players[3]);
             BettingRound();
-            Player.DisplayHand(players[winningBidIndex]);
             SelectTrumpSuit();
             PlayRound();
             EndRound();
@@ -45,7 +43,7 @@ namespace DeuxCentsCardGame
             Console.WriteLine("Dealing cards...");
             for (int i = 0; i < deck.Cards.Count; i++)
             {
-                players[i % 4].AddCard(deck.Cards[i]);
+                players[i % players.Count].AddCard(deck.Cards[i]);
             }
         }
 
@@ -168,6 +166,7 @@ namespace DeuxCentsCardGame
             Console.WriteLine();
             Console.WriteLine($"{players[winningBidIndex].Name} won the bid.");
             Console.WriteLine("\n#########################\n");
+            Player.DisplayHand(players[winningBidIndex]);
         }
 
         private void SelectTrumpSuit()
@@ -191,11 +190,12 @@ namespace DeuxCentsCardGame
             Player currentPlayer;
             int currentPlayerIndex;
             int trickWinnerIndex;
-            
+            int totalTricks; 
+
             currentPlayerIndex = winningBidIndex;
 
-            // for the 10 tricks
-            for (int trick = 0; trick < 10; trick++)
+            totalTricks = players[currentPlayerIndex].Hand.Count;
+            for (int trick = 0; trick < totalTricks; trick++)
             {
                 int trickPoints = 0;
                 string leadingSuit = null;
