@@ -5,12 +5,16 @@ namespace DeuxCentsCardGame
         // List<Card> deck = new List<Card>();
         private Deck deck;
         private List<Player> players;
+        bool gameEnded = false;
         private int winningBid;
         private int winningBidIndex;
         private int winningPlayerIndex;
         private string trumpSuit;
         private int teamOnePoints = 0;
         private int teamTwoPoints = 0;
+        private int shuffleCount = 3;
+        private int teamOneTotalPoints;
+        private int teamTwoTotalPoints;
 
 
         public Game()
@@ -22,24 +26,64 @@ namespace DeuxCentsCardGame
                 new Player("Player 2"),
                 new Player("Player 3"),
                 new Player("Player 4"),
-            }; 
+            };
+
+
         }
 
         public void Start()
         {
-            deck.ShuffleDeck();
-            deck.ShuffleDeck();
-            deck.ShuffleDeck();
-            DealCards();
-            Player.DisplayAllPlayersHandQuadrant(players[0], players[1], players[2], players[3]);
-            BettingRound();
-            SelectTrumpSuit();
-            PlayRound();
-            EndRound();
+            while (!gameEnded)
+            {
+                Console.Clear();
+                Console.WriteLine("Starting a new round...");
+
+                deck = new Deck();
+                teamOnePoints = 0;
+                teamTwoPoints = 0;
+                winningBid = 0;
+                winningBidIndex = 0;
+
+                for (int i = 0; i < shuffleCount; i++) { deck.ShuffleDeck(); }
+                DealCards();
+                Player.DisplayAllPlayersHandQuadrant(players[0], players[1], players[2], players[3]);
+
+                BettingRound();
+                SelectTrumpSuit();
+                PlayRound();
+                EndRound();
+
+                teamOneTotalPoints += teamOnePoints;
+                teamTwoTotalPoints += teamTwoPoints;
+                
+                Console.WriteLine();
+
+                Console.WriteLine($"Team One has a total of {teamOneTotalPoints} points");
+                Console.WriteLine($"Team Two has a total of {teamTwoTotalPoints} points");
+
+                if (teamOneTotalPoints >= 200 || teamTwoTotalPoints >= 200)
+                {
+                    Console.WriteLine("\n#########################\n");
+                    Console.WriteLine("Game over!");
+                    Console.WriteLine($"Team One finished with {teamOneTotalPoints} points");
+                    Console.WriteLine($"Team Two finished with {teamTwoTotalPoints} points");
+                    gameEnded = true;
+                }
+                else
+                {
+                    Console.WriteLine("\nPress any key to start the next round...");
+                    Console.ReadKey();
+                }
+            }
         }
 
         private void DealCards()
         {
+            foreach (Player player in players)
+            {
+                player.Hand.Clear();
+            }
+
             Console.WriteLine("Dealing cards...");
             for (int i = 0; i < deck.Cards.Count; i++)
             {
@@ -47,7 +91,7 @@ namespace DeuxCentsCardGame
             }
         }
 
-        private void BettingRound()
+        public void BettingRound()
         {
             Console.WriteLine("Betting round begins!\n");
             List<int> bets = new List<int>(); // store bets
@@ -318,7 +362,9 @@ namespace DeuxCentsCardGame
                 else
                 {
                     Console.WriteLine($"Team One did not make their bet of {winningBid} and loses {winningBid} points.");
+                    teamOnePoints = winningBid * -1;
                 }
+                Console.WriteLine();
             }
             else
             {
@@ -329,7 +375,9 @@ namespace DeuxCentsCardGame
                 else
                 {
                     Console.WriteLine($"Team Two did not make their bet of {winningBid} and loses {winningBid} points.");
+                    teamOnePoints = winningBid * -1;
                 }
+                Console.WriteLine();
             }
         }
     }
