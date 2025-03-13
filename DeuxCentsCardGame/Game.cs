@@ -27,53 +27,23 @@ namespace DeuxCentsCardGame
 
         public void Start()
         {
-            Console.WriteLine("Shuffling and dealing cards...");
-            // shuffle deck 3 times
             deck.ShuffleDeck();
             deck.ShuffleDeck();
             deck.ShuffleDeck();
-            
-            // deal cards to all (Player) players
             DealCards();
-
-            // to display hands normally
-            //players[0].DisplayHand();
-            //players[1].DisplayHand();
-            //players[2].DisplayHand();
-            //players[3].DisplayHand();
-
-            // diplay hands using quadrants, could be optimized by putting all in method
-            Player.DisplayPlayerHand(players[0], 0, 0);
-            Console.WriteLine("\n########################################################################################################################\n");
-            Player.DisplayPlayerHand(players[1], Console.WindowWidth / 2, 0);
-            Player.DisplayPlayerHand(players[2], 0, Console.WindowHeight / 2);
-            Console.WriteLine("\n########################################################################################################################\n");
-            Player.DisplayPlayerHand(players[3], Console.WindowWidth / 2, Console.WindowHeight / 2); 
-            Console.WriteLine("\n#########################\n");
-
-            // Betting round
+            Player.DisplayAllPlayersHandQuadrant(players[0], players[1], players[2], players[3]);
             BettingRound();
-            Console.WriteLine("\n#########################\n");
-            Player.DisplayHand(players[winningPlayerIndex]);
-            Console.WriteLine();
-
             SelectTrumpSuit();
-
             PlayRound();
-
             EndRound();
-
-            // bug!! doesnt properly find the winning index, check PlayRound and DetermineTrickWinner method
-
-            // left off here
-            // next steps..
         }
 
         private void DealCards()
         {
+            Console.WriteLine("Dealing cards...");
             for (int i = 0; i < deck.Cards.Count; i++)
             {
-                players[i % 4].AddCard(deck.Cards[i]);
+                players[i % players.Count].AddCard(deck.Cards[i]);
             }
         }
 
@@ -195,6 +165,8 @@ namespace DeuxCentsCardGame
             winningBidIndex = bets.IndexOf(winningBid);
             Console.WriteLine();
             Console.WriteLine($"{players[winningBidIndex].Name} won the bid.");
+            Console.WriteLine("\n#########################\n");
+            Player.DisplayHand(players[winningBidIndex]);
         }
 
         private void SelectTrumpSuit()
@@ -218,12 +190,12 @@ namespace DeuxCentsCardGame
             Player currentPlayer;
             int currentPlayerIndex;
             int trickWinnerIndex;
-            
+            int totalTricks; 
 
             currentPlayerIndex = winningBidIndex;
 
-            // for the 10 tricks
-            for (int trick = 0; trick < 10; trick++)
+            totalTricks = players[currentPlayerIndex].Hand.Count;
+            for (int trick = 0; trick < totalTricks; trick++)
             {
                 int trickPoints = 0;
                 string leadingSuit = null;
@@ -288,7 +260,7 @@ namespace DeuxCentsCardGame
                 // determine the winner of the trick
                 winningPlayerIndex = DetermineTrickWinnerIndex(currentTrick, trumpSuit);
                 trickWinnerIndex = (currentPlayerIndex + winningPlayerIndex) % 4;
-                Console.WriteLine($"{players[winningPlayerIndex].Name} won the trick with {currentTrick[winningPlayerIndex]}");
+                Console.WriteLine($"{players[trickWinnerIndex].Name} won the trick with {currentTrick[winningPlayerIndex]}");
                 currentPlayerIndex = trickWinnerIndex;
 
                 // adding all points to trickPoints

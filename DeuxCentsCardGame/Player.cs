@@ -36,7 +36,15 @@ namespace DeuxCentsCardGame
             Thread.Sleep(300);
         }
 
-        public static void DisplayPlayerHand(Player player, int left, int top)
+        public static void DisplayAllPlayersHand(Player playerOne, Player playerTwo, Player playerThree, Player playerFour)
+        {
+            Player.DisplayHand(playerOne);
+            Player.DisplayHand(playerTwo);
+            Player.DisplayHand(playerThree);
+            Player.DisplayHand(playerFour);
+        }
+
+        public static void DisplayPlayerHandQuadrant(Player player, int left, int top)
         {
             Console.SetCursorPosition(left, top);
             Console.WriteLine($"{player.Name}'s hand:");
@@ -47,6 +55,18 @@ namespace DeuxCentsCardGame
                 Console.WriteLine($"{i} : {player.Hand[i]}");
             }
             Thread.Sleep(200);
+        }
+
+        public static void DisplayAllPlayersHandQuadrant(Player playerOne, Player playerTwo, Player playerThree, Player playerFour)
+        {
+            Player.DisplayPlayerHandQuadrant(playerOne, 0, 0);
+            Console.WriteLine("\n#########################\n");
+            Player.DisplayPlayerHandQuadrant(playerTwo, Console.WindowWidth / 2, 0);
+            Console.WriteLine("\n#########################\n");
+            Player.DisplayPlayerHandQuadrant(playerThree, 0, Console.WindowHeight / 2);
+            Console.WriteLine("\n#########################\n");
+            Player.DisplayPlayerHandQuadrant(playerFour, Console.WindowWidth / 2, Console.WindowHeight / 2); 
+            Console.WriteLine("\n#########################\n");
         }
     }
 }
