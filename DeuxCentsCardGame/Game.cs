@@ -5,7 +5,8 @@ namespace DeuxCentsCardGame
         // List<Card> deck = new List<Card>();
         private Deck deck;
         private List<Player> players;
-        bool gameEnded = false;
+        private bool gameEnded = false;
+        private bool[] hasBet;
         private int winningBid;
         private int winningBidIndex;
         private int winningPlayerIndex;
@@ -38,6 +39,7 @@ namespace DeuxCentsCardGame
                 Console.Clear();
                 Console.WriteLine("Starting a new round...");
 
+                // reset round specific variables
                 deck = new Deck();
                 teamOnePoints = 0;
                 teamTwoPoints = 0;
@@ -51,8 +53,9 @@ namespace DeuxCentsCardGame
                 BettingRound();
                 SelectTrumpSuit();
                 PlayRound();
-                EndRound();
+                EndRound(); // !!!!! change name of method !!!!!
 
+                // !!!!! can add below in endRound method !!!!!
                 teamOneTotalPoints += teamOnePoints;
                 teamTwoTotalPoints += teamTwoPoints;
                 
@@ -61,6 +64,7 @@ namespace DeuxCentsCardGame
                 Console.WriteLine($"Team One has a total of {teamOneTotalPoints} points");
                 Console.WriteLine($"Team Two has a total of {teamTwoTotalPoints} points");
 
+                // !!!!! make a method for below called endRound() !!!!!
                 if (teamOneTotalPoints >= 200 || teamTwoTotalPoints >= 200)
                 {
                     Console.WriteLine("\n#########################\n");
@@ -95,9 +99,9 @@ namespace DeuxCentsCardGame
         {
             Console.WriteLine("Betting round begins!\n");
             List<int> bets = new List<int>(); // store bets
-            bool[] hasBet = new bool[players.Count]; // track if a player has ever placed a bet
             bool[] hasPassed = new bool[players.Count]; // track if a player has passed
             bool bettingRoundEnded = false;
+            hasBet = new bool[players.Count]; // track if a player has placed a bet
 
             while (!bettingRoundEnded)
             {
@@ -348,12 +352,21 @@ namespace DeuxCentsCardGame
 
         private void EndRound() // tally points and end the round
         {
-            Console.WriteLine("\nEnd of round scoring:");
+            Console.WriteLine("\nEnd of round. Scoring:");
             Console.WriteLine($"Team One (Player 1 & Player 3) scored : {teamOnePoints}");
             Console.WriteLine($"Team Two (Player 2 & Player 4) scored : {teamTwoPoints}");
 
+            // testing begins here
+
+            if (teamOneTotalPoints >= 100 && (hasBet[0] || hasBet[2]))
+            {
+                Console.WriteLine($"team ones bet will count");
+            }
+
+            // tetsting ends here
+
             // Check if the betting team made their bet
-            if (winningBidIndex == 0 || winningBidIndex == 2)
+            if (winningBidIndex == 0 || winningBidIndex == 2) // team one
             {
                 if (teamOnePoints >= winningBid)
                 {
@@ -366,7 +379,7 @@ namespace DeuxCentsCardGame
                 }
                 Console.WriteLine();
             }
-            else
+            else // team two
             {
                 if (teamTwoPoints >= winningBid)
                 {
