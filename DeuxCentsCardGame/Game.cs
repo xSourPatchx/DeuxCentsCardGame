@@ -2,7 +2,6 @@ namespace DeuxCentsCardGame
 {
     public class Game
     {
-        // List<Card> deck = new List<Card>();
         private Deck deck;
         private List<Player> players;
         private bool gameEnded = false;
@@ -28,8 +27,6 @@ namespace DeuxCentsCardGame
                 new Player("Player 3"),
                 new Player("Player 4"),
             };
-
-
         }
 
         public void Start()
@@ -49,27 +46,11 @@ namespace DeuxCentsCardGame
                 for (int i = 0; i < shuffleCount; i++) { deck.ShuffleDeck(); }
                 DealCards();
                 Player.DisplayAllPlayersHandQuadrant(players[0], players[1], players[2], players[3]);
-
                 BettingRound();
                 SelectTrumpSuit();
                 PlayRound();
-                UpdateTotalPoints(); // need to keep testing this method
-
-
-                // !!!!! make a method for below called endRound() !!!!!
-                if (teamOneTotalPoints >= 200 || teamTwoTotalPoints >= 200)
-                {
-                    Console.WriteLine("\n#########################\n");
-                    Console.WriteLine("Game over!");
-                    Console.WriteLine($"Team One finished with {teamOneTotalPoints} points");
-                    Console.WriteLine($"Team Two finished with {teamTwoTotalPoints} points");
-                    gameEnded = true;
-                }
-                else
-                {
-                    Console.WriteLine("\nPress any key to start the next round...");
-                    Console.ReadKey();
-                }
+                UpdateTotalPoints();
+                EndGame();
             }
         }
 
@@ -147,7 +128,6 @@ namespace DeuxCentsCardGame
                                             bets.Add(-1);
                                         else
                                             bets[j] = -1;
-                                        //Console.WriteLine($"{players[j].Name} automatically passes.");
                                     }
                                 }
                                 break; // Exit the for loop
@@ -233,8 +213,9 @@ namespace DeuxCentsCardGame
             int totalTricks; 
 
             currentPlayerIndex = winningBidIndex;
-
+            
             totalTricks = players[currentPlayerIndex].Hand.Count;
+
             for (int trick = 0; trick < totalTricks; trick++)
             {
                 int trickPoints = 0;
@@ -349,12 +330,12 @@ namespace DeuxCentsCardGame
             Console.WriteLine($"Team Two (Player 2 & Player 4) scored : {teamTwoPoints}");
 
             // Check if the betting team made their bet
-            if (winningBidIndex == 0 || winningBidIndex == 2) // team one
+            if (winningBidIndex == 0 || winningBidIndex == 2) // team one won the bet
             {
-                if (teamOneTotalPoints >= 100 && (!hasBet[0] || !hasBet[2]))
+                if (teamTwoTotalPoints >= 100 && (!hasBet[0] || !hasBet[2]))
                 {
-                    Console.WriteLine($"Team One did not place any bets, there points do not count.");
-                    teamOnePoints = 0;
+                    Console.WriteLine($"Team One did not place any bets, their points do not count.");
+                    teamTwoPoints = 0;
                 }
 
                 if (teamOnePoints >= winningBid)
@@ -373,13 +354,12 @@ namespace DeuxCentsCardGame
                     teamOneTotalPoints += teamOnePoints;
                     teamTwoTotalPoints += teamTwoPoints;
                  }
-                Console.WriteLine();
             }
-            else // team two
+            else // team two won the bet
             {
-                if (teamTwoTotalPoints >= 100 && (!hasBet[1] || !hasBet[3]))
+                if (teamOneTotalPoints >= 100 && (!hasBet[1] || !hasBet[3]))
                 {
-                    Console.WriteLine($"Team Two did not place any bets, there points do not count.");
+                    Console.WriteLine($"Team Two did not place any bets, their points do not count.");
                     teamTwoPoints = 0;
                 }
 
@@ -400,11 +380,28 @@ namespace DeuxCentsCardGame
                     teamTwoTotalPoints += teamTwoPoints;
                     teamOneTotalPoints += teamOnePoints;
                 }
-                Console.WriteLine();
             }
 
+            Console.WriteLine();
             Console.WriteLine($"Team One has a total of {teamOneTotalPoints} points");
             Console.WriteLine($"Team Two has a total of {teamTwoTotalPoints} points");
+        }
+
+        private void EndGame()
+        {
+            if (teamOneTotalPoints >= 200 || teamTwoTotalPoints >= 200)
+            {
+                Console.WriteLine("\n#########################\n");
+                Console.WriteLine("Game over!");
+                Console.WriteLine($"Team One finished with {teamOneTotalPoints} points");
+                Console.WriteLine($"Team Two finished with {teamTwoTotalPoints} points");
+                gameEnded = true;
+            }
+            else
+            {
+                Console.WriteLine("\nPress any key to start the next round...");
+                Console.ReadKey();
+            }
         }
     }
 }
