@@ -53,16 +53,8 @@ namespace DeuxCentsCardGame
                 BettingRound();
                 SelectTrumpSuit();
                 PlayRound();
-                EndRound(); // !!!!! change name of method !!!!!
+                UpdateTotalPoints();
 
-                // !!!!! can add below in endRound method !!!!!
-                teamOneTotalPoints += teamOnePoints;
-                teamTwoTotalPoints += teamTwoPoints;
-                
-                Console.WriteLine();
-
-                Console.WriteLine($"Team One has a total of {teamOneTotalPoints} points");
-                Console.WriteLine($"Team Two has a total of {teamTwoTotalPoints} points");
 
                 // !!!!! make a method for below called endRound() !!!!!
                 if (teamOneTotalPoints >= 200 || teamTwoTotalPoints >= 200)
@@ -350,48 +342,61 @@ namespace DeuxCentsCardGame
             return winningPlayerIndex;    
         }
 
-        private void EndRound() // tally points and end the round
+        private void UpdateTotalPoints() // tally points and end the round
         {
             Console.WriteLine("\nEnd of round. Scoring:");
             Console.WriteLine($"Team One (Player 1 & Player 3) scored : {teamOnePoints}");
             Console.WriteLine($"Team Two (Player 2 & Player 4) scored : {teamTwoPoints}");
 
-            // testing begins here
-
-            if (teamOneTotalPoints >= 100 && (hasBet[0] || hasBet[2]))
-            {
-                Console.WriteLine($"team ones bet will count");
-            }
-
-            // tetsting ends here
-
             // Check if the betting team made their bet
             if (winningBidIndex == 0 || winningBidIndex == 2) // team one
             {
+                if (teamOneTotalPoints >= 100 && (!hasBet[0] || !hasBet[2]))
+                {
+                    Console.WriteLine($"Team One did not place any bets, there points do not count.");
+                    teamOnePoints = 0;
+                }
+
                 if (teamOnePoints >= winningBid)
                 {
-                    Console.WriteLine($"Team One made their bet of {winningBid} and gains {teamOnePoints} points.");
+                    teamOneTotalPoints += teamOnePoints;
+                    Console.WriteLine($"Team One made their bet of {winningBid} and wins {teamOnePoints} points.");
+
                 }
                 else
                 {
                     Console.WriteLine($"Team One did not make their bet of {winningBid} and loses {winningBid} points.");
                     teamOnePoints = winningBid * -1;
-                }
+                    teamOneTotalPoints += teamOnePoints;
+                    teamTwoTotalPoints += teamTwoPoints;
+                 }
                 Console.WriteLine();
             }
             else // team two
             {
+                if (teamTwoTotalPoints >= 100 && (!hasBet[1] || !hasBet[3]))
+                {
+                    Console.WriteLine($"Team Two did not place any bets, there points do not count.");
+                    teamTwoPoints = 0;
+                }
+
                 if (teamTwoPoints >= winningBid)
                 {
-                    Console.WriteLine($"Team Two made their bet of {winningBid} and gains {teamTwoPoints} points.");
+                    teamTwoTotalPoints += teamTwoPoints;
+                    Console.WriteLine($"Team Two made their bet of {winningBid} and wins {teamTwoPoints} points.");
+
                 }
                 else
                 {
                     Console.WriteLine($"Team Two did not make their bet of {winningBid} and loses {winningBid} points.");
-                    teamOnePoints = winningBid * -1;
+                    teamTwoPoints = winningBid * -1;
+                    teamTwoTotalPoints += teamTwoPoints;
+                    teamOneTotalPoints += teamOnePoints;
                 }
                 Console.WriteLine();
             }
+            Console.WriteLine($"Team One has a total of {teamOneTotalPoints} points");
+            Console.WriteLine($"Team Two has a total of {teamTwoTotalPoints} points");
         }
     }
 }
