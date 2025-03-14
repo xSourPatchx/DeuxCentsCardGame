@@ -53,7 +53,7 @@ namespace DeuxCentsCardGame
                 BettingRound();
                 SelectTrumpSuit();
                 PlayRound();
-                UpdateTotalPoints();
+                UpdateTotalPoints(); // need to keep testing this method
 
 
                 // !!!!! make a method for below called endRound() !!!!!
@@ -359,9 +359,12 @@ namespace DeuxCentsCardGame
 
                 if (teamOnePoints >= winningBid)
                 {
-                    teamOneTotalPoints += teamOnePoints;
                     Console.WriteLine($"Team One made their bet of {winningBid} and wins {teamOnePoints} points.");
-
+                    teamOneTotalPoints += teamOnePoints;
+                    if (teamTwoTotalPoints < 100)
+                    {
+                        teamTwoTotalPoints += teamTwoPoints;
+                    }
                 }
                 else
                 {
@@ -382,9 +385,13 @@ namespace DeuxCentsCardGame
 
                 if (teamTwoPoints >= winningBid)
                 {
-                    teamTwoTotalPoints += teamTwoPoints;
                     Console.WriteLine($"Team Two made their bet of {winningBid} and wins {teamTwoPoints} points.");
+                    teamTwoTotalPoints += teamTwoPoints;
 
+                    if (teamOneTotalPoints < 100)
+                    {
+                        teamOneTotalPoints += teamOnePoints;
+                    }
                 }
                 else
                 {
@@ -395,6 +402,7 @@ namespace DeuxCentsCardGame
                 }
                 Console.WriteLine();
             }
+
             Console.WriteLine($"Team One has a total of {teamOneTotalPoints} points");
             Console.WriteLine($"Team Two has a total of {teamTwoTotalPoints} points");
         }
