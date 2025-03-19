@@ -1,3 +1,5 @@
+using Microsoft.Win32.SafeHandles;
+
 namespace DeuxCentsCardGame
 {
     public class Game
@@ -6,6 +8,7 @@ namespace DeuxCentsCardGame
         private List<Player> players;
         private bool gameEnded = false;
         private bool[] hasBet;
+        private int dealerIndex = 0; // player 4 will start as the dealer
         private int winningBid;
         private int winningBidIndex;
         private int winningPlayerIndex;
@@ -38,7 +41,11 @@ namespace DeuxCentsCardGame
                 ResetRound();
                 for (int i = 0; i < shuffleCount; i++) { deck.ShuffleDeck(); }
                 DealCards();
-                Player.DisplayAllPlayersHandQuadrant(players[0], players[1], players[2], players[3]);
+                Console.WriteLine($"dealerIndex:{dealerIndex}");
+                Player.DisplayAllPlayersHandQuadrant(players[(dealerIndex + 0) % players.Count], 
+                                                     players[(dealerIndex + 1) % players.Count], 
+                                                     players[(dealerIndex + 2) % players.Count], 
+                                                     players[(dealerIndex + 3) % players.Count]);
                 BettingRound();
                 SelectTrumpSuit();
                 PlayRound();
@@ -54,6 +61,11 @@ namespace DeuxCentsCardGame
             teamTwoRoundPoints = 0;
             winningBid = 0;
             winningBidIndex = 0;
+        }
+
+        private void RotateDealer()
+        {
+            dealerIndex = (dealerIndex + 1) % players.Count;
         }
 
         private void DealCards()
@@ -73,6 +85,7 @@ namespace DeuxCentsCardGame
         public void BettingRound()
         {
             Console.WriteLine("Betting round begins!\n");
+            int playerIndex;
             List<int> bets = new List<int>(); // store bets
             bool[] hasPassed = new bool[players.Count]; // track if a player has passed
             bool bettingRoundEnded = false;
@@ -82,48 +95,49 @@ namespace DeuxCentsCardGame
             {
                 for (int i = 0; i < players.Count; i++)
                 {
-                    if (hasPassed[i])
+                    playerIndex = (dealerIndex + i) % players.Count;
+                    if (hasPassed[playerIndex])
                     {
                         continue; // Skip players who have already passed
                     }
 
-                    Console.WriteLine($"{players[i].Name}, enter a bet (between 50-100, intervals of 5) or 'pass': ");
+                    Console.WriteLine($"{players[playerIndex].Name}, enter a bet (between 50-100, intervals of 5) or 'pass': ");
                     string betInput = Console.ReadLine().ToLower();
 
                     if (betInput == "pass")
                     {
-                        Console.WriteLine($"{players[i].Name} passed\n");
-                        hasPassed[i] = true;
-                        if (bets.Count <= i)
+                        Console.WriteLine($"{players[playerIndex].Name} passed\n");
+                        hasPassed[playerIndex] = true;
+                        if (bets.Count <= playerIndex)
                             bets.Add(-1);
                         else
-                            bets[i] = -1;
+                            bets[playerIndex] = -1;
                     }
                     else if (int.TryParse(betInput, out int bet))
                     {
                         if (bet >= 50 && bet <= 100 && bet % 5 == 0 && !bets.Contains(bet))
                         {
-                            if (bets.Count <= i)
+                            if (bets.Count <= playerIndex)
                             {
                                 bets.Add(bet);
                             }
                             else
                             {
-                                bets[i] = bet;
+                                bets[playerIndex] = bet;
                             }
-                            hasBet[i] = true;
+                            hasBet[playerIndex] = true;
                             Console.WriteLine();
 
                             // Check if the bet is 100
                             if (bet == 100)
                             {
                                 bettingRoundEnded = true; // End the betting round immediately
-                                Console.WriteLine($"{players[i].Name} bet 100. Betting round ends.\n");
+                                Console.WriteLine($"{players[playerIndex].Name} bet 100. Betting round ends.\n");
 
                                 // Set all subsequent players who haven't placed a bet to -1
-                                for (int j = i + 1; j < players.Count; j++)
+                                for (int j = playerIndex + 1; j < players.Count; j++)
                                 {
-                                    if (j != i && !hasPassed[j])
+                                    if (j != playerIndex && !hasPassed[j])
                                     {
                                         hasPassed[j] = true;
                                         if (bets.Count <= j)
@@ -138,13 +152,13 @@ namespace DeuxCentsCardGame
                         else
                         {
                             Console.WriteLine("Invalid bet");
-                            i--;
+                            playerIndex--;
                         }
                     }
                     else
                     {
                         Console.WriteLine("Invalid input");
-                        i--;
+                        playerIndex--;
                     }
                     // End the betting round if 3 players have passed
                     if (hasPassed.Count(p => p) >= 3)
@@ -159,7 +173,7 @@ namespace DeuxCentsCardGame
                         else
                         {
                             bets.Add(50);
-                            hasBet[i + 1] = true;
+                            hasBet[playerIndex + 1] = true;
                             bettingRoundEnded = true;
                             break;
                         }
@@ -401,6 +415,7 @@ namespace DeuxCentsCardGame
             }
             else
             {
+                RotateDealer();
                 Console.WriteLine("\nPress any key to start the next round...");
                 Console.ReadKey();
             }
