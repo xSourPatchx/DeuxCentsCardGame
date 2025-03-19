@@ -10,8 +10,8 @@ namespace DeuxCentsCardGame
         private int winningBidIndex;
         private int winningPlayerIndex;
         private string trumpSuit;
-        private int teamOnePoints = 0;
-        private int teamTwoPoints = 0;
+        private int teamOneRoundPoints = 0;
+        private int teamTwoRoundPoints = 0;
         private int shuffleCount = 3;
         private int teamOneTotalPoints;
         private int teamTwoTotalPoints;
@@ -35,14 +35,7 @@ namespace DeuxCentsCardGame
             {
                 Console.Clear();
                 Console.WriteLine("Starting a new round...");
-
-                // reset round specific variables
-                deck = new Deck();
-                teamOnePoints = 0;
-                teamTwoPoints = 0;
-                winningBid = 0;
-                winningBidIndex = 0;
-
+                ResetRound();
                 for (int i = 0; i < shuffleCount; i++) { deck.ShuffleDeck(); }
                 DealCards();
                 Player.DisplayAllPlayersHandQuadrant(players[0], players[1], players[2], players[3]);
@@ -52,6 +45,15 @@ namespace DeuxCentsCardGame
                 UpdateTotalPoints();
                 EndGame();
             }
+        }
+
+        private void ResetRound()
+        {
+            deck = new Deck();
+            teamOneRoundPoints = 0;
+            teamTwoRoundPoints = 0;
+            winningBid = 0;
+            winningBidIndex = 0;
         }
 
         private void DealCards()
@@ -289,12 +291,12 @@ namespace DeuxCentsCardGame
                 if (trickWinnerIndex == 0 || trickWinnerIndex == 2)
                 {
                     Console.WriteLine($"{players[trickWinnerIndex].Name} collected {trickPoints} points for Team 1");
-                    teamOnePoints += trickPoints;
+                    teamOneRoundPoints += trickPoints;
                 }
                 else
                 {
                     Console.WriteLine($"{players[trickWinnerIndex].Name} collected {trickPoints} points for Team 2");
-                    teamTwoPoints += trickPoints;
+                    teamTwoRoundPoints += trickPoints;
                 }
             }
         }
@@ -326,8 +328,8 @@ namespace DeuxCentsCardGame
         private void UpdateTotalPoints() // tally points and end the round
         {
             Console.WriteLine("\nEnd of round. Scoring:");
-            Console.WriteLine($"Team One (Player 1 & Player 3) scored : {teamOnePoints}");
-            Console.WriteLine($"Team Two (Player 2 & Player 4) scored : {teamTwoPoints}");
+            Console.WriteLine($"Team One (Player 1 & Player 3) scored : {teamOneRoundPoints}");
+            Console.WriteLine($"Team Two (Player 2 & Player 4) scored : {teamTwoRoundPoints}");
 
             // Check if the betting team made their bet
             if (winningBidIndex == 0 || winningBidIndex == 2) // team one won the bet
@@ -335,24 +337,24 @@ namespace DeuxCentsCardGame
                 if (teamTwoTotalPoints >= 100 && (!hasBet[0] || !hasBet[2]))
                 {
                     Console.WriteLine($"Team One did not place any bets, their points do not count.");
-                    teamTwoPoints = 0;
+                    teamTwoRoundPoints = 0;
                 }
 
-                if (teamOnePoints >= winningBid)
+                if (teamOneRoundPoints >= winningBid)
                 {
-                    Console.WriteLine($"Team One made their bet of {winningBid} and wins {teamOnePoints} points.");
-                    teamOneTotalPoints += teamOnePoints;
+                    Console.WriteLine($"Team One made their bet of {winningBid} and wins {teamOneRoundPoints} points.");
+                    teamOneTotalPoints += teamOneRoundPoints;
                     if (teamTwoTotalPoints < 100)
                     {
-                        teamTwoTotalPoints += teamTwoPoints;
+                        teamTwoTotalPoints += teamTwoRoundPoints;
                     }
                 }
                 else
                 {
                     Console.WriteLine($"Team One did not make their bet of {winningBid} and loses {winningBid} points.");
-                    teamOnePoints = winningBid * -1;
-                    teamOneTotalPoints += teamOnePoints;
-                    teamTwoTotalPoints += teamTwoPoints;
+                    teamOneRoundPoints = winningBid * -1;
+                    teamOneTotalPoints += teamOneRoundPoints;
+                    teamTwoTotalPoints += teamTwoRoundPoints;
                  }
             }
             else // team two won the bet
@@ -360,25 +362,25 @@ namespace DeuxCentsCardGame
                 if (teamOneTotalPoints >= 100 && (!hasBet[1] || !hasBet[3]))
                 {
                     Console.WriteLine($"Team Two did not place any bets, their points do not count.");
-                    teamTwoPoints = 0;
+                    teamTwoRoundPoints = 0;
                 }
 
-                if (teamTwoPoints >= winningBid)
+                if (teamTwoRoundPoints >= winningBid)
                 {
-                    Console.WriteLine($"Team Two made their bet of {winningBid} and wins {teamTwoPoints} points.");
-                    teamTwoTotalPoints += teamTwoPoints;
+                    Console.WriteLine($"Team Two made their bet of {winningBid} and wins {teamTwoRoundPoints} points.");
+                    teamTwoTotalPoints += teamTwoRoundPoints;
 
                     if (teamOneTotalPoints < 100)
                     {
-                        teamOneTotalPoints += teamOnePoints;
+                        teamOneTotalPoints += teamOneRoundPoints;
                     }
                 }
                 else
                 {
                     Console.WriteLine($"Team Two did not make their bet of {winningBid} and loses {winningBid} points.");
-                    teamTwoPoints = winningBid * -1;
-                    teamTwoTotalPoints += teamTwoPoints;
-                    teamOneTotalPoints += teamOnePoints;
+                    teamTwoRoundPoints = winningBid * -1;
+                    teamTwoTotalPoints += teamTwoRoundPoints;
+                    teamOneTotalPoints += teamOneRoundPoints;
                 }
             }
 
