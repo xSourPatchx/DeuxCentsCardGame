@@ -60,11 +60,8 @@ namespace DeuxCentsCardGame
         public static void DisplayAllPlayersHandQuadrant(Player playerOne, Player playerTwo, Player playerThree, Player playerFour)
         {
             Player.DisplayPlayerHandQuadrant(playerOne, 0, 6);
-            Console.WriteLine("\n#########################\n");
-            Player.DisplayPlayerHandQuadrant(playerTwo, Console.WindowWidth / 2, 6);
-            Console.WriteLine("\n#########################\n");
+            Player.DisplayPlayerHandQuadrant(playerTwo, Console.WindowWidth / 2, 6);       
             Player.DisplayPlayerHandQuadrant(playerThree, 0, (Console.WindowHeight / 2) + 6);
-            Console.WriteLine("\n#########################\n");
             Player.DisplayPlayerHandQuadrant(playerFour, Console.WindowWidth / 2, (Console.WindowHeight / 2) + 6); 
             Console.WriteLine("\n#########################\n");
         }
