@@ -3,6 +3,8 @@ namespace DeuxCentsCardGame
     public class Deck
     {
         public List<Card> Cards;
+        static readonly Random random = new ();
+
 
         public Deck()
         {
@@ -11,7 +13,20 @@ namespace DeuxCentsCardGame
         }
         private void InitializeCards()
         {
+            string[] cardSuits = { "clubs", "diamonds", "hearts", "spades" };
+            string[] cardFaces = { "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
+            int[] cardfaceValues = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
+            int[] cardPointValues = { 5, 0, 0, 0, 0, 10, 0, 0, 0, 10 };
+
+            foreach (string suit in cardSuits)
+            {
+                for (int c = 0; c < cardFaces.Length; c++)
+                {
+                    Cards.Add(new Card(cardFaces[c], suit, cardfaceValues[c], cardPointValues[c]));
+                }
+            }
             // append each Card to Cards list
+            /*
             Cards.Add(new Card("5", "clubs", 1, 5)); // clubs
             Cards.Add(new Card("6", "clubs", 2, 0));
             Cards.Add(new Card("7", "clubs", 3, 0));
@@ -52,22 +67,24 @@ namespace DeuxCentsCardGame
             Cards.Add(new Card("Q", "spades", 8, 0));
             Cards.Add(new Card("K", "spades", 9, 0));
             Cards.Add(new Card("A", "spades", 10, 10));
+            */
+
         }
     
-        public void ShuffleDeck() // method to shuffle deck
+        public void ShuffleDeck(int shuffleCount) // method to shuffle deck
         {
             Console.WriteLine("Shuffling cards...");
             Thread.Sleep(200);
-            Random random = new Random();
-            int i = 0;
-            while (i < Cards.Count)
+            for (int s = 0; s < shuffleCount; s++)
+            {
+                for (int i = 0; i < Cards.Count; i++)
                 {
                     int randomCardIndex = random.Next(i, Cards.Count);
                     Card temp = Cards[randomCardIndex];
                     Cards[randomCardIndex] = Cards[i];
                     Cards[i] = temp;
-                    i++;
                 }
+            }
         }
     }
 }

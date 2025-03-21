@@ -15,7 +15,7 @@ namespace DeuxCentsCardGame
         private string trumpSuit;
         private int teamOneRoundPoints = 0;
         private int teamTwoRoundPoints = 0;
-        private int shuffleCount = 3;
+        public int shuffleCount = 3;
         private int teamOneTotalPoints;
         private int teamTwoTotalPoints;
 
@@ -39,7 +39,7 @@ namespace DeuxCentsCardGame
                 Console.Clear();
                 Console.WriteLine("Starting a new round...");
                 ResetRound();
-                for (int i = 0; i < shuffleCount; i++) { deck.ShuffleDeck(); }
+                deck.ShuffleDeck(shuffleCount);
                 DealCards();
                 Player.DisplayAllPlayersHandQuadrant(players[(dealerIndex + 0) % players.Count], 
                                                      players[(dealerIndex + 1) % players.Count], 
@@ -266,7 +266,7 @@ namespace DeuxCentsCardGame
                             }
                             else
                             {
-                                if (currentPlayer.Hand[cardIndex].cardSuit != leadingSuit && currentPlayer.Hand.Any(card => card.cardSuit == leadingSuit))
+                                if (currentPlayer.Hand[cardIndex].CardSuit != leadingSuit && currentPlayer.Hand.Any(card => card.CardSuit == leadingSuit))
                                 {
                                     Console.WriteLine();
                                     Console.WriteLine($"You must play the suit of {leadingSuit} since it's in your deck, try again.");
@@ -289,7 +289,7 @@ namespace DeuxCentsCardGame
 
                     if (i == 0)
                     {
-                        leadingSuit = playedCard.cardSuit;
+                        leadingSuit = playedCard.CardSuit;
                     }
 
                     currentTrick.Add(playedCard);
@@ -304,7 +304,7 @@ namespace DeuxCentsCardGame
                 currentPlayerIndex = trickWinnerIndex;
 
                 // adding all points to trickPoints
-                trickPoints = currentTrick.Sum(card => card.cardPointValue);
+                trickPoints = currentTrick.Sum(card => card.CardPointValue);
                 if (trickWinnerIndex == 0 || trickWinnerIndex == 2)
                 {
                     Console.WriteLine($"{players[trickWinnerIndex].Name} collected {trickPoints} points for Team 1");
@@ -325,14 +325,14 @@ namespace DeuxCentsCardGame
             for (int i = 1; i < trick.Count; i++)
             {
                 // Check if the current card is a trump card AND the winning card is not a trump card
-                if (trick[i].cardSuit == trumpSuit && trick[winningPlayerIndex].cardSuit != trumpSuit)
+                if (trick[i].CardSuit == trumpSuit && trick[winningPlayerIndex].CardSuit != trumpSuit)
                 {
                     winningPlayerIndex = i;
                 }
                 // Check if both cards are trump cards or both are not trump cards
-                else if (trick[i].cardSuit == trick[winningPlayerIndex].cardSuit)
+                else if (trick[i].CardSuit == trick[winningPlayerIndex].CardSuit)
                 {
-                    if (trick[i].cardFaceValue > trick[winningPlayerIndex].cardFaceValue)
+                    if (trick[i].CardFaceValue > trick[winningPlayerIndex].CardFaceValue)
                     {
                         winningPlayerIndex = i;
                     }
