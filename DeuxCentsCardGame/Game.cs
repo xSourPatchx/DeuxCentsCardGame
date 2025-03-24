@@ -15,7 +15,7 @@ namespace DeuxCentsCardGame
         private int teamTwoRoundPoints = 0;
         private int teamOneTotalPoints;
         private int teamTwoTotalPoints;
-        public const int shuffleCount = 3;
+        public const int ShuffleCount = 3;
         private const int WinningScore = 200;
         private const int MinimumBet = 50;
         private const int MaximumBet = 100;
@@ -87,7 +87,6 @@ namespace DeuxCentsCardGame
                                                  players[(dealerIndex + 3) % players.Count]);
         }
 
-        // NEED TO FIX BETTING ROUND BUG
         public void BettingRound()
         {
             Console.WriteLine("Betting round begins!\n");
@@ -241,7 +240,6 @@ namespace DeuxCentsCardGame
             int totalTricks;
 
             currentPlayerIndex = winningBidIndex;
-
             totalTricks = players[currentPlayerIndex].Hand.Count;
 
             for (int trick = 0; trick < totalTricks; trick++)
