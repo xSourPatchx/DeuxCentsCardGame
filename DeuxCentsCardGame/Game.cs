@@ -3,7 +3,7 @@ namespace DeuxCentsCardGame
     public class Game
     {
         private Deck deck;
-        private readonly List<Player> players;
+        private List<Player> players;
         private bool gameEnded = false;
         private bool[] hasBet;
         private int dealerIndex = 3; // player 4 will start as the dealer
@@ -40,7 +40,7 @@ namespace DeuxCentsCardGame
                 Console.Clear();
                 Console.WriteLine("Starting a new round...");
                 ResetRound();
-                deck.ShuffleDeck(ShuffleCount);
+                deck.ShuffleDeck(shuffleCount);
                 DealCards();
                 DisplayAllHands();
                 BettingRound();
@@ -87,14 +87,7 @@ namespace DeuxCentsCardGame
                                                  players[(dealerIndex + 3) % players.Count]);
         }
 
-        private void DisplayAllHands()
-        {
-            Player.DisplayAllPlayersHandQuadrant(players[(dealerIndex) % players.Count], 
-                                                 players[(dealerIndex + 1) % players.Count], 
-                                                 players[(dealerIndex + 2) % players.Count], 
-                                                 players[(dealerIndex + 3) % players.Count]);
-        }
-
+        // NEED TO FIX BETTING ROUND BUG
         public void BettingRound()
         {
             Console.WriteLine("Betting round begins!\n");
@@ -241,25 +234,24 @@ namespace DeuxCentsCardGame
 
         private void PlayRound()
         {
-            int currentPlayerIndex = winningBidIndex;
-            
-            int totalTricks = players[currentPlayerIndex].Hand.Count;
+            int playerIndex;
+            Player currentPlayer;
+            int currentPlayerIndex;
+            int trickWinnerIndex;
+            int totalTricks;
+
+            currentPlayerIndex = winningBidIndex;
+
+            totalTricks = players[currentPlayerIndex].Hand.Count;
 
             for (int trick = 0; trick < totalTricks; trick++)
             {
-                PlayTrick(trick, currentPlayerIndex);
-            }
-        }
+                int trickPoints = 0;
+                string leadingSuit = null;
+                List<Card> currentTrick = new List<Card>(); // empty list to hold tricks
 
-        // ############ left off here, bug in determining trick winner ############
-        private void PlayTrick(int trick, int currentPlayerIndex)
-        {
-            int trickPoints = 0;
-            string leadingSuit = null;
-            List<Card> currentTrick = new List<Card>(); // empty list to hold tricks
-
-            Console.WriteLine("\n#########################\n");
-            Console.WriteLine($"Trick #{trick + 1}:");
+                Console.WriteLine("\n#########################\n");
+                Console.WriteLine($"Trick #{trick + 1}:");
 
                 for (int i = 0; i < 4; i++)
                 {
@@ -287,7 +279,7 @@ namespace DeuxCentsCardGame
                 Console.WriteLine($"{players[trickWinnerIndex].Name} won the trick with {currentTrick[winningPlayerIndex]}");
 
                 currentPlayerIndex = trickWinnerIndex; // set winning player as the current player for the next trick
- 
+
                 trickPoints = currentTrick.Sum(card => card.CardPointValue); // adding all points to trickPoints
                 UpdateTrickPoints(trickWinnerIndex, trickPoints);
             }
@@ -304,7 +296,7 @@ namespace DeuxCentsCardGame
                 string Input = Console.ReadLine();
 
                 if (int.TryParse(Input, out cardIndex) && cardIndex < currentPlayer.Hand.Count && cardIndex >= 0)
-                {           
+                {
                     if (currentPlayer.Hand[cardIndex].CardSuit != leadingSuit && currentPlayer.Hand.Any(card => card.CardSuit == leadingSuit))
                     {
                         Console.WriteLine();
@@ -314,7 +306,7 @@ namespace DeuxCentsCardGame
                     else
                     {
                         validInput = true;
-                    }   
+                    }
                 }
                 else
                 {
@@ -345,7 +337,7 @@ namespace DeuxCentsCardGame
                 }
             }
 
-            return winningPlayerIndex;    
+            return winningPlayerIndex;
         }
 
         private void UpdateTrickPoints(int trickWinnerIndex, int trickPoints)
@@ -435,7 +427,7 @@ namespace DeuxCentsCardGame
 
         private void EndGameCheck()
         {
-            if (teamOneTotalPoints >= WinningScore || teamTwoTotalPoints >= WinningScore)
+            if (teamOneTotalPoints >= 200 || teamTwoTotalPoints >= 200)
             {
                 Console.WriteLine("\n#########################\n");
                 Console.WriteLine("Game over!");
