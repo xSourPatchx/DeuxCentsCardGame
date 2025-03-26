@@ -3,7 +3,7 @@ namespace DeuxCentsCardGame
     public class Game
     {
         private Deck deck;
-        private List<Player> players;
+        private readonly List<Player> players;
         private bool gameEnded = false;
         private bool[] hasBet;
         private int dealerIndex = 3; // player 4 will start as the dealer
@@ -24,13 +24,13 @@ namespace DeuxCentsCardGame
         public Game()
         {
             deck = new Deck();
-            players = new List<Player>
-            {
-                new Player("Player 1"),
-                new Player("Player 2"),
-                new Player("Player 3"),
-                new Player("Player 4"),
-            };
+            players =
+            [
+                new("Player 1"),
+                new("Player 2"),
+                new("Player 3"),
+                new("Player 4"),
+            ];
         }
 
         public void Start()
@@ -90,7 +90,7 @@ namespace DeuxCentsCardGame
         public void BettingRound()
         {
             Console.WriteLine("Betting round begins!\n");
-            List<int> bets = new List<int>(new int[players.Count]);
+            List<int> bets = new(new int[players.Count]);
             bool[] hasPassed = new bool[players.Count];
             bool bettingRoundEnded = false;
             hasBet = new bool[players.Count]; // track if a player has placed a bet for over 100 scoring purposes
@@ -154,7 +154,7 @@ namespace DeuxCentsCardGame
             bets[playerIndex] = -1;
         }
 
-        private bool IsValidBet(int bet, List<int> bets)
+        private static bool IsValidBet(int bet, List<int> bets)
         {
             return bet >= MinimumBet && bet <= MaximumBet && bet % BetIncrement == 0 && !bets.Contains(bet);
         }
@@ -217,7 +217,7 @@ namespace DeuxCentsCardGame
 
         private void SelectTrumpSuit()
         {
-            string[] validSuits = { "clubs", "diamonds", "hearts", "spades" };
+            string[] validSuits = ["clubs", "diamonds", "hearts", "spades"];
             Console.WriteLine($"{players[winningBidIndex].Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")");
             trumpSuit = Console.ReadLine().ToLower();
 
@@ -245,8 +245,10 @@ namespace DeuxCentsCardGame
             for (int trick = 0; trick < totalTricks; trick++)
             {
                 int trickPoints = 0;
-                string leadingSuit = null;
-                List<Card> currentTrick = new List<Card>(); // empty list to hold tricks
+                    int cardIndex = 0; // initializing invalid input
+
+                string? leadingSuit = null;
+                List<Card> currentTrick = []; // empty list to hold tricks
 
                 Console.WriteLine("\n#########################\n");
                 Console.WriteLine($"Trick #{trick + 1}:");
@@ -255,9 +257,7 @@ namespace DeuxCentsCardGame
                 {
                     playerIndex = (currentPlayerIndex + i) % players.Count; // ensuring player who won the bet goes first
                     currentPlayer = players[playerIndex];
-                    bool validInput = false;
-                    int cardIndex = -1; // initializing invalid input
-
+                    
                     Card playedCard = ValidateCardInput(currentPlayer, cardIndex, leadingSuit);
                     currentPlayer.RemoveCard(playedCard);
 
