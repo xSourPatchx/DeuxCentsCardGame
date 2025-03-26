@@ -40,7 +40,7 @@ namespace DeuxCentsCardGame
                 Console.Clear();
                 Console.WriteLine("Starting a new round...");
                 ResetRound();
-                deck.ShuffleDeck(shuffleCount);
+                deck.ShuffleDeck(ShuffleCount);
                 DealCards();
                 DisplayAllHands();
                 BettingRound();
@@ -253,14 +253,13 @@ namespace DeuxCentsCardGame
 
                 for (int i = 0; i < 4; i++)
                 {
-                    playerIndex = (currentPlayerIndex + i) % 4; // ensuring player who won the bet goes first
+                    playerIndex = (currentPlayerIndex + i) % players.Count; // ensuring player who won the bet goes first
                     currentPlayer = players[playerIndex];
                     bool validInput = false;
                     int cardIndex = -1; // initializing invalid input
 
                     Card playedCard = ValidateCardInput(currentPlayer, cardIndex, leadingSuit);
                     currentPlayer.RemoveCard(playedCard);
-
 
                     if (i == 0)
                     {
@@ -273,7 +272,7 @@ namespace DeuxCentsCardGame
                 }
 
                 winningPlayerIndex = DetermineTrickWinnerIndex(currentTrick, trumpSuit);
-                trickWinnerIndex = (currentPlayerIndex + winningPlayerIndex) % 4;
+                trickWinnerIndex = (currentPlayerIndex + winningPlayerIndex) % players.Count;
                 Console.WriteLine($"{players[trickWinnerIndex].Name} won the trick with {currentTrick[winningPlayerIndex]}");
 
                 currentPlayerIndex = trickWinnerIndex; // set winning player as the current player for the next trick
@@ -425,7 +424,7 @@ namespace DeuxCentsCardGame
 
         private void EndGameCheck()
         {
-            if (teamOneTotalPoints >= 200 || teamTwoTotalPoints >= 200)
+            if (teamOneTotalPoints >= WinningScore || teamTwoTotalPoints >= WinningScore)
             {
                 Console.WriteLine("\n#########################\n");
                 Console.WriteLine("Game over!");
