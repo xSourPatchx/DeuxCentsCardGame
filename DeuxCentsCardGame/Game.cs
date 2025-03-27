@@ -48,7 +48,7 @@ namespace DeuxCentsCardGame
                 SelectTrumpSuit();
                 PlayRound();
                 UpdateTotalPoints();
-                EndGameCheck();
+                CheckEndGame();
             }
         }
 
@@ -240,7 +240,6 @@ namespace DeuxCentsCardGame
             {
                 int trickPoints = 0;
                 int cardIndex = -1; // initializing invalid input
-
                 string? leadingSuit = null;
                 List<Card> currentTrick = []; // empty list to hold tricks
 
@@ -248,14 +247,13 @@ namespace DeuxCentsCardGame
                 Console.WriteLine($"Trick #{trick + 1}:");
 
                 PlayTrick(currentPlayerIndex, cardIndex, leadingSuit, currentTrick);
-
                 winningPlayerIndex = DetermineTrickWinnerIndex(currentTrick, trumpSuit);
                 trickWinnerIndex = (currentPlayerIndex + winningPlayerIndex) % players.Count;
                 Console.WriteLine($"{players[trickWinnerIndex].Name} won the trick with {currentTrick[winningPlayerIndex]}");
 
                 currentPlayerIndex = trickWinnerIndex; // set winning player as the current player for the next trick
 
-                trickPoints = currentTrick.Sum(card => card.CardPointValue); // adding all points to trickPoints
+                trickPoints = currentTrick.Sum(card => card.CardPointValue); // adding all trick points to trickPoints
                 UpdateTrickPoints(trickWinnerIndex, trickPoints);
             }
         }
@@ -337,7 +335,8 @@ namespace DeuxCentsCardGame
 
         private void UpdateTrickPoints(int trickWinnerIndex, int trickPoints)
         {
-            if (trickWinnerIndex == 0 || trickWinnerIndex == 2)
+            //if (trickWinnerIndex == 0 || trickWinnerIndex == 2)
+            if (IsTeamOne(trickWinnerIndex))
             {
                 Console.WriteLine($"{players[trickWinnerIndex].Name} collected {trickPoints} points for Team 1");
                 teamOneRoundPoints += trickPoints;
@@ -349,13 +348,18 @@ namespace DeuxCentsCardGame
             }
         }
 
+        private bool IsTeamOne(int playerIndex)
+        {
+            return playerIndex % 2 == 0;
+        }
+
         private void UpdateTotalPoints() // tally points and end the round
         {
             Console.WriteLine("\nEnd of round. Scoring:");
             Console.WriteLine($"Team One (Player 1 & Player 3) scored : {teamOneRoundPoints}");
             Console.WriteLine($"Team Two (Player 2 & Player 4) scored : {teamTwoRoundPoints}");
 
-            if (winningBidIndex % 2 == 0) // team one won the bet
+            if (IsTeamOne(winningBidIndex)) // team one won the bet
             {
                 UpdateTeamOnePoints();
             }
@@ -419,7 +423,7 @@ namespace DeuxCentsCardGame
             }
         }
 
-        private void EndGameCheck()
+        private void CheckEndGame()
         {
             if (teamOneTotalPoints >= WinningScore || teamTwoTotalPoints >= WinningScore)
             {
