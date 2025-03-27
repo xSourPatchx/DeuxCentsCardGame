@@ -2,6 +2,12 @@ namespace DeuxCentsCardGame
 {
     public class Game
     {
+        public const int ShuffleCount = 3;
+        private const int WinningScore = 200;
+        private const int MinimumBet = 50;
+        private const int MaximumBet = 100;
+        private const int BetIncrement = 5;
+
         private Deck deck;
         private readonly List<Player> players;
         private bool gameEnded = false;
@@ -15,11 +21,6 @@ namespace DeuxCentsCardGame
         private int teamTwoRoundPoints = 0;
         private int teamOneTotalPoints;
         private int teamTwoTotalPoints;
-        public const int ShuffleCount = 3;
-        private const int WinningScore = 200;
-        private const int MinimumBet = 50;
-        private const int MaximumBet = 100;
-        private const int BetIncrement = 5;
 
         public Game()
         {
@@ -147,9 +148,7 @@ namespace DeuxCentsCardGame
 
         private void ProcessPassInput(int playerIndex, bool[] hasPassed, List<int> bets)
         {
-            Console.WriteLine();
-            Console.WriteLine($"{players[playerIndex].Name} passed");
-            Console.WriteLine();
+            Console.WriteLine($"\n{players[playerIndex].Name} passed\n");
             hasPassed[playerIndex] = true;
             bets[playerIndex] = -1;
         }
@@ -188,8 +187,7 @@ namespace DeuxCentsCardGame
 
         private void DisplayBettingResults(bool[] hasPassed, List<int> bets)
         {
-            Console.WriteLine();
-            Console.WriteLine("Betting round complete, here are the results:");
+            Console.WriteLine("\nBetting round complete, here are the results:");
             for (int i = 0; i < players.Count; i++)
             {
                 string result;
@@ -209,8 +207,7 @@ namespace DeuxCentsCardGame
         {
             winningBid = bets.Max();
             winningBidIndex = bets.IndexOf(winningBid);
-            Console.WriteLine();
-            Console.WriteLine($"{players[winningBidIndex].Name} won the bid.");
+            Console.WriteLine($"\n{players[winningBidIndex].Name} won the bid.");
             Console.WriteLine("\n#########################\n");
             Player.DisplayHand(players[winningBidIndex]);
         }
@@ -227,14 +224,11 @@ namespace DeuxCentsCardGame
                 trumpSuit = Console.ReadLine().ToLower();
             }
 
-            Console.WriteLine();
-            Console.WriteLine($"Trump suit is {trumpSuit}.");
+            Console.WriteLine($"\nTrump suit is {trumpSuit}.");
         }
 
         private void PlayRound()
         {
-            int playerIndex;
-            Player currentPlayer;
             int currentPlayerIndex;
             int trickWinnerIndex;
             int totalTricks;
@@ -245,7 +239,7 @@ namespace DeuxCentsCardGame
             for (int trick = 0; trick < totalTricks; trick++)
             {
                 int trickPoints = 0;
-                    int cardIndex = 0; // initializing invalid input
+                int cardIndex = -1; // initializing invalid input
 
                 string? leadingSuit = null;
                 List<Card> currentTrick = []; // empty list to hold tricks
@@ -253,8 +247,25 @@ namespace DeuxCentsCardGame
                 Console.WriteLine("\n#########################\n");
                 Console.WriteLine($"Trick #{trick + 1}:");
 
-                for (int i = 0; i < 4; i++)
+                PlayTrick(currentPlayerIndex, cardIndex, leadingSuit, currentTrick);
+
+                winningPlayerIndex = DetermineTrickWinnerIndex(currentTrick, trumpSuit);
+                trickWinnerIndex = (currentPlayerIndex + winningPlayerIndex) % players.Count;
+                Console.WriteLine($"{players[trickWinnerIndex].Name} won the trick with {currentTrick[winningPlayerIndex]}");
+
+                currentPlayerIndex = trickWinnerIndex; // set winning player as the current player for the next trick
+
+                trickPoints = currentTrick.Sum(card => card.CardPointValue); // adding all points to trickPoints
+                UpdateTrickPoints(trickWinnerIndex, trickPoints);
+            }
+        }
+
+        private void PlayTrick(int currentPlayerIndex, int cardIndex, string? leadingSuit, List<Card> currentTrick)
+        {
+            for (int i = 0; i < 4; i++)
                 {
+                    int playerIndex;
+                    Player currentPlayer;
                     playerIndex = (currentPlayerIndex + i) % players.Count; // ensuring player who won the bet goes first
                     currentPlayer = players[playerIndex];
                     
@@ -267,19 +278,8 @@ namespace DeuxCentsCardGame
                     }
 
                     currentTrick.Add(playedCard);
-                    Console.WriteLine($"{currentPlayer.Name} played {playedCard}");
-                    Console.WriteLine();
+                    Console.WriteLine($"{currentPlayer.Name} played {playedCard}\n");
                 }
-
-                winningPlayerIndex = DetermineTrickWinnerIndex(currentTrick, trumpSuit);
-                trickWinnerIndex = (currentPlayerIndex + winningPlayerIndex) % players.Count;
-                Console.WriteLine($"{players[trickWinnerIndex].Name} won the trick with {currentTrick[winningPlayerIndex]}");
-
-                currentPlayerIndex = trickWinnerIndex; // set winning player as the current player for the next trick
-
-                trickPoints = currentTrick.Sum(card => card.CardPointValue); // adding all points to trickPoints
-                UpdateTrickPoints(trickWinnerIndex, trickPoints);
-            }
         }
 
         private Card ValidateCardInput(Player currentPlayer, int cardIndex, string leadingSuit)
@@ -296,9 +296,7 @@ namespace DeuxCentsCardGame
                 {
                     if (currentPlayer.Hand[cardIndex].CardSuit != leadingSuit && currentPlayer.Hand.Any(card => card.CardSuit == leadingSuit))
                     {
-                        Console.WriteLine();
-                        Console.WriteLine($"You must play the suit of {leadingSuit} since it's in your deck, try again.");
-                        Console.WriteLine();
+                        Console.WriteLine($"\nYou must play the suit of {leadingSuit} since it's in your deck, try again.\n");
                     }
                     else
                     {
@@ -366,8 +364,7 @@ namespace DeuxCentsCardGame
                 UpdateTeamTwoPoints();
             }
 
-            Console.WriteLine();
-            Console.WriteLine($"Team One has a total of {teamOneTotalPoints} points");
+            Console.WriteLine($"\nTeam One has a total of {teamOneTotalPoints} points");
             Console.WriteLine($"Team Two has a total of {teamTwoTotalPoints} points");
         }
 
