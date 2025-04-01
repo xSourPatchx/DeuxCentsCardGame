@@ -5,18 +5,17 @@ namespace DeuxCentsCardGame
         public List<Card> Cards;
         static readonly Random random = new ();
 
-
         public Deck()
         {
-            Cards = new List<Card>();
+            Cards = [];
             InitializeCards();
         }
         private void InitializeCards()
         {
-            string[] cardSuits = { "clubs", "diamonds", "hearts", "spades" };
-            string[] cardFaces = { "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
-            int[] cardfaceValues = { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 };
-            int[] cardPointValues = { 5, 0, 0, 0, 0, 10, 0, 0, 0, 10 };
+            string[] cardSuits = ["clubs", "diamonds", "hearts", "spades"];
+            string[] cardFaces = ["5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+            int[] cardfaceValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+            int[] cardPointValues = [5, 0, 0, 0, 0, 10, 0, 0, 0, 10];
 
             foreach (string suit in cardSuits)
             {

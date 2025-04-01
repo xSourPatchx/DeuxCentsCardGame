@@ -10,7 +10,7 @@ namespace DeuxCentsCardGame
         public Player(string name)
         {
             Name = name;
-            Hand = new List<Card>();
+            Hand = [];
         }
 
         public void AddCard(Card card)
