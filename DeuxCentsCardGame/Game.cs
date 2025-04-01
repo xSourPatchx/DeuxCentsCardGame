@@ -224,7 +224,7 @@ namespace DeuxCentsCardGame
 
         private void SelectTrumpSuit()
         {
-            string[] validSuits = ["clubs", "diamonds", "hearts", "spades"];
+            string[] validSuits = Deck.GetCardSuits();
             Console.WriteLine($"{_players[_winningBidIndex].Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")");
             _trumpSuit = Console.ReadLine().ToLower();
 

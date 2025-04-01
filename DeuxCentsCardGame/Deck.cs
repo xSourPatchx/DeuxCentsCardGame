@@ -5,6 +5,11 @@ namespace DeuxCentsCardGame
         public List<Card> Cards;
         static readonly Random random = new ();
 
+        private static readonly string[] cardSuits = ["clubs", "diamonds", "hearts", "spades"];
+        private static readonly string[] cardFaces = ["5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
+        private static readonly int[] cardfaceValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        private static readonly int[] cardPointValues = [5, 0, 0, 0, 0, 10, 0, 0, 0, 10];
+
         public Deck()
         {
             Cards = [];
@@ -12,11 +17,6 @@ namespace DeuxCentsCardGame
         }
         private void InitializeCards()
         {
-            string[] cardSuits = ["clubs", "diamonds", "hearts", "spades"];
-            string[] cardFaces = ["5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
-            int[] cardfaceValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
-            int[] cardPointValues = [5, 0, 0, 0, 0, 10, 0, 0, 0, 10];
-
             foreach (string suit in cardSuits)
             {
                 for (int c = 0; c < cardFaces.Length; c++)
@@ -40,6 +40,11 @@ namespace DeuxCentsCardGame
                 }
             }
             Thread.Sleep(200);
+        }
+
+        public static string[] GetCardSuits()
+        {
+            return cardSuits;
         }
     }
 }
