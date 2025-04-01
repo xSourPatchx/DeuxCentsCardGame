@@ -10,9 +10,9 @@ namespace DeuxCentsCardGame
 
         private Deck _deck;
         private readonly List<Player> _players;
-        private bool _gameEnded = false;
+        private bool _gameEnded;
         private bool[] _hasBet;
-        private int _dealerIndex = 3; // player 4 will start as the dealer
+        private int _dealerIndex;
         private int _winningBid;
         private int _winningBidIndex;
         private int _winningPlayerIndex;
@@ -60,6 +60,8 @@ namespace DeuxCentsCardGame
         private void ResetRound()
         {
             _deck = new Deck();
+            _gameEnded = false;
+            _dealerIndex = 3; // player 4 will start as the dealer
             _teamOneRoundPoints = 0;
             _teamTwoRoundPoints = 0;
             _winningBid = 0;
