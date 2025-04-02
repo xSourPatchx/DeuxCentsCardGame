@@ -272,7 +272,7 @@ namespace DeuxCentsCardGame
 
         private void PlayTrick(int currentPlayerIndex, int cardIndex, string? leadingSuit, List<Card> currentTrick)
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < _players.Count; i++)
                 {
                     int playerIndex;
                     Player currentPlayer;
@@ -336,16 +336,15 @@ namespace DeuxCentsCardGame
 
         private void UpdateTrickPoints(int trickWinnerIndex, int trickPoints)
         {
-            if (trickWinnerIndex == 0 || trickWinnerIndex == 2)
-            {
-                Console.WriteLine($"{_players[trickWinnerIndex].Name} collected {trickPoints} points for Team 1");
+            bool isTeamOne = trickWinnerIndex % 2 == 0;
+            string teamName = isTeamOne ? "Team One" : "Team Two";
+
+            Console.WriteLine($"{_players[trickWinnerIndex].Name} collected {trickPoints} points for {teamName}");
+
+            if (isTeamOne)
                 _teamOneRoundPoints += trickPoints;
-            }
             else
-            {
-                Console.WriteLine($"{_players[trickWinnerIndex].Name} collected {trickPoints} points for Team 2");
-                _teamTwoRoundPoints += trickPoints;
-            }
+                _teamTwoRoundPoints += trickPoints; 
         }
 
         private void UpdateTotalPoints() // tally points and end the round
@@ -365,7 +364,10 @@ namespace DeuxCentsCardGame
 
         private void UpdateTeamOnePoints()
         {
-            if (_teamTwoTotalPoints >= 100 && (!_hasBet[0] || !_hasBet[2]))
+            bool teamTwoOver100Points = _teamTwoTotalPoints >= 100;
+            bool teamOneDidNotPlaceBet = !_hasBet[0] || !_hasBet[2];
+            
+            if (teamTwoOver100Points && teamOneDidNotPlaceBet)
             {
                 Console.WriteLine($"Team One did not place any bets, their points do not count.");
                 _teamTwoRoundPoints = 0;
@@ -375,7 +377,7 @@ namespace DeuxCentsCardGame
             {
                 Console.WriteLine($"Team One made their bet of {_winningBid} and wins {_teamOneRoundPoints} points.");
                 _teamOneTotalPoints += _teamOneRoundPoints;
-                if (_teamTwoTotalPoints < 100)
+                if (!teamTwoOver100Points)
                     _teamTwoTotalPoints += _teamTwoRoundPoints;   
             }
             else
@@ -388,7 +390,10 @@ namespace DeuxCentsCardGame
 
         private void UpdateTeamTwoPoints()
         {
-            if (_teamOneTotalPoints >= 100 && (!_hasBet[1] || !_hasBet[3]))
+            bool teamOneOver100Points = _teamOneTotalPoints >= 100;
+            bool teamTwoDidNotPlaceBet = !_hasBet[1] || !_hasBet[3];
+
+            if (teamOneOver100Points && teamTwoDidNotPlaceBet)
             {
                 Console.WriteLine($"Team Two did not place any bets, their points do not count.");
                 _teamTwoRoundPoints = 0;
@@ -399,7 +404,7 @@ namespace DeuxCentsCardGame
                 Console.WriteLine($"Team Two made their bet of {_winningBid} and wins {_teamTwoRoundPoints} points.");
                 _teamTwoTotalPoints += _teamTwoRoundPoints;
 
-                if (_teamOneTotalPoints < 100)
+                if (!teamOneOver100Points)
                     _teamOneTotalPoints += _teamOneRoundPoints;   
             }
             else
