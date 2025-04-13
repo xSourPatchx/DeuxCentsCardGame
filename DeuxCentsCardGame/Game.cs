@@ -8,24 +8,24 @@ namespace DeuxCentsCardGame
         private const int MaximumBet = 100;
         private const int BetIncrement = 5;
 
-        private Deck deck;
-        private readonly List<Player> players;
-        private bool gameEnded = false;
-        private bool[] hasBet;
-        private int dealerIndex = 3; // player 4 will start as the dealer
-        private int winningBid;
-        private int winningBidIndex;
-        private int winningPlayerIndex;
-        private string trumpSuit;
-        private int teamOneRoundPoints = 0;
-        private int teamTwoRoundPoints = 0;
-        private int teamOneTotalPoints;
-        private int teamTwoTotalPoints;
+        private Deck _deck;
+        private readonly List<Player> _players;
+        private bool _gameEnded;
+        private bool[] _hasBet;
+        private int _dealerIndex;
+        private int _winningBid;
+        private int _winningBidIndex;
+        private int _winningPlayerIndex;
+        private string _trumpSuit;
+        private int _teamOneRoundPoints;
+        private int _teamTwoRoundPoints;
+        private int _teamOneTotalPoints;
+        private int _teamTwoTotalPoints;
 
         public Game()
         {
-            deck = new Deck();
-            players =
+            _deck = new Deck();
+            _players =
             [
                 new("Player 1"),
                 new("Player 2"),
@@ -36,121 +36,134 @@ namespace DeuxCentsCardGame
 
         public void Start()
         {
-            while (!gameEnded)
+            while (!_gameEnded)
             {
-                Console.Clear();
-                Console.WriteLine("Starting a new round...");
-                ResetRound();
-                deck.ShuffleDeck(ShuffleCount);
-                DealCards();
-                DisplayAllHands();
-                BettingRound();
-                SelectTrumpSuit();
-                PlayRound();
-                UpdateTotalPoints();
-                CheckEndGame();
+                NewGame();
             }
+        }
+
+        public void NewGame()
+        {
+            Console.Clear();
+            Console.WriteLine("Starting a new round...");
+            ResetRound();
+            _deck.ShuffleDeck(ShuffleCount);
+            DealCards();
+            DisplayAllHands();
+            BettingRound();
+            SelectTrumpSuit();
+            PlayRound();
+            UpdateTotalPoints();
+            EndGameCheck();
         }
 
         private void ResetRound()
         {
-            deck = new Deck();
-            teamOneRoundPoints = 0;
-            teamTwoRoundPoints = 0;
-            winningBid = 0;
-            winningBidIndex = 0;
+            _deck = new Deck();
+            _gameEnded = false;
+            _dealerIndex = 3; // player 4 will start as the dealer
+            _teamOneRoundPoints = 0;
+            _teamTwoRoundPoints = 0;
+            _winningBid = 0;
+            _winningBidIndex = 0;
             RotateDealer();
         }
 
         private void RotateDealer()
         {
-            dealerIndex = (dealerIndex + 1) % players.Count;
+            _dealerIndex = (_dealerIndex + 1) % _players.Count;
         }
 
         private void DealCards()
         {
-            foreach (Player player in players)
+            foreach (Player player in _players)
             {
                 player.Hand.Clear();
             }
 
             Console.WriteLine("Dealing cards...");
-            for (int i = 0; i < deck.Cards.Count; i++)
+            for (int i = 0; i < _deck.Cards.Count; i++)
             {
-                players[i % players.Count].AddCard(deck.Cards[i]);
+                _players[i % _players.Count].AddCard(_deck.Cards[i]);
             }
         }
         private void DisplayAllHands()
         {
-            Player.DisplayAllPlayersHandQuadrant(players[(dealerIndex) % players.Count],
-                                                 players[(dealerIndex + 1) % players.Count],
-                                                 players[(dealerIndex + 2) % players.Count],
-                                                 players[(dealerIndex + 3) % players.Count]);
+            Player.DisplayAllPlayersHandQuadrant(_players[(_dealerIndex) % _players.Count],
+                                                 _players[(_dealerIndex + 1) % _players.Count],
+                                                 _players[(_dealerIndex + 2) % _players.Count],
+                                                 _players[(_dealerIndex + 3) % _players.Count]);
         }
 
         public void BettingRound()
         {
             Console.WriteLine("Betting round begins!\n");
-            List<int> bets = new(new int[players.Count]);
-            bool[] hasPassed = new bool[players.Count];
+            List<int> bets = new(new int[_players.Count]);
+            bool[] hasPassed = new bool[_players.Count];
             bool bettingRoundEnded = false;
-            hasBet = new bool[players.Count]; // track if a player has placed a bet for over 100 scoring purposes
+            _hasBet = new bool[_players.Count]; // track if a player has placed a bet for over 100 scoring purposes
 
-            int startingIndex = dealerIndex % players.Count;
+            int startingIndex = _dealerIndex % _players.Count;
 
             while (!bettingRoundEnded)
             {
-                for (int i = 0; i < players.Count; i++)
-                {
-                    int playerIndex = (startingIndex + i) % players.Count;
-
-                    if (hasPassed[playerIndex])
-                    {
-                        continue; // Skip players who have already passed
-                    }
-
-                    Console.WriteLine($"{players[playerIndex].Name}, enter a bet (between {MinimumBet}-{MaximumBet}, intervals of {BetIncrement}) or 'pass': ");
-                    string betInput = Console.ReadLine().ToLower();
-
-                    if (betInput == "pass")
-                    {
-                        ProcessPassInput(playerIndex, hasPassed, bets);
-                    }
-                    else if (int.TryParse(betInput, out int bet) && IsValidBet(bet, bets))
-                    {
-                        bets[playerIndex] = bet;
-                        hasBet[playerIndex] = true;
-                        Console.WriteLine();
-
-                        if (bet == MaximumBet)
-                        {
-                            bettingRoundEnded = HandleMaximumBet(playerIndex, hasPassed, bets); // End the betting round immediately
-                            break;
-                        }
-                    }
-                    else
-                    {
-                        Console.WriteLine("Invalid bet, please try again");
-                        playerIndex--;
-                    }
-
-                    if (hasPassed.Count(p => p) >= 3) // End the betting round if 3 players have passed
-                    {
-                        bettingRoundEnded = HandleThreePlayerPassed(playerIndex, hasPassed);
-                        break;
-                    }
-                }
+                bettingRoundEnded = ProcessBettingRound(startingIndex, hasPassed, bets);
             }
 
             DisplayBettingResults(hasPassed, bets);
             DetermineWinningBid(bets);
         }
 
-        private void ProcessPassInput(int playerIndex, bool[] hasPassed, List<int> bets)
+        private bool ProcessBettingRound(int startingIndex, bool[] hasPassed, List<int> bets)
         {
-            Console.WriteLine($"\n{players[playerIndex].Name} passed\n");
+            for (int i = 0; i < _players.Count; i++)
+                {
+                    int playerIndex = (startingIndex + i) % _players.Count;
+
+                    if (hasPassed[playerIndex])
+                        continue; // Skip players who have already passed
+                    
+                    ProcessPlayerBets(playerIndex, hasPassed, bets);
+
+                    if (hasPassed.Count(p => p) >= 3) // End the betting round if 3 players have passed                 
+                        return HandleThreePlayerPassed(playerIndex, hasPassed);
+                }
+
+                return false;
+        }
+
+        private (bool bettingRoundEnded, int bet) ProcessPlayerBets(int playerIndex, bool[] hasPassed, List<int> bets)
+        {
+            Console.WriteLine($"{_players[playerIndex].Name}, enter a bet (between {MinimumBet}-{MaximumBet}, intervals of {BetIncrement}) or 'pass': ");
+            string betInput = Console.ReadLine().ToLower();
+
+            if (betInput == "pass")
+                return ProcessPassInput(playerIndex, hasPassed, bets);
+            
+            if (int.TryParse(betInput, out int bet) && IsValidBet(bet, bets))
+            {
+                bets[playerIndex] = bet;
+                _hasBet[playerIndex] = true;
+                Console.WriteLine();
+            
+                if (bet == MaximumBet)
+                    return (HandleMaximumBet(playerIndex, hasPassed, bets), bet); // End the betting round immediately
+                else
+                    return (false, bet);
+            }
+            else
+            {
+                Console.WriteLine("Invalid bet, please try again");
+                return (false, -1);
+            }
+        }
+
+        private (bool bettingRoundEnded, int bet) ProcessPassInput(int playerIndex, bool[] hasPassed, List<int> bets)
+        {
+            Console.WriteLine($"\n{_players[playerIndex].Name} passed\n");
             hasPassed[playerIndex] = true;
             bets[playerIndex] = -1;
+            return (false, -1);
         }
 
         private static bool IsValidBet(int bet, List<int> bets)
@@ -160,8 +173,8 @@ namespace DeuxCentsCardGame
 
         private bool HandleMaximumBet(int playerIndex, bool[] hasPassed, List<int> bets)
         {
-            Console.WriteLine($"{players[playerIndex].Name} bet {MaximumBet}. Betting round ends.\n");
-            for (int j = 0; j < players.Count; j++)
+            Console.WriteLine($"{_players[playerIndex].Name} bet {MaximumBet}. Betting round ends.\n");
+            for (int j = 0; j < _players.Count; j++)
             {
                 if (j != playerIndex && !hasPassed[j])
                 {
@@ -177,10 +190,10 @@ namespace DeuxCentsCardGame
             Console.WriteLine("Three players have passed, betting round ends");
             if (!hasBet.Any(b => b)) // Inserting default bet of 50 to player 4 if all prior players passed
             {
-                int lastPlayerIndex = (playerIndex + 1) % players.Count;
+                int lastPlayerIndex = (playerIndex + 1) % _players.Count;
                 hasBet[lastPlayerIndex] = true;
-                winningBid = MinimumBet;
-                winningBidIndex = lastPlayerIndex;
+                _winningBid = MinimumBet;
+                _winningBidIndex = lastPlayerIndex;
             }
             return true;
         }
@@ -188,43 +201,40 @@ namespace DeuxCentsCardGame
         private void DisplayBettingResults(bool[] hasPassed, List<int> bets)
         {
             Console.WriteLine("\nBetting round complete, here are the results:");
-            for (int i = 0; i < players.Count; i++)
+            for (int i = 0; i < _players.Count; i++)
             {
                 string result;
                 if (hasPassed[i])
-                {
-                    result = hasBet[i] ? "Passed after betting" : "Passed";
-                }
+                    result = _hasBet[i] ? "Passed after betting" : "Passed";
                 else
-                {
                     result = $"Bet {bets[i]}";
-                }
-                Console.WriteLine($"{players[i].Name} : {result}");
+
+                Console.WriteLine($"{_players[i].Name} : {result}");
             }
         }
 
         private void DetermineWinningBid(List<int> bets)
         {
-            winningBid = bets.Max();
-            winningBidIndex = bets.IndexOf(winningBid);
-            Console.WriteLine($"\n{players[winningBidIndex].Name} won the bid.");
+            _winningBid = bets.Max();
+            _winningBidIndex = bets.IndexOf(_winningBid);
+            Console.WriteLine($"\n{_players[_winningBidIndex].Name} won the bid.");
             Console.WriteLine("\n#########################\n");
-            Player.DisplayHand(players[winningBidIndex]);
+            Player.DisplayHand(_players[_winningBidIndex]);
         }
 
         private void SelectTrumpSuit()
         {
-            string[] validSuits = ["clubs", "diamonds", "hearts", "spades"];
-            Console.WriteLine($"{players[winningBidIndex].Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")");
-            trumpSuit = Console.ReadLine().ToLower();
+            string[] validSuits = Deck.GetCardSuits();
+            Console.WriteLine($"{_players[_winningBidIndex].Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")");
+            _trumpSuit = Console.ReadLine().ToLower();
 
-            while (!validSuits.Contains(trumpSuit))
+            while (!validSuits.Contains(_trumpSuit))
             {
-                Console.WriteLine($"{trumpSuit} is an invalid input, please try again.");
-                trumpSuit = Console.ReadLine().ToLower();
+                Console.WriteLine($"{_trumpSuit} is an invalid input, please try again.");
+                _trumpSuit = Console.ReadLine().ToLower();
             }
 
-            Console.WriteLine($"\nTrump suit is {trumpSuit}.");
+            Console.WriteLine($"\nTrump suit is {_trumpSuit}.");
         }
 
         private void PlayRound()
@@ -233,8 +243,8 @@ namespace DeuxCentsCardGame
             int trickWinnerIndex;
             int totalTricks;
 
-            currentPlayerIndex = winningBidIndex;
-            totalTricks = players[currentPlayerIndex].Hand.Count;
+            currentPlayerIndex = _winningBidIndex;
+            totalTricks = _players[currentPlayerIndex].Hand.Count;
 
             for (int trick = 0; trick < totalTricks; trick++)
             {
@@ -247,9 +257,10 @@ namespace DeuxCentsCardGame
                 Console.WriteLine($"Trick #{trick + 1}:");
 
                 PlayTrick(currentPlayerIndex, cardIndex, leadingSuit, currentTrick);
-                winningPlayerIndex = DetermineTrickWinnerIndex(currentTrick, trumpSuit);
-                trickWinnerIndex = (currentPlayerIndex + winningPlayerIndex) % players.Count;
-                Console.WriteLine($"{players[trickWinnerIndex].Name} won the trick with {currentTrick[winningPlayerIndex]}");
+
+                _winningPlayerIndex = DetermineTrickWinnerIndex(currentTrick, _trumpSuit);
+                trickWinnerIndex = (currentPlayerIndex + _winningPlayerIndex) % _players.Count;
+                Console.WriteLine($"{_players[trickWinnerIndex].Name} won the trick with {currentTrick[_winningPlayerIndex]}");
 
                 currentPlayerIndex = trickWinnerIndex; // set winning player as the current player for the next trick
 
@@ -260,20 +271,18 @@ namespace DeuxCentsCardGame
 
         private void PlayTrick(int currentPlayerIndex, int cardIndex, string? leadingSuit, List<Card> currentTrick)
         {
-            for (int i = 0; i < 4; i++)
+            for (int i = 0; i < _players.Count; i++)
                 {
                     int playerIndex;
                     Player currentPlayer;
-                    playerIndex = (currentPlayerIndex + i) % players.Count; // ensuring player who won the bet goes first
-                    currentPlayer = players[playerIndex];
+                    playerIndex = (currentPlayerIndex + i) % _players.Count; // ensuring player who won the bet goes first
+                    currentPlayer = _players[playerIndex];
                     
                     Card playedCard = ValidateCardInput(currentPlayer, cardIndex, leadingSuit);
                     currentPlayer.RemoveCard(playedCard);
 
                     if (i == 0)
-                    {
                         leadingSuit = playedCard.CardSuit;
-                    }
 
                     currentTrick.Add(playedCard);
                     Console.WriteLine($"{currentPlayer.Name} played {playedCard}\n");
@@ -287,65 +296,54 @@ namespace DeuxCentsCardGame
             while (!validInput)
             {
                 Player.DisplayHand(currentPlayer); // display current players hand
-                Console.WriteLine($"{currentPlayer.Name}, choose a card to play (enter index 0-{currentPlayer.Hand.Count - 1}, leading suit is {leadingSuit} and trump suit is {trumpSuit}):");
+                Console.WriteLine($"{currentPlayer.Name}, choose a card to play (enter index 0-{currentPlayer.Hand.Count - 1}, leading suit is {leadingSuit} and trump suit is {_trumpSuit}):");
                 string Input = Console.ReadLine();
 
                 if (int.TryParse(Input, out cardIndex) && cardIndex < currentPlayer.Hand.Count && cardIndex >= 0)
                 {
                     if (currentPlayer.Hand[cardIndex].CardSuit != leadingSuit && currentPlayer.Hand.Any(card => card.CardSuit == leadingSuit))
-                    {
-                        Console.WriteLine($"\nYou must play the suit of {leadingSuit} since it's in your deck, try again.\n");
-                    }
+                        Console.WriteLine($"\nYou must play the suit of {leadingSuit} since it's in your deck, try again.\n"); 
                     else
-                    {
                         validInput = true;
-                    }
                 }
                 else
-                {
                     Console.WriteLine($"{cardIndex} is an invalid input, please try again.");
-                }
+                
             }
             return currentPlayer.Hand[cardIndex];
         }
 
         private int DetermineTrickWinnerIndex(List<Card> trick, string trumpSuit)
         {
-            winningPlayerIndex = 0;
+            _winningPlayerIndex = 0;
 
             for (int i = 1; i < trick.Count; i++)
             {
                 // Check if the current card is a trump card AND the winning card is not a trump card
-                if (trick[i].CardSuit == trumpSuit && trick[winningPlayerIndex].CardSuit != trumpSuit)
-                {
-                    winningPlayerIndex = i;
-                }
+                if (trick[i].CardSuit == trumpSuit && trick[_winningPlayerIndex].CardSuit != trumpSuit)
+                    _winningPlayerIndex = i;
                 // Check if both cards are trump cards or both are not trump cards
-                else if (trick[i].CardSuit == trick[winningPlayerIndex].CardSuit)
+                else if (trick[i].CardSuit == trick[_winningPlayerIndex].CardSuit)
                 {
-                    if (trick[i].CardFaceValue > trick[winningPlayerIndex].CardFaceValue)
-                    {
-                        winningPlayerIndex = i;
-                    }
+                    if (trick[i].CardFaceValue > trick[_winningPlayerIndex].CardFaceValue)
+                        _winningPlayerIndex = i;    
                 }
             }
 
-            return winningPlayerIndex;
+            return _winningPlayerIndex;
         }
 
         private void UpdateTrickPoints(int trickWinnerIndex, int trickPoints)
         {
-            //if (trickWinnerIndex == 0 || trickWinnerIndex == 2)
-            if (IsTeamOne(trickWinnerIndex))
-            {
-                Console.WriteLine($"{players[trickWinnerIndex].Name} collected {trickPoints} points for Team 1");
-                teamOneRoundPoints += trickPoints;
-            }
+            bool isTeamOne = trickWinnerIndex % 2 == 0;
+            string teamName = isTeamOne ? "Team One" : "Team Two";
+
+            Console.WriteLine($"{_players[trickWinnerIndex].Name} collected {trickPoints} points for {teamName}");
+
+            if (isTeamOne)
+                _teamOneRoundPoints += trickPoints;
             else
-            {
-                Console.WriteLine($"{players[trickWinnerIndex].Name} collected {trickPoints} points for Team 2");
-                teamTwoRoundPoints += trickPoints;
-            }
+                _teamTwoRoundPoints += trickPoints; 
         }
 
         private bool IsTeamOne(int playerIndex)
@@ -356,82 +354,80 @@ namespace DeuxCentsCardGame
         private void UpdateTotalPoints() // tally points and end the round
         {
             Console.WriteLine("\nEnd of round. Scoring:");
-            Console.WriteLine($"Team One (Player 1 & Player 3) scored : {teamOneRoundPoints}");
-            Console.WriteLine($"Team Two (Player 2 & Player 4) scored : {teamTwoRoundPoints}");
+            Console.WriteLine($"Team One (Player 1 & Player 3) scored : {_teamOneRoundPoints}");
+            Console.WriteLine($"Team Two (Player 2 & Player 4) scored : {_teamTwoRoundPoints}");
 
-            if (IsTeamOne(winningBidIndex)) // team one won the bet
-            {
+            if (_winningBidIndex % 2 == 0) // team one won the bet
                 UpdateTeamOnePoints();
-            }
             else // team two won the bet
-            {
                 UpdateTeamTwoPoints();
-            }
-
-            Console.WriteLine($"\nTeam One has a total of {teamOneTotalPoints} points");
-            Console.WriteLine($"Team Two has a total of {teamTwoTotalPoints} points");
+            
+            Console.WriteLine($"\nTeam One has a total of {_teamOneTotalPoints} points");
+            Console.WriteLine($"Team Two has a total of {_teamTwoTotalPoints} points");
         }
 
         private void UpdateTeamOnePoints()
         {
-            if (teamTwoTotalPoints >= 100 && (!hasBet[0] || !hasBet[2]))
+            bool teamTwoOver100Points = _teamTwoTotalPoints >= 100;
+            bool teamOneDidNotPlaceBet = !_hasBet[0] || !_hasBet[2];
+            
+            if (teamTwoOver100Points && teamOneDidNotPlaceBet)
             {
                 Console.WriteLine($"Team One did not place any bets, their points do not count.");
-                teamTwoRoundPoints = 0;
+                _teamTwoRoundPoints = 0;
             }
 
-            if (teamOneRoundPoints >= winningBid)
+            if (_teamOneRoundPoints >= _winningBid)
             {
-                Console.WriteLine($"Team One made their bet of {winningBid} and wins {teamOneRoundPoints} points.");
-                teamOneTotalPoints += teamOneRoundPoints;
-                if (teamTwoTotalPoints < 100)
-                {
-                    teamTwoTotalPoints += teamTwoRoundPoints;
-                }
+                Console.WriteLine($"Team One made their bet of {_winningBid} and wins {_teamOneRoundPoints} points.");
+                _teamOneTotalPoints += _teamOneRoundPoints;
+                if (!teamTwoOver100Points)
+                    _teamTwoTotalPoints += _teamTwoRoundPoints;   
             }
             else
             {
-                Console.WriteLine($"Team One did not make their bet of {winningBid} and loses {winningBid} points.");
-                teamOneTotalPoints -= winningBid;
-                teamTwoTotalPoints += teamTwoRoundPoints;
+                Console.WriteLine($"Team One did not make their bet of {_winningBid} and loses {_winningBid} points.");
+                _teamOneTotalPoints -= _winningBid;
+                _teamTwoTotalPoints += _teamTwoRoundPoints;
             }
         }
 
         private void UpdateTeamTwoPoints()
         {
-            if (teamOneTotalPoints >= 100 && (!hasBet[1] || !hasBet[3]))
+            bool teamOneOver100Points = _teamOneTotalPoints >= 100;
+            bool teamTwoDidNotPlaceBet = !_hasBet[1] || !_hasBet[3];
+
+            if (teamOneOver100Points && teamTwoDidNotPlaceBet)
             {
                 Console.WriteLine($"Team Two did not place any bets, their points do not count.");
-                teamTwoRoundPoints = 0;
+                _teamTwoRoundPoints = 0;
             }
 
-            if (teamTwoRoundPoints >= winningBid)
+            if (_teamTwoRoundPoints >= _winningBid)
             {
-                Console.WriteLine($"Team Two made their bet of {winningBid} and wins {teamTwoRoundPoints} points.");
-                teamTwoTotalPoints += teamTwoRoundPoints;
+                Console.WriteLine($"Team Two made their bet of {_winningBid} and wins {_teamTwoRoundPoints} points.");
+                _teamTwoTotalPoints += _teamTwoRoundPoints;
 
-                if (teamOneTotalPoints < 100)
-                {
-                    teamOneTotalPoints += teamOneRoundPoints;
-                }
+                if (!teamOneOver100Points)
+                    _teamOneTotalPoints += _teamOneRoundPoints;   
             }
             else
             {
-                Console.WriteLine($"Team Two did not make their bet of {winningBid} and loses {winningBid} points.");
-                teamTwoTotalPoints -= winningBid;
-                teamOneTotalPoints += teamOneRoundPoints;
+                Console.WriteLine($"Team Two did not make their bet of {_winningBid} and loses {_winningBid} points.");
+                _teamTwoTotalPoints -= _winningBid;
+                _teamOneTotalPoints += _teamOneRoundPoints;
             }
         }
 
         private void CheckEndGame()
         {
-            if (teamOneTotalPoints >= WinningScore || teamTwoTotalPoints >= WinningScore)
+            if (_teamOneTotalPoints >= WinningScore || _teamTwoTotalPoints >= WinningScore)
             {
                 Console.WriteLine("\n#########################\n");
                 Console.WriteLine("Game over!");
-                Console.WriteLine($"Team One finished with {teamOneTotalPoints} points");
-                Console.WriteLine($"Team Two finished with {teamTwoTotalPoints} points");
-                gameEnded = true;
+                Console.WriteLine($"Team One finished with {_teamOneTotalPoints} points");
+                Console.WriteLine($"Team Two finished with {_teamTwoTotalPoints} points");
+                _gameEnded = true;
             }
             else
             {
