@@ -1,26 +1,35 @@
+using System.ComponentModel.Design;
+
 namespace DeuxCentsCardGame
 {
     public class Game
     {
+        // constants
         public const int ShuffleCount = 3;
         private const int WinningScore = 200;
         private const int MinimumBet = 50;
         private const int MaximumBet = 100;
         private const int BetIncrement = 5;
 
+        // 
         private Deck _deck;
         private readonly List<Player> _players;
+
+        // game state properties
         private bool _gameEnded;
         private bool[] _hasBet;
-        private int _dealerIndex;
         private int _winningBid;
         private int _winningBidIndex;
         private int _winningPlayerIndex;
         private string _trumpSuit;
+
+        // scoring properties
         private int _teamOneRoundPoints;
         private int _teamTwoRoundPoints;
         private int _teamOneTotalPoints;
         private int _teamTwoTotalPoints;
+        public int _dealerIndex = 3; // dealer starts at player 4 (index 3)
+
 
         public Game()
         {
@@ -44,16 +53,16 @@ namespace DeuxCentsCardGame
 
         public void NewGame()
         {
-            Console.Clear();
+            ConsoleGameView.ClearScreen();
             Console.WriteLine("Starting a new round...");
             ResetRound();
             _deck.ShuffleDeck(ShuffleCount);
             DealCards();
-            DisplayAllHands();
+            ConsoleGameView.DisplayAllHands(_players, _dealerIndex);
             BettingRound();
             SelectTrumpSuit();
             PlayRound();
-            UpdateTotalPoints();
+            UpdateScore();
             EndGameCheck();
         }
 
@@ -61,7 +70,6 @@ namespace DeuxCentsCardGame
         {
             _deck = new Deck();
             _gameEnded = false;
-            _dealerIndex = 3; // player 4 will start as the dealer
             _teamOneRoundPoints = 0;
             _teamTwoRoundPoints = 0;
             _winningBid = 0;
@@ -86,13 +94,6 @@ namespace DeuxCentsCardGame
             {
                 _players[i % _players.Count].AddCard(_deck.Cards[i]);
             }
-        }
-        private void DisplayAllHands()
-        {
-            Player.DisplayAllPlayersHandQuadrant(_players[(_dealerIndex) % _players.Count],
-                                                 _players[(_dealerIndex + 1) % _players.Count],
-                                                 _players[(_dealerIndex + 2) % _players.Count],
-                                                 _players[(_dealerIndex + 3) % _players.Count]);
         }
 
         public void BettingRound()
@@ -219,7 +220,7 @@ namespace DeuxCentsCardGame
             _winningBidIndex = bets.IndexOf(_winningBid);
             Console.WriteLine($"\n{_players[_winningBidIndex].Name} won the bid.");
             Console.WriteLine("\n#########################\n");
-            Player.DisplayHand(_players[_winningBidIndex]);
+            //Player.DisplayHand(_players[_winningBidIndex]);
         }
 
         private void SelectTrumpSuit()
@@ -295,7 +296,7 @@ namespace DeuxCentsCardGame
 
             while (!validInput)
             {
-                Player.DisplayHand(currentPlayer); // display current players hand
+                ConsoleGameView.DisplayHand(currentPlayer); // display current players hand
                 Console.WriteLine($"{currentPlayer.Name}, choose a card to play (enter index 0-{currentPlayer.Hand.Count - 1}, leading suit is {leadingSuit} and trump suit is {_trumpSuit}):");
                 string Input = Console.ReadLine();
 
@@ -351,13 +352,13 @@ namespace DeuxCentsCardGame
             return playerIndex % 2 == 0;
         }
 
-        private void UpdateTotalPoints() // tally points and end the round
+        private void UpdateScore() // tally points and end the round
         {
             Console.WriteLine("\nEnd of round. Scoring:");
             Console.WriteLine($"Team One (Player 1 & Player 3) scored : {_teamOneRoundPoints}");
             Console.WriteLine($"Team Two (Player 2 & Player 4) scored : {_teamTwoRoundPoints}");
 
-            if (_winningBidIndex % 2 == 0) // team one won the bet
+            if(IsTeamOne(_winningBidIndex))
                 UpdateTeamOnePoints();
             else // team two won the bet
                 UpdateTeamTwoPoints();
@@ -419,7 +420,7 @@ namespace DeuxCentsCardGame
             }
         }
 
-        private void CheckEndGame()
+        private void EndGameCheck()
         {
             if (_teamOneTotalPoints >= WinningScore || _teamTwoTotalPoints >= WinningScore)
             {

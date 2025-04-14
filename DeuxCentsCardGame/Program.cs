@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace DeuxCentsCardGame
+﻿namespace DeuxCentsCardGame
 {
     class Program
     {

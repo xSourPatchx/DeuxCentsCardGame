@@ -1,9 +1,9 @@
 namespace DeuxCentsCardGame
 {
-    public class Deck
+    public class Deck : IDeck
     {
-        public List<Card> Cards;
-        static readonly Random random = new ();
+        public List<Card> Cards { get; private set; }
+        private static readonly Random random = new ();
 
         private static readonly string[] cardSuits = ["clubs", "diamonds", "hearts", "spades"];
         private static readonly string[] cardFaces = ["5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
@@ -15,6 +15,7 @@ namespace DeuxCentsCardGame
             Cards = [];
             InitializeCards();
         }
+
         private void InitializeCards()
         {
             foreach (string suit in cardSuits)
