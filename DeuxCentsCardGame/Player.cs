@@ -1,15 +1,9 @@
 ﻿namespace DeuxCentsCardGame
 {
-    public class Player : IPlayer
+    public class Player(string name) : IPlayer
     {
-        public string Name { get; }
-        public List<Card> Hand { get; }
-
-        public Player(string name)
-        {
-            Name = name;
-            Hand = [];
-        }
+        public string Name { get; } = name;
+        public List<Card> Hand { get; } = [];
 
         public void AddCard(Card card)
         {

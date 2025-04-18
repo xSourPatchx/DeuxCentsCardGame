@@ -9,7 +9,5 @@
         // Core player actions (Methods)
         void AddCard(Card card);
         void RemoveCard(Card card);
-
-
     }
 }
