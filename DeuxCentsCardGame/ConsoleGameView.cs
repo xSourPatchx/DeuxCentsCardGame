@@ -1,13 +1,81 @@
-﻿using Microsoft.Win32.SafeHandles;
-
-namespace DeuxCentsCardGame
+﻿namespace DeuxCentsCardGame
 {
-    public class ConsoleGameView
+    // change the file name to UIConsoleGameView
+    public class ConsoleGameView : IUIConsoleGameView
     {
-        public static void ClearScreen()
+        public void ClearScreen()
         {
             Console.Clear();
         }
+
+        public void DisplayMessage(string message)
+        {
+            Console.WriteLine(message);
+        }
+
+        public string GetUserInput(string prompt)
+        {
+            Console.WriteLine(prompt);
+            return Console.ReadLine() ?? string.Empty;
+        }
+
+        public int GetIntInput(string prompt, int min, int max)
+        {
+            int result;
+            bool isValid = false;
+
+            do
+            {
+                string input = GetUserInput(prompt);
+                isValid = int.TryParse(input, out result) && result >= min && result <= max;
+
+                if (!isValid)
+                {
+                    DisplayMessage($"Invalid input. Please enter a number between {min} and {max}.");
+                }
+                
+            } while(!isValid);
+
+            return result;
+        }
+
+        public string GetOptionInput(string prompt, string[] options)
+        {
+            string result;
+            bool isValid = false;
+
+            do
+            {
+                result = GetUserInput(prompt).ToLower();
+                isValid = options.Contains(result, StringComparer.OrdinalIgnoreCase);
+                
+                if (!isValid)
+                {
+                    DisplayMessage($"Invalid input. Please enter one of: {string.Join(", ", options)}");
+                }
+            } while (!isValid);
+
+            return result;
+        }
+
+        public void WaitForUser(string message = "Press any key to continue...")
+        {
+            DisplayMessage(message);
+            Console.ReadKey();
+        }
+
+        // uncomment once GameState is implemented
+        // public void ShowGameState(GameState state)
+        // {
+        //     DisplayMessage("\n###### Game State #######");
+        //     DisplayMessage($"Current Round: {state.CurrentRound}");
+        //     DisplayMessage($"Team 1 Score: {state.TeamOnePoints}");
+        //     DisplayMessage($"Team 2 Score: {state.TeamTwoPoints}");
+        //     // add more game state
+
+        //     DisplayMessage("#########################\n");
+        // }
+
         public static void DisplayHand(IPlayer player)
         {
             Console.WriteLine($"{player.Name}'s hand:");
@@ -18,6 +86,7 @@ namespace DeuxCentsCardGame
             }
             Thread.Sleep(300);
         }
+
         public static void DisplayAllPlayersHand(IPlayer playerOne, IPlayer playerTwo, IPlayer playerThree, IPlayer playerFour)
         {
             DisplayHand(playerOne);

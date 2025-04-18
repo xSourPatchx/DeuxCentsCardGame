@@ -1,5 +1,3 @@
-using System.ComponentModel.Design;
-
 namespace DeuxCentsCardGame
 {
     public class Game
@@ -30,6 +28,8 @@ namespace DeuxCentsCardGame
         private int _teamTwoTotalPoints;
         public int _dealerIndex = 3; // dealer starts at player 4 (index 3)
 
+        private readonly ConsoleGameView _consoleGameView = new();
+
 
         public Game()
         {
@@ -53,7 +53,7 @@ namespace DeuxCentsCardGame
 
         public void NewGame()
         {
-            ConsoleGameView.ClearScreen();
+            _consoleGameView.ClearScreen();
             Console.WriteLine("Starting a new round...");
             ResetRound();
             _deck.ShuffleDeck(ShuffleCount);
