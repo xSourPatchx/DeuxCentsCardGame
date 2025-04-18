@@ -13,6 +13,11 @@
             Console.WriteLine(message);
         }
 
+        public void DisplayFormattedMessage(string format, params object[] args)
+        {
+            Console.WriteLine(format, args);
+        }
+
         public string GetUserInput(string prompt)
         {
             Console.WriteLine(prompt);

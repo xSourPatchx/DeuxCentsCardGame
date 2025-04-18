@@ -4,8 +4,8 @@
     {
         static void Main(string[] args)
         {
-            // create a Game object and call the game method
-            Game game = new Game();
+            ConsoleGameView ui = new ConsoleGameView();
+            Game game = new Game(ui);
             game.Start();
             Console.ReadKey();
         }
