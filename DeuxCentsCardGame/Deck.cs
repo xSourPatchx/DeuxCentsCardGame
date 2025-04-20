@@ -40,7 +40,6 @@ namespace DeuxCentsCardGame
                     Cards[i] = temp;
                 }
             }
-            Thread.Sleep(200);
         }
 
         public static string[] GetCardSuits()

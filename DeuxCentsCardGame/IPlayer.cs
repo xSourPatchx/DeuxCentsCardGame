@@ -4,7 +4,7 @@
     {
         // Properties
         public string Name { get; }
-        List<Card> Hand { get; }
+        public List<Card> Hand { get; }
 
         // Core player actions (Methods)
         void AddCard(Card card);

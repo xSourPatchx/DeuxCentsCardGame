@@ -1,21 +1,23 @@
 ﻿namespace DeuxCentsCardGame
 {
-    // change the file name to UIConsoleGameView
-    public class ConsoleGameView : IUIConsoleGameView
+    public class UIConsoleGameView : IUIConsoleGameView
     {
         public void ClearScreen()
         {
             Console.Clear();
+            Thread.Sleep(200);
         }
 
         public void DisplayMessage(string message)
         {
             Console.WriteLine(message);
+            Thread.Sleep(200);
         }
 
         public void DisplayFormattedMessage(string format, params object[] args)
         {
             Console.WriteLine(format, args);
+            Thread.Sleep(200);
         }
 
         public string GetUserInput(string prompt)

@@ -1,6 +1,6 @@
 namespace DeuxCentsCardGame
 {
-    public class Game
+    public class Game : IGame
     {
         // Game constants
         public const int ShuffleCount = 3;
@@ -29,9 +29,9 @@ namespace DeuxCentsCardGame
         public int _dealerIndex = 3; // dealer starts at player 4 (index 3)
 
         // UI reference
-        private readonly ConsoleGameView _ui;
+        private readonly IUIConsoleGameView _ui;
 
-        public Game(ConsoleGameView userInterfaceConsoleGameView)
+        public Game(IUIConsoleGameView userInterfaceConsoleGameView)
         {
             _ui = userInterfaceConsoleGameView;
             _deck = new Deck();
@@ -62,7 +62,7 @@ namespace DeuxCentsCardGame
             ResetRound();
             _deck.ShuffleDeck(ShuffleCount);
             DealCards();
-            ConsoleGameView.DisplayAllHands(_players, _dealerIndex); // display all players hands
+            UIConsoleGameView.DisplayAllHands(_players, _dealerIndex); // display all players hands
             BettingRound();
             SelectTrumpSuit();
             PlayRound();
@@ -224,7 +224,7 @@ namespace DeuxCentsCardGame
             _winningBidIndex = bets.IndexOf(_winningBid);
             _ui.DisplayFormattedMessage("\n{0} won the bid.", _players[_winningBidIndex].Name);
             _ui.DisplayMessage("\n#########################\n");
-            ConsoleGameView.DisplayHand(_players[_winningBidIndex]);
+            UIConsoleGameView.DisplayHand(_players[_winningBidIndex]);
         }
 
         private void SelectTrumpSuit()
@@ -288,7 +288,7 @@ namespace DeuxCentsCardGame
 
         private Card ValidateCardInput(Player currentPlayer, string? leadingSuit)
         {
-            ConsoleGameView.DisplayHand(currentPlayer);
+            UIConsoleGameView.DisplayHand(currentPlayer);
 
             string prompt = $"{currentPlayer.Name}, choose a card to play (enter index 0-{currentPlayer.Hand.Count - 1}" +
                 (leadingSuit != null ? $", leading suit is {leadingSuit}" : "") +
@@ -303,7 +303,7 @@ namespace DeuxCentsCardGame
                     currentPlayer.Hand[cardIndex].CardSuit != leadingSuit && 
                     currentPlayer.Hand.Any(card => card.CardSuit == leadingSuit))
                 {
-                    _ui.DisplayFormattedMessage("\nYou must play the suit of {0} since it's in your deck, try again.\n", leadingSuit);
+                    _ui.DisplayFormattedMessage("You must play the suit of {0} since it's in your deck, try again.\n", leadingSuit);
                     continue;
                 }
 

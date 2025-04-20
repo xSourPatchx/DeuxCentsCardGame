@@ -4,7 +4,7 @@
     {
         static void Main(string[] args)
         {
-            ConsoleGameView ui = new ConsoleGameView();
+            UIConsoleGameView ui = new UIConsoleGameView();
             Game game = new Game(ui);
             game.Start();
             Console.ReadKey();
