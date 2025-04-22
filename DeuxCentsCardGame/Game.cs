@@ -366,9 +366,9 @@ namespace DeuxCentsCardGame
         private void UpdateTeamOnePoints()
         {
             bool teamTwoOver100Points = _teamTwoTotalPoints >= 100;
-            bool teamOneDidNotPlaceBet = !_hasBet[0] || !_hasBet[2];
+            bool teamTwoDidNotPlaceBet = !_hasBet[0] || !_hasBet[2];
             
-            if (teamTwoOver100Points && teamOneDidNotPlaceBet)
+            if (teamTwoOver100Points && teamTwoDidNotPlaceBet)
             {
                 _ui.DisplayMessage("Team One did not place any bets, their points do not count.");
                 _teamTwoRoundPoints = 0;
@@ -392,12 +392,12 @@ namespace DeuxCentsCardGame
         private void UpdateTeamTwoPoints()
         {
             bool teamOneOver100Points = _teamOneTotalPoints >= 100;
-            bool teamTwoDidNotPlaceBet = !(_hasBet[1] || _hasBet[3]);
+            bool teamOneDidNotPlaceBet = !_hasBet[1] || !_hasBet[3];
 
-            if (teamOneOver100Points && teamTwoDidNotPlaceBet)
+            if (teamOneOver100Points && teamOneDidNotPlaceBet)
             {
                 _ui.DisplayMessage("Team Two did not place any bets, their points do not count.");
-                _teamTwoRoundPoints = 0;
+                _teamOneRoundPoints = 0;
             }
 
             if (_teamTwoRoundPoints >= _winningBid)
