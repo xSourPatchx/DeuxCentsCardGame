@@ -1,8 +1,8 @@
-using System;
-using System.Collections.Generic;
-using Xunit;
+// using System;
+// using System.Collections.Generic;
+// using Xunit;
 using Moq;
-using DeuxCentsCardGame;
+// using DeuxCentsCardGame;
 
 namespace DeuxCentsCardGame.Tests
 {
@@ -12,17 +12,14 @@ namespace DeuxCentsCardGame.Tests
         
         public GameTests()
         {
-            // Set up mock UI for testing
-            _mockUI = new Mock<IUIConsoleGameView>();
+            _mockUI = new Mock<IUIConsoleGameView>(); // Set up mock UI for testing
         }
         
         // Test helpers
         private Game CreateGameInstance()
         {
-            // Create a Game instance with mocked UI
-            return new Game(_mockUI.Object);
+            return new Game(_mockUI.Object); // Create a Game instance with mocked UI
         }
         
-        // Place your tests here
     }
 }
