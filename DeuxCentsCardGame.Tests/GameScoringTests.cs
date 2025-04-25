@@ -1,5 +1,6 @@
 // using System;
 // using System.Collections.Generic;
+using System.Reflection;
 // using Xunit;
 using Moq;
 // using DeuxCentsCardGame;
@@ -46,7 +47,7 @@ namespace DeuxCentsCardGame.Tests
 
 
         [Fact]
-        public void UpdateTeamOnePoints_WhenTeamOneScoreOver100AndTeamOneDidNotBet()
+        public void UpdateTeamOnePoints_WhenTeamOneScoreOver100AndTeamOneDidNotBet_TeamOneRoundPointsIsZero()
         {
             // 1. Given or Arrange
             var game = CreateGameInstance();
@@ -61,9 +62,15 @@ namespace DeuxCentsCardGame.Tests
             var _hasBet = new bool[4] {true, false, false, false};
             SetPrivateField(game, "_hasBet", _hasBet);
             
-            // left off here
 
-            // 2. When or Act
+
+            // 2. When or Act - Call the private method using reflection
+            var method = game.GetType().GetMethod("UpdateTeamOnePoints"), BindingFlags.NonPublic | BindingFlags.Instance);
+            method.Invoke(game, null);
+
+            var _teamOneRoundPoints = (int)typeof(Game).GetField("_teamOneRoundPoints", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(game);
+            
+            // left off here
 
             // 3. Then or Assert
         }
