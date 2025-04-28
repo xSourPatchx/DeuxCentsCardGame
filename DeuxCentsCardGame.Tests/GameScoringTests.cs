@@ -1,9 +1,5 @@
-// using System;
-// using System.Collections.Generic;
 using System.Reflection;
-// using Xunit;
 using Moq;
-// using DeuxCentsCardGame;
 
 namespace DeuxCentsCardGame.Tests
 {
@@ -34,17 +30,16 @@ namespace DeuxCentsCardGame.Tests
         
         private void SetPrivateField(object obj, string fieldName, object value)
         {
-            var field = obj.GetType().GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            var field = obj.GetType().GetField(fieldName, BindingFlags.NonPublic | BindingFlags.Instance);
             if (field != null)
             {
                 field.SetValue(obj, value);
             }
             else
             {
-                throw new ArgumentException($"Field {fieldName} not found in {obj.GetType().FullName}");
+                throw new ArgumentException($"Field {fieldName} not found");
             }
         }
-
 
         [Fact]
         public void UpdateTeamOnePoints_WhenTeamOneScoreOver100AndTeamOneDidNotBet_TeamOneRoundPointsIsZero()
@@ -52,27 +47,32 @@ namespace DeuxCentsCardGame.Tests
             // 1. Given or Arrange
             var game = CreateGameInstance();
 
-            SetPrivateField(game, "_teamOneTotalPoints", 50);
-            SetPrivateField(game, "_teamTwoTotalPoints", 120);
-            SetPrivateField(game, "_teamOneRoundPoints", 50);
-            SetPrivateField(game, "_teamTwoRoundPoints", 50);
+            SetPrivateField(game, "_teamOneTotalPoints", 100);
+            SetPrivateField(game, "_teamTwoTotalPoints", 90);
+            SetPrivateField(game, "_teamOneRoundPoints", 60);
+            SetPrivateField(game, "_teamTwoRoundPoints", 40);
             SetPrivateField(game, "_winningBid", 50);
             SetPrivateField(game, "_winningBidIndex", 1);
 
-            var _hasBet = new bool[4] {true, false, false, false};
-            SetPrivateField(game, "_hasBet", _hasBet);
-            
-
+            var hasBet = new bool[4] { false, true, false, false };
+            SetPrivateField(game, "_hasBet", hasBet);
 
             // 2. When or Act - Call the private method using reflection
-            var method = game.GetType().GetMethod("UpdateTeamOnePoints"), BindingFlags.NonPublic | BindingFlags.Instance);
+            var method = typeof(Game).GetMethod("UpdateTeamOnePoints", 
+                BindingFlags.NonPublic | BindingFlags.Instance);
             method.Invoke(game, null);
 
-            var _teamOneRoundPoints = (int)typeof(Game).GetField("_teamOneRoundPoints", BindingFlags.NonPublic | BindingFlags.Instance).GetValue(game);
-            
-            // left off here
+            var teamOneRoundPoints = (int)typeof(Game)
+                .GetField("_teamOneRoundPoints", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(game);
+
+            var teamTwoRoundPoints = (int)typeof(Game)
+                .GetField("_teamOneRoundPoints", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(game);
 
             // 3. Then or Assert
+            Assert.Equal(0, teamOneRoundPoints);
+            Assert.Equal(40, teamTwoRoundPoints);
         }
     }
 }

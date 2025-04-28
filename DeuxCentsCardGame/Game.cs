@@ -365,55 +365,48 @@ namespace DeuxCentsCardGame
 
         private void UpdateTeamOnePoints()
         {
-            bool teamTwoOver100Points = _teamTwoTotalPoints >= 100;
-            bool teamTwoDidNotPlaceBet = !_hasBet[0] || !_hasBet[2];
-            
-            if (teamTwoOver100Points && teamTwoDidNotPlaceBet)
+            bool teamOneOver100Points = _teamOneTotalPoints >= 100; // check if teamOne total point is over 100
+            bool teamOneDidNotPlaceBet = !_hasBet[0] && !_hasBet[2]; // check if either playerOne or playerThree place a bet 
+
+            if (teamOneOver100Points && teamOneDidNotPlaceBet) // if both condition is true, points are reset
             {
                 _ui.DisplayMessage("Team One did not place any bets, their points do not count.");
-                _teamTwoRoundPoints = 0;
+                _teamOneRoundPoints = 0;
             }
-
-            if (_teamOneRoundPoints >= _winningBid)
+            else if (_teamOneRoundPoints >= _winningBid)
             {
-                _ui.DisplayFormattedMessage("Team One made their bet of {0} and wins {1} points.", _winningBid, _teamOneRoundPoints);
-                _teamOneTotalPoints += _teamOneRoundPoints;
-                if (!teamTwoOver100Points)
-                    _teamTwoTotalPoints += _teamTwoRoundPoints;   
+                _ui.DisplayFormattedMessage("Team One made their bet of {0} and wins {1} points.", _winningBid, _teamOneRoundPoints);                
             }
-            else
+            else    
             {
-                _ui.DisplayFormattedMessage("Team One did not make their bet of {0} and loses {0} points.", _winningBid);
-                _teamOneTotalPoints -= _winningBid;
-                _teamTwoTotalPoints += _teamTwoRoundPoints;
+                _ui.DisplayFormattedMessage("Team One did not make their bet of {0} and loses {0} points.", _winningBid);   
+                _teamOneRoundPoints = -_winningBid;
             }
+            
+            _teamOneTotalPoints += _teamOneRoundPoints;
         }
 
         private void UpdateTeamTwoPoints()
         {
-            bool teamOneOver100Points = _teamOneTotalPoints >= 100;
-            bool teamOneDidNotPlaceBet = !_hasBet[1] || !_hasBet[3];
+            bool teamTwoOver100Points = _teamTwoTotalPoints >= 100; // check if teamTwo total point is over 100
+            bool teamTwoDidNotPlaceBet = !_hasBet[1] && !_hasBet[3]; // check if either playerTwo or playerFour place a bet 
 
-            if (teamOneOver100Points && teamOneDidNotPlaceBet)
+            if (teamTwoOver100Points && teamTwoDidNotPlaceBet) // if both condition is true, points are reset
             {
                 _ui.DisplayMessage("Team Two did not place any bets, their points do not count.");
-                _teamOneRoundPoints = 0;
+                _teamTwoRoundPoints = 0;
             }
-
-            if (_teamTwoRoundPoints >= _winningBid)
+            else if (_teamTwoRoundPoints >= _winningBid)
             {
                 _ui.DisplayFormattedMessage("Team Two made their bet of {0} and wins {1} points.", _winningBid, _teamTwoRoundPoints);                
-                _teamTwoTotalPoints += _teamTwoRoundPoints;
-
-                if (!teamOneOver100Points)
-                    _teamOneTotalPoints += _teamOneRoundPoints;   
             }
-            else
+            else    
             {
-                _ui.DisplayFormattedMessage("Team Two did not make their bet of {0} and loses {0} points.", _winningBid);                
-                _teamTwoTotalPoints -= _winningBid;
-                _teamOneTotalPoints += _teamOneRoundPoints;
+                _ui.DisplayFormattedMessage("Team Two did not make their bet of {0} and loses {0} points.", _winningBid);   
+                _teamTwoRoundPoints = -_winningBid;
             }
+            
+            _teamTwoTotalPoints += _teamTwoRoundPoints;
         }
 
         private void EndGameCheck()
