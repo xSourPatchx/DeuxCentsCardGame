@@ -416,7 +416,7 @@ namespace DeuxCentsCardGame
             _ui.DisplayFormattedMessage("Team Two has a total of {0} points", _teamTwoTotalPoints);
         }
 
-        // need to test more before removing
+        // need to test more before removing below
         
         // private void UpdateScore() // tally points and end the round
         // {

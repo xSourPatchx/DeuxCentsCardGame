@@ -47,32 +47,25 @@ namespace DeuxCentsCardGame.Tests
             // 1. Given or Arrange
             var game = CreateGameInstance();
 
-            SetPrivateField(game, "_teamOneTotalPoints", 90);
-            SetPrivateField(game, "_teamTwoTotalPoints", 100);
+            SetPrivateField(game, "_teamOneTotalPoints", 100);
             SetPrivateField(game, "_teamOneRoundPoints", 60);
-            SetPrivateField(game, "_teamTwoRoundPoints", 40);
             SetPrivateField(game, "_winningBid", 50);
-            SetPrivateField(game, "_winningBidIndex", 1);
+            SetPrivateField(game, "_winningBidIndex", 0); // team one won the bet
 
-            var hasBet = new bool[4] { false, true, false, true };
+            var hasBet = new bool[4] { false, false, false, false }; // team two hasnt placed a bet
             SetPrivateField(game, "_hasBet", hasBet);
 
             // 2. When or Act - Call the private method using reflection
-            var method = typeof(Game).GetMethod("UpdateTeamOnePoints", 
+            var method = typeof(Game).GetMethod("UpdateTeamPoints", 
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            method.Invoke(game, null);
+            method.Invoke(game, new object[] { true });
 
             var teamOneRoundPoints = (int)typeof(Game)
                 .GetField("_teamOneRoundPoints", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(game);
 
-            // var teamTwoRoundPoints = (int)typeof(Game)
-            //     .GetField("_teamOneRoundPoints", BindingFlags.NonPublic | BindingFlags.Instance)
-            //     .GetValue(game);
-
             // 3. Then or Assert
             Assert.Equal(0, teamOneRoundPoints);
-            // Assert.Equal(40, teamTwoRoundPoints);
         }
     }
 }
