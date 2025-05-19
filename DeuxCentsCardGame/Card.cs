@@ -1,23 +1,50 @@
 namespace DeuxCentsCardGame
 {
-    public class Card : ICard // initializing Card object
+    public enum CardSuit
+    {
+        Clubs,
+        Diamonds,
+        Hearts,
+        Spades
+    }
+
+    public enum CardFace
+    {
+        Five,
+        Six,
+        Seven,
+        Eight,
+        Nine,
+        Ten,
+        Jack,
+        Queen,
+        King,
+        Ace
+    }
+
+    public class Card(CardSuit cardSuit, CardFace cardFace, int cardFaceValue, int cardPointValue) : ICard // initializing Card object
     {
         // fields
-        public string CardFace { get; } // 5, 6, 7, 8, 9, 10, J, Q, K, A
-        public string CardSuit { get; } // clubs, diamonds, hearts, spades
-        public int CardFaceValue { get; } // 1, 2, 3, 4, 5, 6, 7, 8, 9, 10
-        public int CardPointValue { get; } // 0, 5, 10
+        public CardSuit CardSuit { get; } = cardSuit;
+        public CardFace CardFace { get; } = cardFace;
+        public int CardFaceValue { get; } = cardFaceValue;
+        public int CardPointValue { get; } = cardPointValue;
 
-        // constructor
-        public Card(string cardFace, string cardSuit, int cardFaceValue, int cardPointValue)
+        public override string ToString() =>
+            $"{GetCardFaceString(CardFace)} of {GetCardSuitString(CardSuit)} ({CardPointValue} pts)";
+
+        private static string GetCardFaceString(CardFace cardFace)
         {
-            CardFace = cardFace;
-            CardSuit = cardSuit;
-            CardFaceValue = cardFaceValue;
-            CardPointValue = cardPointValue;
+            return cardFace switch
+            {
+                CardFace.Jack => "J",
+                CardFace.Queen => "Q",
+                CardFace.King => "K",
+                CardFace.Ace => "A",
+                _ => ((int)cardFace + 5).ToString()
+            };
         }
 
-        public override string ToString() => $"{ CardFace } of { CardSuit } ({ CardPointValue } pts)";
-        
+        private static string GetCardSuitString(CardSuit cardSuit) => cardSuit.ToString().ToLower();
     }
 }

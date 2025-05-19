@@ -3,11 +3,31 @@ namespace DeuxCentsCardGame
     public class Deck : IDeck
     {
         public List<Card> Cards { get; private set; }
-        private static readonly Random random = new ();
+        private static readonly Random random = new();
 
-        private static readonly string[] cardSuits = ["clubs", "diamonds", "hearts", "spades"];
-        private static readonly string[] cardFaces = ["5", "6", "7", "8", "9", "10", "J", "Q", "K", "A"];
-        private static readonly int[] cardfaceValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+        private static readonly CardSuit[] cardSuits = 
+        [
+            CardSuit.Clubs, 
+            CardSuit.Diamonds, 
+            CardSuit.Hearts, 
+            CardSuit.Spades
+        ];
+        
+        private static readonly CardFace[] cardFaces = 
+        [
+            CardFace.Five, 
+            CardFace.Six, 
+            CardFace.Seven, 
+            CardFace.Eight, 
+            CardFace.Nine, 
+            CardFace.Ten, 
+            CardFace.Jack, 
+            CardFace.Queen, 
+            CardFace.King, 
+            CardFace.Ace
+        ];
+        private static readonly int[] cardFaceValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10];
+
         private static readonly int[] cardPointValues = [5, 0, 0, 0, 0, 10, 0, 0, 0, 10];
 
         public Deck()
@@ -18,16 +38,16 @@ namespace DeuxCentsCardGame
 
         private void InitializeCards()
         {
-            foreach (string suit in cardSuits)
+            foreach (CardSuit suit in cardSuits)
             {
                 for (int c = 0; c < cardFaces.Length; c++)
                 {
-                    Cards.Add(new Card(cardFaces[c], suit, cardfaceValues[c], cardPointValues[c]));
+                    Cards.Add(new Card(suit, cardFaces[c], cardFaceValues[c], cardPointValues[c]));
                 }
             }
         }
     
-        public void ShuffleDeck(int shuffleCount) // method to shuffle deck
+        public void ShuffleDeck(int shuffleCount)
         {
             Console.WriteLine("Shuffling cards...");
             for (int s = 0; s < shuffleCount; s++)
@@ -42,9 +62,26 @@ namespace DeuxCentsCardGame
             }
         }
 
-        public static string[] GetCardSuits()
+        public static CardSuit[] GetCardSuits()
         {
             return cardSuits;
+        }
+
+        public static CardSuit StringToCardSuit(string cardSuitName)
+        {
+            return cardSuitName.ToLower() switch
+            {
+                "clubs" => CardSuit.Clubs,
+                "diamonds" => CardSuit.Diamonds,
+                "hearts" => CardSuit.Hearts,
+                "spades" => CardSuit.Spades,
+                _ => throw new ArgumentException($"Invalid suit name: {cardSuitName}")
+            };
+        }
+
+        public static string CardSuitToString(CardSuit cardSuit)
+        {
+            return cardSuit.ToString().ToLower();
         }
     }
 }

@@ -10,7 +10,6 @@ namespace DeuxCentsCardGame
         private const int BetIncrement = 5;
 
         // Game state properties
-
         private Deck _deck;
         private readonly List<Player> _players;
 
@@ -19,7 +18,7 @@ namespace DeuxCentsCardGame
         private int _winningBid;
         private int _winningBidIndex;
         private int _winningPlayerIndex;
-        private string _trumpSuit;
+        private CardSuit? _trumpSuit;
 
         // scoring properties
         private int _teamOneRoundPoints;
@@ -44,7 +43,7 @@ namespace DeuxCentsCardGame
             ];
 
             _hasBet = new bool[4];
-            _trumpSuit = string.Empty;
+            _trumpSuit =  null;
         }
 
         public void Start()
@@ -78,6 +77,7 @@ namespace DeuxCentsCardGame
             _teamTwoRoundPoints = 0;
             _winningBid = 0;
             _winningBidIndex = 0;
+            _trumpSuit = null;
             RotateDealer();
         }
 
@@ -229,11 +229,11 @@ namespace DeuxCentsCardGame
 
         private void SelectTrumpSuit()
         {
-            string[] validSuits = Deck.GetCardSuits();
+            string[] validSuits = Enum.GetNames<CardSuit>().Select(s => s.ToLower()).ToArray();    
             string prompt = $"{_players[_winningBidIndex].Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")";
-            _trumpSuit = _ui.GetOptionInput(prompt, validSuits);
-
-            _ui.DisplayFormattedMessage("\nTrump suit is {0}.", _trumpSuit);
+            string trumpSuitString = _ui.GetOptionInput(prompt, validSuits);    
+            _trumpSuit = Deck.StringToCardSuit(trumpSuitString);
+            _ui.DisplayFormattedMessage("\nTrump suit is {0}.", Deck.CardSuitToString(_trumpSuit.Value));
         }
 
         private void PlayRound()
@@ -248,7 +248,7 @@ namespace DeuxCentsCardGame
             for (int trick = 0; trick < totalTricks; trick++)
             {
                 int trickPoints = 0;
-                string? leadingSuit = null;
+                CardSuit? leadingSuit = null;
                 List<Card> currentTrick = []; // empty list to hold tricks
 
                 _ui.DisplayMessage("\n#########################\n");
@@ -266,7 +266,7 @@ namespace DeuxCentsCardGame
             }
         }
 
-        private void PlayTrick(int currentPlayerIndex, string? leadingSuit, List<Card> currentTrick)
+        private void PlayTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<Card> currentTrick)
         {
             for (int i = 0; i < _players.Count; i++)
                 {
@@ -286,24 +286,27 @@ namespace DeuxCentsCardGame
                 }
         }
 
-        private Card ValidateCardInput(Player currentPlayer, string? leadingSuit)
+        private Card ValidateCardInput(Player currentPlayer, CardSuit? leadingSuit)
         {
             UIConsoleGameView.DisplayHand(currentPlayer);
 
+            string leadingSuitString = leadingSuit.HasValue ? Deck.CardSuitToString(leadingSuit.Value) : "none";
+            string trumpSuitString = _trumpSuit.HasValue ? Deck.CardSuitToString(_trumpSuit.Value) : "none";
+
             string prompt = $"{currentPlayer.Name}, choose a card to play (enter index 0-{currentPlayer.Hand.Count - 1}" +
-                (leadingSuit != null ? $", leading suit is {leadingSuit}" : "") +
-                $" and trump suit is {_trumpSuit}):";
+                (leadingSuit.HasValue ? $", leading suit is {leadingSuitString}" : "") +
+                $" and trump suit is {trumpSuitString}):";
 
             while (true)
             {
                 int cardIndex = _ui.GetIntInput(prompt, 0, currentPlayer.Hand.Count - 1);
 
                 // Validate card follows suit if possible
-                if (leadingSuit != null && 
+                if (leadingSuit.HasValue && 
                     currentPlayer.Hand[cardIndex].CardSuit != leadingSuit && 
                     currentPlayer.Hand.Any(card => card.CardSuit == leadingSuit))
                 {
-                    _ui.DisplayFormattedMessage("You must play the suit of {0} since it's in your deck, try again.\n", leadingSuit);
+                    _ui.DisplayFormattedMessage("You must play the suit of {0} since it's in your deck, try again.\n", leadingSuitString);
                     continue;
                 }
 
@@ -311,17 +314,26 @@ namespace DeuxCentsCardGame
             }
         }
 
-        private int DetermineTrickWinnerIndex(List<Card> trick, string trumpSuit)
+        private int DetermineTrickWinnerIndex(List<Card> trick, CardSuit? trumpSuit)
         {
             _winningPlayerIndex = 0;
 
+            bool trumpSuitNotNull = trumpSuit.HasValue;
+
             for (int i = 1; i < trick.Count; i++)
             {
-                // Check if the current card is a trump card AND the winning card is not a trump card
-                if (trick[i].CardSuit == trumpSuit && trick[_winningPlayerIndex].CardSuit != trumpSuit)
-                    _winningPlayerIndex = i;
+                if (trumpSuitNotNull)
+                {
+                    // Check if the current card is a trump card AND the winning card is not a trump card
+                    if (trick[i].CardSuit == trumpSuit && trick[_winningPlayerIndex].CardSuit != trumpSuit)
+                    {
+                        _winningPlayerIndex = i;
+                        continue;
+                    }
+                }
+
                 // Check if both cards are trump cards or both are not trump cards
-                else if (trick[i].CardSuit == trick[_winningPlayerIndex].CardSuit)
+                if (trick[i].CardSuit == trick[_winningPlayerIndex].CardSuit)
                 {
                     if (trick[i].CardFaceValue > trick[_winningPlayerIndex].CardFaceValue)
                         _winningPlayerIndex = i;    
@@ -335,7 +347,7 @@ namespace DeuxCentsCardGame
         {
             bool isTeamOne = trickWinnerIndex % 2 == 0;
             string teamName = isTeamOne ? "Team One" : "Team Two";
-
+     
             _ui.DisplayFormattedMessage("{0} collected {1} points for {2}", _players[trickWinnerIndex].Name, trickPoints, teamName);
             if (isTeamOne)
                 _teamOneRoundPoints += trickPoints;
@@ -348,7 +360,6 @@ namespace DeuxCentsCardGame
             return playerIndex % 2 == 0;
         }
 
-//
         private void UpdateTeamPoints(bool isTeamOne)
         {
             int teamRoundPoints;
@@ -415,69 +426,6 @@ namespace DeuxCentsCardGame
             _ui.DisplayFormattedMessage("\nTeam One has a total of {0} points", _teamOneTotalPoints);
             _ui.DisplayFormattedMessage("Team Two has a total of {0} points", _teamTwoTotalPoints);
         }
-
-        // need to test more before removing below
-        
-        // private void UpdateScore() // tally points and end the round
-        // {
-        //     _ui.DisplayMessage("\nEnd of round. Scoring:");
-        //     _ui.DisplayFormattedMessage("Team One (Player 1 & Player 3) scored : {0}", _teamOneRoundPoints);
-        //     _ui.DisplayFormattedMessage("Team Two (Player 2 & Player 4) scored : {0}", _teamTwoRoundPoints);
-
-        //     if(IsTeamOne(_winningBidIndex))
-        //         UpdateTeamOnePoints();
-        //     else // team two won the bet
-        //         UpdateTeamTwoPoints();
-            
-        //     _ui.DisplayFormattedMessage("\nTeam One has a total of {0} points", _teamOneTotalPoints);
-        //     _ui.DisplayFormattedMessage("Team Two has a total of {0} points", _teamTwoTotalPoints);
-        // }
-
-        // private void UpdateTeamOnePoints()
-        // {
-        //     bool teamOneOver100Points = _teamOneTotalPoints >= 100; // check if teamOne total point is over 100
-        //     bool teamOneDidNotPlaceBet = !_hasBet[0] && !_hasBet[2]; // check if either playerOne or playerThree place a bet 
-
-        //     if (teamOneOver100Points && teamOneDidNotPlaceBet) // if both condition is true, points are reset
-        //     {
-        //         _ui.DisplayMessage("Team One did not place any bets, their points do not count.");
-        //         _teamOneRoundPoints = 0;
-        //     }
-        //     else if (_teamOneRoundPoints >= _winningBid)
-        //     {
-        //         _ui.DisplayFormattedMessage("Team One made their bet of {0} and wins {1} points.", _winningBid, _teamOneRoundPoints);                
-        //     }
-        //     else    
-        //     {
-        //         _ui.DisplayFormattedMessage("Team One did not make their bet of {0} and loses {0} points.", _winningBid);   
-        //         _teamOneRoundPoints = -_winningBid;
-        //     }
-            
-        //     _teamOneTotalPoints += _teamOneRoundPoints;
-        // }
-
-        // private void UpdateTeamTwoPoints()
-        // {
-        //     bool teamTwoOver100Points = _teamTwoTotalPoints >= 100; // check if teamTwo total point is over 100
-        //     bool teamTwoDidNotPlaceBet = !_hasBet[1] && !_hasBet[3]; // check if either playerTwo or playerFour place a bet 
-
-        //     if (teamTwoOver100Points && teamTwoDidNotPlaceBet) // if both condition is true, points are reset
-        //     {
-        //         _ui.DisplayMessage("Team Two did not place any bets, their points do not count.");
-        //         _teamTwoRoundPoints = 0;
-        //     }
-        //     else if (_teamTwoRoundPoints >= _winningBid)
-        //     {
-        //         _ui.DisplayFormattedMessage("Team Two made their bet of {0} and wins {1} points.", _winningBid, _teamTwoRoundPoints);                
-        //     }
-        //     else    
-        //     {
-        //         _ui.DisplayFormattedMessage("Team Two did not make their bet of {0} and loses {0} points.", _winningBid);   
-        //         _teamTwoRoundPoints = -_winningBid;
-        //     }
-            
-        //     _teamTwoTotalPoints += _teamTwoRoundPoints;
-        // }
 
         private void EndGameCheck()
         {
