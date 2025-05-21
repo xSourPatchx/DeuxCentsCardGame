@@ -2,7 +2,7 @@
 1. **Refactoring**
    - [x] Use enums for `CardSuit` and `CardFace` in `Card.cs`
    - [x] Consider making `Card` immutable (remove setters, use `init` properties)
-   - [ ] Add validation in `Card` constructor
+   - [x] Add validation in `Card` constructor
    - [ ] Consider encapsulate Card Logic by adding methods like `IsHigherThan(Card other)` directly in the `Card` class.
   
 2. **Deck Improvements**
