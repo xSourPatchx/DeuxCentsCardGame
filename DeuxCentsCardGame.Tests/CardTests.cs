@@ -5,7 +5,30 @@ namespace DeuxCentsCardGame.Tests
 {
     public class CardTests
     {
-        [Fact] // test 1
+        // Helper method to quickly create a card
+        private Card CreateCard(CardSuit suit, CardFace face)
+        {
+            int pointValue;
+            if (face == CardFace.Five)
+            {
+                pointValue = 5;
+            }
+            else if (face == CardFace.Ten || face == CardFace.Ace)
+            {
+                pointValue = 10;
+            }
+            else
+            {
+                pointValue = 0;
+            }
+            
+            int faceValue = (int)face +1; // enum to auto assign faceValue
+
+            return new Card(suit, face, faceValue, pointValue);
+        }
+
+
+        [Fact] // IsTrump test 1
         public void IsTrump_WhenCardSuitMatchTrumpSuit_ReturnTrue()
         {
             // 1. Given or Arrange
@@ -19,7 +42,7 @@ namespace DeuxCentsCardGame.Tests
             Assert.True(result);
         }
 
-        [Fact] // test 2
+        [Fact] // IsTrump test 2
         public void IsTrump_WhenCardSuitDoesNotMatchTrumpSuit_ReturnFalse()
         {
             // 1. Given or Arrange
@@ -33,7 +56,7 @@ namespace DeuxCentsCardGame.Tests
             Assert.False(result);
         }
 
-        [Fact] // test 3
+        [Fact] // IsTrump test 3
         public void IsTrump_WhenTrumpSuitIsNull_ReturnFalse()
         {
             // 1. Given or Arrange
@@ -47,7 +70,7 @@ namespace DeuxCentsCardGame.Tests
             Assert.False(result);
         }
 
-        [Fact] // test 4
+        [Fact] // IsSameSuit test 1
         public void IsSameSuit_WhenCardIsSameSuitAsOtherCard_ReturnTrue()
         {
             // 1. Given or Arrange
@@ -61,7 +84,7 @@ namespace DeuxCentsCardGame.Tests
             Assert.True(result);
         }
 
-        [Fact] // test 5
+        [Fact] // IsSameSuit test 2
         public void IsSameSuit_WhenCardIsNotSameSuitAsOtherCard_ReturnFalse()
         {
             // 1. Given or Arrange
@@ -75,7 +98,7 @@ namespace DeuxCentsCardGame.Tests
             Assert.False(result);
         }
 
-        [Fact] // test 5
+        [Fact] // IsSameSuit test 3
         public void IsSameSuit_WhenCardsSuitAllDefer_ReturnAccordingly()
         {
             // 1. Given or Arrange
@@ -96,5 +119,31 @@ namespace DeuxCentsCardGame.Tests
             Assert.False(result3);
             Assert.False(result4);
         }
+
+        [Fact] // CanBePlayed test 1
+        public void CanBePlayed_WhenNoLeadingSuit_ReturnTrue()
+        {
+            // 1. Given or Arrange
+            CardSuit? leadingSuit = null;
+            var card = CreateCard(CardSuit.Hearts,CardFace.King);
+            var hand = new List<Card>
+            {
+                CreateCard(CardSuit.Clubs,CardFace.King),
+                CreateCard(CardSuit.Diamonds,CardFace.King),
+                CreateCard(CardSuit.Spades,CardFace.King),
+            };
+
+            // 2. When or Act
+            bool result = card.CanBePlayed(leadingSuit, hand);
+
+            // 3. Then or Assert
+            Assert.True(result);
+        }
+
+        // CanBePlayed test 2
+        // CanBePlayed test 3
+        // CanBePlayed test 4
+        // CanBePlayed test 5
+        // CanBePlayed test 6
     }
 }

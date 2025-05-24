@@ -75,18 +75,29 @@ namespace DeuxCentsCardGame
             return CardSuit == otherCard.CardSuit;
         }
 
+        public bool CanBePlayed(CardSuit? leadingSuit, List<Card> hand)
+        {
+            // Can always play if no leading suit established
+            if (!leadingSuit.HasValue)
+                return true; 
+
+            // Can play if CardSuit matches leading suit
+            if (CardSuit == leadingSuit.Value)
+                return true;
+            
+            // Can play if player hand has no cards of leading suit
+            // below can be used to simplify to one line
+            // return hand.Any(card => card.CardSuit == leadingSuit.Value);
+            foreach(Card card in hand)
+            {
+                if (card.CardSuit == leadingSuit.Value)
+                    return true;
+            }
+            return false;
+        }
+
         // need to implement and test below methods
 
-
-        // public bool IsSameSuit()
-        // { 
-        //     // check if card is trump
-        // }
-        
-        // public bool CanBePlayed()
-        // {
-
-        // }
 
         // public bool IsHigher()
         // {
