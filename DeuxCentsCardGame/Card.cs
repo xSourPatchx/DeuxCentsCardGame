@@ -59,10 +59,40 @@ namespace DeuxCentsCardGame
         }
 
         // Helper methods for game logic
+        // below are potential affected methods in game class
+        // - GetValidCardFromPlayer
+        // - ValidateCardInput
+        // - DetermineTrickWinnerIndex
+        // - DetermineTrickWinner
+
         public bool IsTrump(CardSuit? trumpSuit)
         {
             return trumpSuit.HasValue && CardSuit == trumpSuit.Value;
         }
+
+        public bool IsSameSuit(Card otherCard)
+        {
+            return CardSuit == otherCard.CardSuit;
+        }
+
+        // need to implement and test below methods
+
+
+        // public bool IsSameSuit()
+        // { 
+        //     // check if card is trump
+        // }
+        
+        // public bool CanBePlayed()
+        // {
+
+        // }
+
+        // public bool IsHigher()
+        // {
+
+        // }
+
 
         public override string ToString() =>
             $"{GetCardFaceString(CardFace)} of {CardSuit.ToString().ToLower()} ({CardPointValue} pts)";
