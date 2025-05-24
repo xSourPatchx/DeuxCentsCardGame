@@ -58,6 +58,12 @@ namespace DeuxCentsCardGame
                     $"Invalid point value {pointValue} for card face {face}. Expected {expectedPointValue}");
         }
 
+        // Helper methods for game logic
+        public bool IsTrump(CardSuit? trumpSuit)
+        {
+            return trumpSuit.HasValue && CardSuit == trumpSuit.Value;
+        }
+
         public override string ToString() =>
             $"{GetCardFaceString(CardFace)} of {CardSuit.ToString().ToLower()} ({CardPointValue} pts)";
 
