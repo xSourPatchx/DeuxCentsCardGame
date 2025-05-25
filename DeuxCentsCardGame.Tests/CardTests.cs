@@ -140,10 +140,135 @@ namespace DeuxCentsCardGame.Tests
             Assert.True(result);
         }
 
-        // CanBePlayed test 2
-        // CanBePlayed test 3
-        // CanBePlayed test 4
-        // CanBePlayed test 5
-        // CanBePlayed test 6
+        [Fact] // CanBePlayed test 2
+        public void CanBePlayed_WhenCardMatchesLeadingSuit_ReturnTrue()
+        {
+            // 1. Given or Arrange
+            CardSuit? leadingSuit = CardSuit.Hearts;
+            var card = CreateCard(CardSuit.Hearts,CardFace.King);
+            var hand = new List<Card>
+            {
+                card,
+                CreateCard(CardSuit.Clubs,CardFace.King),
+                CreateCard(CardSuit.Diamonds,CardFace.King),
+                CreateCard(CardSuit.Spades,CardFace.King),
+            };
+
+            // 2. When or Act
+            bool result = card.CanBePlayed(leadingSuit, hand);
+
+            // 3. Then or Assert
+            Assert.True(result);
+        }
+
+        [Fact] // CanBePlayed test 3
+        public void CanBePlayed_WhenCardDoesNotMatchLeadingSuitAndHandDoesNotHaveLeadingSuit_ReturnTrue()
+        {
+            // 1. Given or Arrange
+            CardSuit? leadingSuit = CardSuit.Hearts;
+            var card = CreateCard(CardSuit.Clubs,CardFace.Five);
+            var hand = new List<Card>
+            {
+                card,
+                CreateCard(CardSuit.Clubs,CardFace.King),
+                CreateCard(CardSuit.Diamonds,CardFace.King),
+                CreateCard(CardSuit.Spades,CardFace.King),
+            };
+
+            // 2. When or Act
+            bool result = card.CanBePlayed(leadingSuit, hand);
+
+            // 3. Then or Assert
+            Assert.True(result);
+        }
+
+        [Fact] // CanBePlayed test 4
+        public void CanBePlayed_WhenCardDoesNotMatchLeadingSuitAndHandHasLeadingSuit_ReturnFalse()
+        {
+            // 1. Given or Arrange
+            CardSuit? leadingSuit = CardSuit.Hearts;
+            var card = CreateCard(CardSuit.Clubs,CardFace.Five);
+            var hand = new List<Card>
+            {
+                card,
+                CreateCard(CardSuit.Hearts,CardFace.King), // leading suit
+                CreateCard(CardSuit.Clubs,CardFace.King),
+                CreateCard(CardSuit.Diamonds,CardFace.King),
+                CreateCard(CardSuit.Spades,CardFace.King),
+            };
+
+            // 2. When or Act
+            bool result = card.CanBePlayed(leadingSuit, hand);
+
+            // 3. Then or Assert
+            Assert.False(result);
+        }
+
+        [Fact] // CanBePlayed test 5
+        public void CanBePlayed_WhenHandHasOnlyOneCardThatMatchesLeadingSuit_ReturnFalse()
+        {
+            // 1. Given or Arrange
+            CardSuit? leadingSuit = CardSuit.Hearts;
+            var card = CreateCard(CardSuit.Clubs,CardFace.Five);
+            var hand = new List<Card>
+            {
+                card,
+                CreateCard(CardSuit.Hearts,CardFace.King),
+                CreateCard(CardSuit.Hearts,CardFace.Five),
+                CreateCard(CardSuit.Hearts,CardFace.Ace),
+                CreateCard(CardSuit.Hearts,CardFace.Jack)
+            };
+
+            // 2. When or Act
+            bool result = card.CanBePlayed(leadingSuit, hand);
+
+            // 3. Then or Assert
+            Assert.False(result);
+        }
+
+        [Fact]// CanBePlayed test 6
+        public void CanBePlayed_WhenHandHasAllSuitsAndCardDoesNotMatchLeadingSuit_ReturnFalse()
+        {
+            // 1. Given or Arrange
+            CardSuit? leadingSuit = CardSuit.Hearts;
+            var card = CreateCard(CardSuit.Clubs,CardFace.Five);
+            var hand = new List<Card>
+            {
+                card,
+                CreateCard(CardSuit.Hearts,CardFace.King), // leading suit
+                CreateCard(CardSuit.Clubs,CardFace.King),
+                CreateCard(CardSuit.Diamonds,CardFace.King),
+                CreateCard(CardSuit.Spades,CardFace.King),
+            };
+
+            // 2. When or Act
+            bool result = card.CanBePlayed(leadingSuit, hand);
+
+            // 3. Then or Assert
+            Assert.False(result);
+        }
+
+        [Theory]
+        [InlineData(CardSuit.Clubs)]
+        [InlineData(CardSuit.Diamonds)]
+        [InlineData(CardSuit.Hearts)]
+        [InlineData(CardSuit.Spades)]
+        public void CanBePlayed_WhenAllSuitsMatchLeadingSuit_ReturnTrue(CardSuit suit)
+        {
+            // 1. Given or Arrange
+            CardSuit? leadingSuit = suit;
+            var card = CreateCard(suit,CardFace.Five);
+            var hand = new List<Card>
+            {
+                card,
+                CreateCard(suit,CardFace.King),
+            };
+
+            // 2. When or Act
+            bool result = card.CanBePlayed(leadingSuit, hand);
+
+            // 3. Then or Assert
+            Assert.True(result);
+        }
     }
 }

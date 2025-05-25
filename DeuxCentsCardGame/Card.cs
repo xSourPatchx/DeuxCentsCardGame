@@ -91,18 +91,16 @@ namespace DeuxCentsCardGame
             foreach(Card card in hand)
             {
                 if (card.CardSuit == leadingSuit.Value)
-                    return true;
+                    return false;
             }
-            return false;
+            return true;
         }
 
-        // need to implement and test below methods
-
-
-        // public bool IsHigher()
-        // {
-
-        // }
+        // left off here, continue with logic, look at Game class for reference
+        public bool Beats(Card otherCard)
+        {
+            return CardFaceValue > otherCard.CardFaceValue;
+        }
 
 
         public override string ToString() =>
