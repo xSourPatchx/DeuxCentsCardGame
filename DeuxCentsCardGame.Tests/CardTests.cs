@@ -248,7 +248,7 @@ namespace DeuxCentsCardGame.Tests
             Assert.False(result);
         }
 
-        [Theory]
+        [Theory] // CanBePlayed test 7
         [InlineData(CardSuit.Clubs)]
         [InlineData(CardSuit.Diamonds)]
         [InlineData(CardSuit.Hearts)]
@@ -269,6 +269,174 @@ namespace DeuxCentsCardGame.Tests
 
             // 3. Then or Assert
             Assert.True(result);
+        }
+
+        [Fact] // Beats test 1
+        public void Beats_WhenTrumpBeatsNonTrump_ReturnTrue()
+        {
+            // 1. Given or Arrange
+            var trumpCard = CreateCard(CardSuit.Hearts, CardFace.Five);
+            var nonTrumpCard = CreateCard(CardSuit.Clubs, CardFace.Ace);
+            var trumpSuit = CardSuit.Hearts;
+
+            // 2. When or Act
+            bool result = trumpCard.Beats(nonTrumpCard, trumpSuit, null);
+
+            // 3. Then or Assert
+            Assert.True(result);
+        }
+
+        [Fact] // Beats test 2
+        public void Beats_WhenNonTrumpVsTrump_ReturnFalse()
+        {
+            // 1. Given or Arrange
+            var nonTrumpCard = CreateCard(CardSuit.Clubs, CardFace.Ace);
+            var trumpCard = CreateCard(CardSuit.Hearts, CardFace.Five);
+            var trumpSuit = CardSuit.Hearts;
+
+            // 2. When or Act
+            bool result = nonTrumpCard.Beats(trumpCard, trumpSuit, null);
+
+            // 3. Then or Assert
+            Assert.False(result);
+        }
+
+        [Fact] // Beats test 3
+        public void Beats_WhenBothTrumpCards_HigherFaceValueWins()
+        {
+            // 1. Given or Arrange
+            var highTrump = CreateCard(CardSuit.Hearts, CardFace.King);
+            var lowTrump = CreateCard(CardSuit.Hearts, CardFace.Six);
+            var trumpSuit = CardSuit.Hearts;
+
+            // 2. When or Act
+            bool result = highTrump.Beats(lowTrump, trumpSuit, null);
+
+            // 3. Then or Assert
+            Assert.True(result);
+        }
+
+        [Fact] // Beats test 4
+        public void Beats_WhenBothTrumpCards_LowerFaceValueLoses()
+        {
+            // 1. Given or Arrange
+            var lowTrump = CreateCard(CardSuit.Hearts, CardFace.Six);
+            var highTrump = CreateCard(CardSuit.Hearts, CardFace.King);
+            var trumpSuit = CardSuit.Hearts;
+
+            // 2. When or Act
+            bool result = lowTrump.Beats(highTrump, trumpSuit, null);
+
+            // 3. Then or Assert
+            Assert.False(result);
+        }
+
+        [Fact] // Beats test 5
+        public void Beats_WhenSameSuitNonTrump_HigherFaceValueWins()
+        {
+            // 1. Given or Arrange
+            var highCard = CreateCard(CardSuit.Clubs, CardFace.King);
+            var lowCard = CreateCard(CardSuit.Clubs, CardFace.Seven);
+            var trumpSuit = CardSuit.Hearts;
+
+            // 2. When or Act
+            bool result = highCard.Beats(lowCard, trumpSuit, null);
+
+            // 3. Then or Assert
+            Assert.True(result);
+        }
+
+        [Fact] // Beats test 6
+        public void Beats_WhenLeadingSuitBeatsNonLeadingSuit_ReturnTrue()
+        {
+            // 1. Given or Arrange
+            var leadingSuitCard = CreateCard(CardSuit.Spades, CardFace.Five);
+            var nonLeadingSuitCard = CreateCard(CardSuit.Diamonds, CardFace.Ace);
+            var trumpSuit = CardSuit.Hearts;
+            var leadingSuit = CardSuit.Spades;
+
+            // 2. When or Act
+            bool result = leadingSuitCard.Beats(nonLeadingSuitCard, trumpSuit, leadingSuit);
+
+            // 3. Then or Assert
+            Assert.True(result);
+        }
+
+        [Fact] // Beats test 7
+        public void Beats_WhenNonLeadingSuitVsLeadingSuit_ReturnFalse()
+        {
+            // 1. Given or Arrange
+            var nonLeadingSuitCard = CreateCard(CardSuit.Diamonds, CardFace.Ace);
+            var leadingSuitCard = CreateCard(CardSuit.Spades, CardFace.Five);
+            var trumpSuit = CardSuit.Hearts;
+            var leadingSuit = CardSuit.Spades;
+
+            // 2. When or Act
+            bool result = nonLeadingSuitCard.Beats(leadingSuitCard, trumpSuit, leadingSuit);
+
+            // 3. Then or Assert
+            Assert.False(result);
+        }
+
+        [Fact] // Beats test 8
+        public void Beats_WhenNeitherMatchesLeadingSuit_FirstCardWins()
+        {
+            // 1. Given or Arrange
+            var firstCard = CreateCard(CardSuit.Diamonds, CardFace.King);
+            var secondCard = CreateCard(CardSuit.Clubs, CardFace.Ace);
+            var trumpSuit = CardSuit.Hearts;
+            var leadingSuit = CardSuit.Spades;
+
+            // 2. When or Act - secondCard was played first, so firstCard should lose
+            bool result = firstCard.Beats(secondCard, trumpSuit, leadingSuit);
+
+            // 3. Then or Assert
+            Assert.False(result);
+        }
+
+        [Fact] // Beats test 9
+        public void Beats_WhenNoTrumpNoLeadingSuit_ReturnFalse()
+        {
+            // 1. Given or Arrange
+            var card1 = CreateCard(CardSuit.Diamonds, CardFace.King);
+            var card2 = CreateCard(CardSuit.Clubs, CardFace.Ace);
+
+            // 2. When or Act
+            bool result = card1.Beats(card2, null, null);
+
+            // 3. Then or Assert
+            Assert.False(result);
+        }
+
+        [Fact] // Beats test 10
+        public void Beats_WhenTrumpOverridesLeadingSuit_ReturnTrue()
+        {
+            // 1. Given or Arrange
+            var trumpCard = CreateCard(CardSuit.Hearts, CardFace.Five);
+            var leadingSuitCard = CreateCard(CardSuit.Spades, CardFace.Ace);
+            var trumpSuit = CardSuit.Hearts;
+            var leadingSuit = CardSuit.Spades;
+
+            // 2. When or Act
+            bool result = trumpCard.Beats(leadingSuitCard, trumpSuit, leadingSuit);
+
+            // 3. Then or Assert
+            Assert.True(result);
+        }
+
+        [Fact] // Beats test 11
+        public void Beats_WhenEqualFaceValueSameSuit_ReturnFalse()
+        {
+            // 1. Given or Arrange
+            var card1 = CreateCard(CardSuit.Clubs, CardFace.Seven);
+            var card2 = CreateCard(CardSuit.Clubs, CardFace.Seven);
+            var trumpSuit = CardSuit.Hearts;
+
+            // 2. When or Act
+            bool result = card1.Beats(card2, trumpSuit, null);
+
+            // 3. Then or Assert
+            Assert.False(result);
         }
     }
 }

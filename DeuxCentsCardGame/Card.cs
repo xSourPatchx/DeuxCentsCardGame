@@ -97,9 +97,32 @@ namespace DeuxCentsCardGame
         }
 
         // left off here, continue with logic, look at Game class for reference
-        public bool Beats(Card otherCard)
+        public bool Beats(Card otherCard, CardSuit? trumpSuit, CardSuit? leadingSuit)
         {
-            return CardFaceValue > otherCard.CardFaceValue;
+            // first case
+            // Check if the current card is a trump card AND the winning card is not a trump card
+            if (!otherCard.IsTrump(trumpSuit) && IsTrump(trumpSuit))
+                return true;
+
+            // second case
+            // Check if both cards are trump cards or both are not trump cards
+            if (IsSameSuit(otherCard))
+            {
+                return CardFaceValue > otherCard.CardFaceValue;
+            }
+
+            // third case
+            // If both cards aren't trump and different suits, card of leading suit wins
+            if (leadingSuit.HasValue && CardSuit == leadingSuit.Value && otherCard.CardSuit != leadingSuit.Value)
+                return true;
+
+            // fourth case - not really needed since if we get to this point, it will end up false anyways
+            // If both cards are non-trump, different suits, and neither matches leading suit,
+            // first card played wins (return false since otherCard was played first)
+            if (leadingSuit.HasValue && CardSuit != leadingSuit.Value && otherCard.CardSuit != leadingSuit.Value)
+                return false;
+
+            return false;
         }
 
 
