@@ -1,5 +1,5 @@
 ### **Master TODO**
-1. **Refactoring**
+1. **Refactoring** (on going)
    - [x] Use enums for `CardSuit` and `CardFace` in `Card.cs`
    - [x] Consider making `Card` immutable (remove setters, use `init` properties)
    - [x] Add validation in `Card` constructor
