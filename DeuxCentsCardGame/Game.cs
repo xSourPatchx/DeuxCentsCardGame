@@ -301,16 +301,16 @@ namespace DeuxCentsCardGame
             {
                 int cardIndex = _ui.GetIntInput(prompt, 0, currentPlayer.Hand.Count - 1);
 
-                // Validate card follows suit if possible
-                if (leadingSuit.HasValue && 
-                    currentPlayer.Hand[cardIndex].CardSuit != leadingSuit && 
-                    currentPlayer.Hand.Any(card => card.CardSuit == leadingSuit))
+                Card selectedCard = currentPlayer.Hand[cardIndex];
+
+                if (selectedCard.CanBePlayed(leadingSuit, currentPlayer.Hand))
+                {
+                    return selectedCard;
+                }
+                else
                 {
                     _ui.DisplayFormattedMessage("You must play the suit of {0} since it's in your deck, try again.\n", leadingSuitString);
-                    continue;
                 }
-
-                return currentPlayer.Hand[cardIndex];
             }
         }
 

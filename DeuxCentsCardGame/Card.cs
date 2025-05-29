@@ -58,13 +58,6 @@ namespace DeuxCentsCardGame
                     $"Invalid point value {pointValue} for card face {face}. Expected {expectedPointValue}");
         }
 
-        // Helper methods for game logic
-        // below are potential affected methods in game class
-        // - GetValidCardFromPlayer
-        // - ValidateCardInput
-        // - DetermineTrickWinnerIndex
-        // - DetermineTrickWinner
-
         public bool IsTrump(CardSuit? trumpSuit)
         {
             return trumpSuit.HasValue && CardSuit == trumpSuit.Value;

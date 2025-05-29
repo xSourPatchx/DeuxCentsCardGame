@@ -3,7 +3,9 @@
    - [x] Use enums for `CardSuit` and `CardFace` in `Card.cs`
    - [x] Consider making `Card` immutable (remove setters, use `init` properties)
    - [x] Add validation in `Card` constructor
-   - [ ] Consider encapsulate Card Logic by adding methods like `IsHigherThan(Card other)` directly in the `Card` class.
+   - [ ] Consider encapsulate Card Logic by adding methods like `IsHigher(Card other)` directly in the `Card` class
+   - [ ] Adjust Game class accordingly with new helper methods
+   - [ ] Add DetermineTrickWinner that returns the Card instead of returning the index of the card, can also consider the tuple approach (Card, int).
   
 2. **Deck Improvements**
    - [ ] Implement Fisher-Yates shuffle algorithm in `Deck.cs`
