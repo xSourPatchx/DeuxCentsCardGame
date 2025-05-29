@@ -238,14 +238,12 @@ namespace DeuxCentsCardGame
 
         private void PlayRound()
         {
-            int currentPlayerIndex;
+            int currentPlayerIndex = _winningBidIndex;
+
+            Card trickWinningCard;
             int trickWinnerIndex;
-            int totalTricks;
 
-            currentPlayerIndex = _winningBidIndex;
-            totalTricks = _players[currentPlayerIndex].Hand.Count;
-
-            for (int trick = 0; trick < totalTricks; trick++)
+            for (int trick = 0; trick < _players[currentPlayerIndex].Hand.Count; trick++)
             {
                 int trickPoints = 0;
                 CardSuit? leadingSuit = null;
@@ -256,11 +254,12 @@ namespace DeuxCentsCardGame
 
                 PlayTrick(currentPlayerIndex, leadingSuit, currentTrick);
 
-                _winningPlayerIndex = DetermineTrickWinnerIndex(currentTrick, _trumpSuit);
+                (trickWinningCard, _winningPlayerIndex) = DetermineTrickWinner(currentTrick, _trumpSuit);
+
                 trickWinnerIndex = (currentPlayerIndex + _winningPlayerIndex) % _players.Count;
                 _ui.DisplayFormattedMessage("{0} won the trick with {1}", _players[trickWinnerIndex].Name, currentTrick[_winningPlayerIndex]);
-                currentPlayerIndex = trickWinnerIndex; // set winning player as the current player for the next trick
 
+                currentPlayerIndex = trickWinnerIndex; // set winning player as the current player for the next trick
                 trickPoints = currentTrick.Sum(card => card.CardPointValue); // adding all trick points to trickPoints
                 UpdateTrickPoints(trickWinnerIndex, trickPoints);
             }
@@ -270,16 +269,16 @@ namespace DeuxCentsCardGame
         {
             for (int i = 0; i < _players.Count; i++)
                 {
-                    int playerIndex;
-                    Player currentPlayer;
-                    playerIndex = (currentPlayerIndex + i) % _players.Count; // ensuring player who won the bet goes first
-                    currentPlayer = _players[playerIndex];
+                    int playerIndex = (currentPlayerIndex + i) % _players.Count; // ensuring player who won the bet goes first;
+                    Player currentPlayer = _players[playerIndex];
                     
                     Card playedCard = ValidateCardInput(currentPlayer, leadingSuit);
                     currentPlayer.RemoveCard(playedCard);
 
                     if (i == 0)
+                    {
                         leadingSuit = playedCard.CardSuit;
+                    }
 
                     currentTrick.Add(playedCard);
                     _ui.DisplayFormattedMessage("{0} played {1}\n", currentPlayer.Name, playedCard);
@@ -314,33 +313,22 @@ namespace DeuxCentsCardGame
             }
         }
 
-        private int DetermineTrickWinnerIndex(List<Card> trick, CardSuit? trumpSuit)
+        private (Card winningCard, int winningIndex) DetermineTrickWinner(List<Card> trick, CardSuit? trumpSuit)
         {
-            _winningPlayerIndex = 0;
-
-            bool trumpSuitNotNull = trumpSuit.HasValue;
+            int winningIndex = 0;
+            Card winningCard = trick[0];
+            CardSuit? leadingSuit = winningCard.CardSuit;
 
             for (int i = 1; i < trick.Count; i++)
-            {
-                if (trumpSuitNotNull)
+            {        
+                if (trick[i].Beats(winningCard, trumpSuit, leadingSuit))
                 {
-                    // Check if the current card is a trump card AND the winning card is not a trump card
-                    if (trick[i].CardSuit == trumpSuit && trick[_winningPlayerIndex].CardSuit != trumpSuit)
-                    {
-                        _winningPlayerIndex = i;
-                        continue;
-                    }
-                }
-
-                // Check if both cards are trump cards or both are not trump cards
-                if (trick[i].CardSuit == trick[_winningPlayerIndex].CardSuit)
-                {
-                    if (trick[i].CardFaceValue > trick[_winningPlayerIndex].CardFaceValue)
-                        _winningPlayerIndex = i;    
+                    winningCard = trick[i];
+                    winningIndex = i;
                 }
             }
 
-            return _winningPlayerIndex;
+            return (winningCard, winningIndex);
         }
 
         private void UpdateTrickPoints(int trickWinnerIndex, int trickPoints)
