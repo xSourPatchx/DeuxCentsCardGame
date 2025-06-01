@@ -1,4 +1,5 @@
 ### **Key methodologies**
+
     - **MVC/MVP**: Separate game logic from display/input for easier Unity porting-
     - **State Pattern/FSM**: Manage game flow states (waiting, dealing, player turns, etc.)
     - **Command Pattern**: Encapsulate player actions for undo/redo and network sync
