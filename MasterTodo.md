@@ -5,7 +5,7 @@
    - [x] Add validation in `Card` constructor
    - [x] Consider encapsulate Card Logic by adding methods like `IsHigher(Card other)` directly in the `Card` class
    - [x] Adjust Game class accordingly with new helper methods
-   - [ ] The DetermineTrickWinner returns a tuple (Card, index) however, it should return Card instead of int index
+   - [ ] Have the DetermineTrickWinner return a tuple (Card, player) instead of (Card, index), refactor accordingly.
    - [ ] Consider adding GetValidCards Helper Method, could be useful for Unity implementation where you might want to highlight valid cards in the UI.
   
 2. **Deck Improvements**
