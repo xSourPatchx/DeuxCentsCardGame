@@ -89,32 +89,38 @@ namespace DeuxCentsCardGame
             return true;
         }
 
-        // left off here, continue with logic, look at Game class for reference
         public bool Beats(Card otherCard, CardSuit? trumpSuit, CardSuit? leadingSuit)
         {
-            // first case
-            // Check if the current card is a trump card AND the winning card is not a trump card
-            if (!otherCard.IsTrump(trumpSuit) && IsTrump(trumpSuit))
+            // first case - current card is trump AND other card is not - we win
+            if (IsTrump(trumpSuit) && !otherCard.IsTrump(trumpSuit))
                 return true;
 
-            // second case
-            // Check if both cards are trump cards or both are not trump cards
+            // second case - current card is not trump AND other card is trump - they win
+            if (!IsTrump(trumpSuit) && otherCard.IsTrump(trumpSuit))
+                return false;
+
+            // third case - both cards are trump cards, higher value wins
+            if (IsTrump(trumpSuit) && otherCard.IsTrump(trumpSuit))
+                return CardFaceValue > otherCard.CardFaceValue;
+            
+            // fourth cases - neither is trump, check leading suit
+            if (leadingSuit.HasValue)
+            {
+                // current card matches leading suit, other doesn't - we win
+                if (CardSuit == leadingSuit.Value && otherCard.CardSuit != leadingSuit.Value)
+                    return true;
+                
+                // other card matches leading suit, we don't - they win
+                if (CardSuit != leadingSuit.Value && otherCard.CardSuit == leadingSuit.Value)
+                    return false;
+            }
+            // neither matches leading suit - higher value wins
             if (IsSameSuit(otherCard))
             {
                 return CardFaceValue > otherCard.CardFaceValue;
             }
 
-            // third case
-            // If both cards aren't trump and different suits, card of leading suit wins
-            if (leadingSuit.HasValue && CardSuit == leadingSuit.Value && otherCard.CardSuit != leadingSuit.Value)
-                return true;
-
-            // fourth case - not really needed since if we get to this point, it will end up false anyways
-            // If both cards are non-trump, different suits, and neither matches leading suit,
-            // first card played wins (return false since otherCard was played first)
-            if (leadingSuit.HasValue && CardSuit != leadingSuit.Value && otherCard.CardSuit != leadingSuit.Value)
-                return false;
-
+            // default case
             return false;
         }
 
