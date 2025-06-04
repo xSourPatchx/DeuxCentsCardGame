@@ -70,7 +70,7 @@ namespace DeuxCentsCardGame
 
         public bool CanBePlayed(CardSuit? leadingSuit, List<Card> hand)
         {
-            // Can always play if no leading suit established
+            // Can play if no leading suit established
             if (!leadingSuit.HasValue)
                 return true; 
 
@@ -78,15 +78,8 @@ namespace DeuxCentsCardGame
             if (CardSuit == leadingSuit.Value)
                 return true;
             
-            // Can play if player hand has no cards of leading suit
-            // below can be used to simplify to one line
-            // return hand.Any(card => card.CardSuit == leadingSuit.Value);
-            foreach(Card card in hand)
-            {
-                if (card.CardSuit == leadingSuit.Value)
-                    return false;
-            }
-            return true;
+            // Can play if no card of leading suit in hand
+            return !hand.Any(card => card.CardSuit == leadingSuit.Value);
         }
 
         public bool Beats(Card otherCard, CardSuit? trumpSuit, CardSuit? leadingSuit)

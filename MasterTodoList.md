@@ -1,24 +1,43 @@
 ### **Master TODO**
-1. **Refactoring** (on going)
+1. **Refactoring**
    - [x] Use enums for `CardSuit` and `CardFace` in `Card.cs`
    - [x] Consider making `Card` immutable (remove setters, use `init` properties)
    - [x] Add validation in `Card` constructor
    - [x] Consider encapsulate Card Logic by adding methods like `IsHigher(Card other)` directly in the `Card` class
    - [x] Adjust Game class accordingly with new helper methods
-   - [ ] Have the DetermineTrickWinner return a tuple (Card, player) instead of (Card, index), refactor accordingly.
+   - [x] The DetermineTrickWinner now returns a tuple of (Card, index) instead return (Card, Player) instead.
+   - [ ] Remove Unused Variables by cleaning up commented-out code and unused variables like `_winningPlayerIndex` and `// int trickWinnerIndex;`.
+   - [ ] Have Consistent Naming & Access Modifiers, make fields `private readonly` where possible. Use consistent naming (some fields have `_` prefix, others don't) and remove public fields that should be private.
+   - [ ] Remove all `Thread.Sleep()` calls from your UI class - these will cause Unity to freeze. Replace with Unity-appropriate timing mechanisms later.
+   - [ ] Fix `ProcessPlayerBets` return type to return just `bool`, currently returns `(bool bettingRoundEnded, int bet)` but the `bet` value is unused.
+   - [ ] Simplify Complex Methods and break down large methods into smaller, focused ones: 
+       - [ ] `ProcessBettingRound`: Extract validation logic.
+       - [ ] `PlayRound`: Split into `PlayAllTricks()` and `PlaySingleTrick()`.
+       - [ ] `UpdateTeamPoints`: Extract team logic into helper methods.
+   - [ ] Eliminate Static Dependencies in `UIConsoleGameView` interface which will cause issues in Unity.
    - [ ] Consider adding GetValidCards Helper Method, could be useful for Unity implementation where you might want to highlight valid cards in the UI.
-  
+   - [ ] Improve Data Structures, instead of parallel arrays `_hasBet`, have more cohesive structure by creating `PlayerBettingInfo` class with `HasBet`, `BetAmount` and `HasPassed` properties.
+   - [ ] Extract Magic Numbers to Constants by creating class GameConstants `TEAM_ONE_PLAYER_1 = 0; TEAM_ONE_PLAYER_2 = 2; TEAM_TWO_PLAYER_1 = 1;TEAM_TWO_PLAYER_2 = 3; PLAYERS_PER_TEAM = 2; TOTAL_PLAYERS = 4;`
+   - [ ] Improve Team Logic by creating proper team management system with Team enum with `TeamHelper` class with `GetPlayerTeam`  and `GetTeamPlayerIndices` methods.
+   **(For later)**
+   - [ ] Extract Game Data from Game Logic by creating separate `GameData` class to hold state that Unity can serialize: DealerIndex, WinningBidIndex, WinningBid, TrumpSuit, TeamOneTotalPoints, TeamTwoTotalPoints, other state data
+   - [ ] Remove Static UI References, replace `UIConsoleGameView.DisplayAllHands(_players, _dealerIndex)` with instance calls through the injected interface.
+   - [ ] Simplify Method Signatures by reducing complex parameter lists. Consider creating small data classes called TrickData to handle CardsPlayed, LeadingSuit, TrickNumber.
+   - [ ] Simplify Complex Methods, `ProcessPlayerBets` method returns a tuple and has side effects, split it into ProcessPlayerBet method and BetResult class
+   - [ ] Remove Nested Loops and Complex Logic, betting round logic is too complex. Break it into smaller, testable methods: ProcessBettingRound(), SetWinningBid(bettingState.GetWinningBid())
+   - [ ] Make Game Logic Async-Friendly since unity multiplayer often requires async operations. Prepare for this: `public async Task<Card> GetPlayerCardChoice(Player player, CardSuit? leadingSuit)`
+   - [ ] Avoid Console-Specific Code by remove or abstract away `Console.SetCursorPosition()` and similar console-specific methods.
+
 2. **Deck Improvements**
    - [ ] Implement Fisher-Yates shuffle algorithm in `Deck.cs`
    - [ ] Add a method to cut the deck
    - [ ] Consider adding a `DeckBuilder` pattern for custom decks
 
 3. **Game State Management**
-   - [ ] Implement state machine pattern for game flow (e.g., `GameState` enum with transitions)
+   - [ ] Implement a state machine pattern for game flow (e.g., `GameState` enum with transitions)
    - [ ] Create separate classes for different game states (`StartState`, `DealState`, `PlayState`, `EndState`, `BettingState`, `PlayingState`, etc.) to control flow
    - [ ] Use events for game state changes (e.g., `OnCardPlayed`, `OnGameOver`, `OnRoundStarted`, `OnTrickCompleted`) for a decoupled design
    - [ ] Support saving and loading Game State by serializing the current game state to JSON to persist or debug state easily
-
 
 ### Architecture Improvements
 4. **Dependency Injection**
@@ -28,10 +47,9 @@
    - [ ] Make UI and game logic fully decoupled
    - [ ] Ensure logic and view are completely decoupled. Core classes should never call `Console.WriteLine`
 
-
 5. **Configuration**
    - [ ] Move game constants to config files (appsettings.json)
-   - [ ] Create a `GameSettings` class to hold configuration
+   - [ ] Create a `GameSettings` or `GameConfig` class to hold configuration
    - [ ] Implement hot-reload for configuration changes
 
 6. **Abstraction of All I/O and UI Calls**
@@ -56,6 +74,7 @@
    - [ ] Implement proper exception handling
    - [ ] Add game state validation checks
 
+
 ### Unity Preparation
 10. **Unity-Friendly Patterns**
     - [ ] Make all game objects serializable by marking key classes with `[Serializable]` so Unity can handle them in the editor/inspector
@@ -73,6 +92,7 @@
     - [ ] Add unit tests for core game logic to cover `Deck`, `Player`, and `Game` mechanics
     - [ ] Create test scenarios for edge cases
     - [ ] Implement debug mode with cheat commands
+
 
 ### Additional Features
 13. **Game Flow**
