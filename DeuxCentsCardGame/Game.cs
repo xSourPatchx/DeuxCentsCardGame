@@ -241,31 +241,32 @@ namespace DeuxCentsCardGame
             int currentPlayerIndex = _winningBidIndex;
 
             Card trickWinningCard;
-            int trickWinnerIndex;
+            // int trickWinnerIndex;
+            Player trickWinner;
+
 
             for (int trick = 0; trick < _players[currentPlayerIndex].Hand.Count; trick++)
             {
                 int trickPoints = 0;
                 CardSuit? leadingSuit = null;
-                List<Card> currentTrick = []; // empty list to hold tricks
+                List<(Card card, Player player)> currentTrick = []; // empty list to hold tricks
 
                 _ui.DisplayMessage("\n#########################\n");
                 _ui.DisplayFormattedMessage("Trick #{0}:", trick + 1);
 
                 PlayTrick(currentPlayerIndex, leadingSuit, currentTrick);
 
-                (trickWinningCard, _winningPlayerIndex) = DetermineTrickWinner(currentTrick, _trumpSuit);
+                (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick, _trumpSuit);
+                
+                _ui.DisplayFormattedMessage("{0} won the trick with {1}", trickWinner.Name, trickWinningCard);
 
-                trickWinnerIndex = (currentPlayerIndex + _winningPlayerIndex) % _players.Count;
-                _ui.DisplayFormattedMessage("{0} won the trick with {1}", _players[trickWinnerIndex].Name, currentTrick[_winningPlayerIndex]);
-
-                currentPlayerIndex = trickWinnerIndex; // set winning player as the current player for the next trick
-                trickPoints = currentTrick.Sum(card => card.CardPointValue); // adding all trick points to trickPoints
-                UpdateTrickPoints(trickWinnerIndex, trickPoints);
+                currentPlayerIndex = _players.IndexOf(trickWinner); // set winning player as the current player for the next trick
+                trickPoints = currentTrick.Sum(trick => trick.card.CardPointValue); // adding all trick points to trickPoints
+                UpdateTrickPoints(currentPlayerIndex, trickPoints);
             }
         }
 
-        private void PlayTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<Card> currentTrick)
+        private void PlayTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick)
         {
             for (int i = 0; i < _players.Count; i++)
                 {
@@ -280,7 +281,7 @@ namespace DeuxCentsCardGame
                         leadingSuit = playedCard.CardSuit;
                     }
 
-                    currentTrick.Add(playedCard);
+                    currentTrick.Add((playedCard, currentPlayer));
                     _ui.DisplayFormattedMessage("{0} played {1}\n", currentPlayer.Name, playedCard);
                 }
         }
@@ -313,22 +314,22 @@ namespace DeuxCentsCardGame
             }
         }
 
-        private (Card winningCard, int winningIndex) DetermineTrickWinner(List<Card> trick, CardSuit? trumpSuit)
+        private (Card winningCard, Player winningPlayer) DetermineTrickWinner(List<(Card card, Player player)> trick, CardSuit? trumpSuit)
         {
-            int winningIndex = 0;
-            Card winningCard = trick[0];
-            CardSuit? leadingSuit = winningCard.CardSuit;
+            // int winningIndex = 0;
+            var trickWinner = trick[0];
+            CardSuit? leadingSuit = trickWinner.card.CardSuit;
 
             for (int i = 1; i < trick.Count; i++)
             {        
-                if (trick[i].Beats(winningCard, trumpSuit, leadingSuit))
+                if (trick[i].card.Beats(trickWinner.card, trumpSuit, leadingSuit))
                 {
-                    winningCard = trick[i];
-                    winningIndex = i;
+                    trickWinner = trick[i];
+                    // winningIndex = i;
                 }
             }
 
-            return (winningCard, winningIndex);
+            return (trickWinner.card, trickWinner.player);
         }
 
         private void UpdateTrickPoints(int trickWinnerIndex, int trickPoints)
