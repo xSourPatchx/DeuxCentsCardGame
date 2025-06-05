@@ -126,7 +126,8 @@ namespace DeuxCentsCardGame
                     if (hasPassed[playerIndex])
                         continue; // Skip players who have already passed
                     
-                    ProcessPlayerBets(playerIndex, hasPassed, bets);
+                    if (ProcessPlayerBets(playerIndex, hasPassed, bets))
+                        return true;
 
                     if (hasPassed.Count(pass => pass) >= 3) // End the betting round if 3 players have passed                 
                         return HandleThreePlayerPassed(playerIndex, hasPassed);
@@ -135,38 +136,42 @@ namespace DeuxCentsCardGame
                 return false;
         }
 
-        private (bool bettingRoundEnded, int bet) ProcessPlayerBets(int playerIndex, bool[] hasPassed, List<int> bets)
+        private bool ProcessPlayerBets(int playerIndex, bool[] hasPassed, List<int> bets)
         {
-            string prompt = $"{_players[playerIndex].Name}, enter a bet (between {MinimumBet}-{MaximumBet}, intervals of {BetIncrement}) or 'pass': ";
-            string betInput = _ui.GetUserInput(prompt).ToLower();
+            while (true)
+            {
+                string prompt = $"{_players[playerIndex].Name}, enter a bet (between {MinimumBet}-{MaximumBet}, intervals of {BetIncrement}) or 'pass': ";
+                string betInput = _ui.GetUserInput(prompt).ToLower();
 
-            if (betInput == "pass")
-                return ProcessPassInput(playerIndex, hasPassed, bets);
-            
-            if (int.TryParse(betInput, out int bet) && IsValidBet(bet, bets))
-            {
-                bets[playerIndex] = bet;
-                _playerHasBet[playerIndex] = true;
-                _ui.DisplayMessage("");
-            
-                if (bet == MaximumBet)
-                    return (HandleMaximumBet(playerIndex, hasPassed, bets), bet); // End the betting round immediately
+                if (betInput == "pass")
+                {
+                    ProcessPassInput(playerIndex, hasPassed, bets);
+                    return false;
+                }
+                
+                if (int.TryParse(betInput, out int bet) && IsValidBet(bet, bets))
+                {
+                    bets[playerIndex] = bet;
+                    _playerHasBet[playerIndex] = true;
+                    _ui.DisplayMessage("");
+                
+                    if (bet == MaximumBet)
+                        return HandleMaximumBet(playerIndex, hasPassed, bets); // End the betting round immediately
+                    else
+                        return false;
+                }
                 else
-                    return (false, bet);
-            }
-            else
-            {
-                _ui.DisplayMessage("Invalid bet, please try again");
-                return (false, -1);
+                {
+                    _ui.DisplayMessage("Invalid bet, please try again");
+                }
             }
         }
 
-        private (bool bettingRoundEnded, int bet) ProcessPassInput(int playerIndex, bool[] hasPassed, List<int> bets)
+        private void ProcessPassInput(int playerIndex, bool[] hasPassed, List<int> bets)
         {
             _ui.DisplayFormattedMessage("\n{0} passed\n", _players[playerIndex].Name);
             hasPassed[playerIndex] = true;
             bets[playerIndex] = -1;
-            return (false, -1);
         }
 
         private static bool IsValidBet(int bet, List<int> bets)
