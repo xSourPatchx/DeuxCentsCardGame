@@ -16,7 +16,6 @@ namespace DeuxCentsCardGame
         private bool[] _hasBet;
         private int _winningBid;
         private int _winningBidIndex;
-        private int _winningPlayerIndex;
         private CardSuit? _trumpSuit;
 
         // scoring properties
@@ -240,7 +239,6 @@ namespace DeuxCentsCardGame
             int currentPlayerIndex = _winningBidIndex;
 
             Card trickWinningCard;
-            // int trickWinnerIndex;
             Player trickWinner;
 
 
@@ -315,7 +313,6 @@ namespace DeuxCentsCardGame
 
         private (Card winningCard, Player winningPlayer) DetermineTrickWinner(List<(Card card, Player player)> trick, CardSuit? trumpSuit)
         {
-            // int winningIndex = 0;
             var trickWinner = trick[0];
             CardSuit? leadingSuit = trickWinner.card.CardSuit;
 
@@ -324,7 +321,6 @@ namespace DeuxCentsCardGame
                 if (trick[i].card.Beats(trickWinner.card, trumpSuit, leadingSuit))
                 {
                     trickWinner = trick[i];
-                    // winningIndex = i;
                 }
             }
 
