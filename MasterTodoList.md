@@ -7,8 +7,8 @@
    - [x] Adjust Game class accordingly with new helper methods
    - [x] The DetermineTrickWinner now returns a tuple of (Card, index) instead return (Card, Player) instead.
    - [x] Remove Unused Variables by cleaning up commented-out code and unused variables like `_winningPlayerIndex` and `// int trickWinnerIndex;`.
-   - [ ] Have Consistent Naming & Access Modifiers, make fields `private readonly` where possible. Use consistent naming (some fields have `_` prefix, others don't) and remove public fields that should be private.
-   - [ ] Remove all `Thread.Sleep()` calls from your UI class - these will cause Unity to freeze. Replace with Unity-appropriate timing mechanisms later.
+   - [x] Have Consistent Naming & Access Modifiers, make fields `private readonly` where possible. Use consistent naming (some fields have `_` prefix, others don't) and remove public fields that should be private.
+   - [x] Remove all `Thread.Sleep()` calls from your UI class - these will cause Unity to freeze. Replace with Unity-appropriate timing mechanisms later.
    - [ ] Fix `ProcessPlayerBets` return type to return just `bool`, currently returns `(bool bettingRoundEnded, int bet)` but the `bet` value is unused.
    - [ ] Simplify Complex Methods and break down large methods into smaller, focused ones: 
        - [ ] `ProcessBettingRound`: Extract validation logic.

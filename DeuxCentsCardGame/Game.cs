@@ -14,7 +14,7 @@ namespace DeuxCentsCardGame
         private bool[] _playerHasBet;
 
         private bool _gameEnded;
-        private int _currentwinningBid;
+        private int _currentWinningBid;
         private int _currentWinningBidIndex;
         private CardSuit? _trumpSuit;
 
@@ -73,7 +73,7 @@ namespace DeuxCentsCardGame
             _gameEnded = false;
             _teamOneRoundPoints = 0;
             _teamTwoRoundPoints = 0;
-            _currentwinningBid = 0;
+            _currentWinningBid = 0;
             _currentWinningBidIndex = 0;
             _trumpSuit = null;
             RotateDealer();
@@ -195,7 +195,7 @@ namespace DeuxCentsCardGame
             {
                 int lastPlayerIndex = (playerIndex + 1) % _players.Count;
                 hasBet[lastPlayerIndex] = true;
-                _currentwinningBid = MinimumBet;
+                _currentWinningBid = MinimumBet;
                 _currentWinningBidIndex = lastPlayerIndex;
             }
             return true;
@@ -218,8 +218,8 @@ namespace DeuxCentsCardGame
 
         private void DetermineWinningBid(List<int> bets)
         {
-            _currentwinningBid = bets.Max();
-            _currentWinningBidIndex = bets.IndexOf(_currentwinningBid);
+            _currentWinningBid = bets.Max();
+            _currentWinningBidIndex = bets.IndexOf(_currentWinningBid);
             _ui.DisplayFormattedMessage("\n{0} won the bid.", _players[_currentWinningBidIndex].Name);
             _ui.DisplayMessage("\n#########################\n");
             UIConsoleGameView.DisplayHand(_players[_currentWinningBidIndex]);
@@ -373,14 +373,14 @@ namespace DeuxCentsCardGame
                 _ui.DisplayFormattedMessage("{0} did not place any bets, their points do not count.", teamName);
                 teamRoundPoints = 0;
             }
-            else if (teamRoundPoints >= _currentwinningBid)
+            else if (teamRoundPoints >= _currentWinningBid)
             {
-                _ui.DisplayFormattedMessage("{0} made their bet of {1} and wins {2} points.", teamName, _currentwinningBid, teamRoundPoints);                
+                _ui.DisplayFormattedMessage("{0} made their bet of {1} and wins {2} points.", teamName, _currentWinningBid, teamRoundPoints);                
             }
             else    
             {
-                _ui.DisplayFormattedMessage("{0} did not make their bet of {1} and loses {1} points.", teamName, _currentwinningBid);   
-                teamRoundPoints = -_currentwinningBid;
+                _ui.DisplayFormattedMessage("{0} did not make their bet of {1} and loses {1} points.", teamName, _currentWinningBid);   
+                teamRoundPoints = -_currentWinningBid;
             }
 
             // Update the appropriate team's total points

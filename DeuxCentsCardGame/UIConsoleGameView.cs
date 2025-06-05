@@ -5,19 +5,19 @@
         public void ClearScreen()
         {
             Console.Clear();
-            Thread.Sleep(200);
+            // Thread.Sleep(200);
         }
 
         public void DisplayMessage(string message)
         {
             Console.WriteLine(message);
-            Thread.Sleep(200);
+            // Thread.Sleep(200);
         }
 
         public void DisplayFormattedMessage(string format, params object[] args)
         {
             Console.WriteLine(format, args);
-            Thread.Sleep(200);
+            // Thread.Sleep(200);
         }
 
         public string GetUserInput(string prompt)
@@ -88,10 +88,10 @@
             Console.WriteLine($"{player.Name}'s hand:");
             for (int playerIndex = 0; playerIndex < player.Hand.Count; playerIndex++)
             {
-                Thread.Sleep(20);
+                // Thread.Sleep(20);
                 Console.WriteLine($"{playerIndex}: {player.Hand[playerIndex]}");
             }
-            Thread.Sleep(300);
+            // Thread.Sleep(300);
         }
 
         private static void DisplayAllPlayersHand(IPlayer playerOne, IPlayer playerTwo, IPlayer playerThree, IPlayer playerFour)
@@ -108,11 +108,11 @@
             Console.WriteLine($"{player.Name}'s hand:");
             for (int cardIndex = 0; cardIndex < player.Hand.Count; cardIndex++)
             {
-                Thread.Sleep(20);
+                // Thread.Sleep(20);
                 Console.SetCursorPosition(left, top + cardIndex + 1);
                 Console.WriteLine($"{cardIndex} : {player.Hand[cardIndex]}");
             }
-            Thread.Sleep(200);
+            // Thread.Sleep(200);
         }
 
         private static void DisplayAllPlayersHandQuadrant(IPlayer playerOne, IPlayer playerTwo, IPlayer playerThree, IPlayer playerFour)
