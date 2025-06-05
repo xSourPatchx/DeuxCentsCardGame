@@ -3,7 +3,6 @@ namespace DeuxCentsCardGame
     public class Game : IGame
     {
         // Game constants
-        public const int ShuffleCount = 3;
         private const int WinningScore = 200;
         private const int MinimumBet = 50;
         private const int MaximumBet = 100;
@@ -59,7 +58,7 @@ namespace DeuxCentsCardGame
             _ui.ClearScreen();
             _ui.DisplayMessage("Starting a new round...");
             ResetRound();
-            _deck.ShuffleDeck(ShuffleCount);
+            _deck.ShuffleDeck();
             DealCards();
             UIConsoleGameView.DisplayAllHands(_players, _dealerIndex); // display all players hands
             BettingRound();

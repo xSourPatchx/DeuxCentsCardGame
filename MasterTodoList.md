@@ -29,7 +29,7 @@
    - [ ] Avoid Console-Specific Code by remove or abstract away `Console.SetCursorPosition()` and similar console-specific methods.
 
 2. **Deck Improvements**
-   - [ ] Implement Fisher-Yates shuffle algorithm in `Deck.cs`
+   - [x] Implement Fisher-Yates shuffle algorithm in `Deck.cs`
    - [ ] Add a method to cut the deck
    - [ ] Consider adding a `DeckBuilder` pattern for custom decks
 
