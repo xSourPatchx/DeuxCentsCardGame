@@ -5,8 +5,8 @@ namespace DeuxCentsCardGame
 
     public class Card : ICard
     {
-        private const int MinCardFaceValue = 1;
-        private const int MaxCardFaceValue = 10;
+        private const int MinimumCardFaceValue = 1;
+        private const int MaximumCardFaceValue = 10;
         private static readonly int[] ValidPointValues = { 0, 5, 10 };
 
         // card fields
@@ -33,9 +33,9 @@ namespace DeuxCentsCardGame
             if (!Enum.IsDefined(typeof(CardFace), face))
                 throw new ArgumentException($"Invalid card face: {face}", nameof(face));
             
-            if (faceValue is < MinCardFaceValue or > MaxCardFaceValue)
+            if (faceValue is < MinimumCardFaceValue or > MaximumCardFaceValue)
                 throw new ArgumentOutOfRangeException(nameof(faceValue), 
-                $"Invalid card face value, must be between {MinCardFaceValue}-{MaxCardFaceValue}. faceValue : {faceValue}");
+                $"Invalid card face value, must be between {MinimumCardFaceValue}-{MaximumCardFaceValue}. faceValue : {faceValue}");
                 
             if (Array.IndexOf(ValidPointValues, pointValue) == -1)
                 throw new ArgumentOutOfRangeException(nameof(pointValue), 

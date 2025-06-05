@@ -3,8 +3,7 @@ namespace DeuxCentsCardGame
     public class Deck : IDeck
     {
         public List<Card> Cards { get; private set; }
-        private static readonly Random random = new();
-
+        
         private static readonly CardSuit[] cardSuits = 
         [
             CardSuit.Clubs, 
@@ -40,9 +39,9 @@ namespace DeuxCentsCardGame
         {
             foreach (CardSuit suit in cardSuits)
             {
-                for (int c = 0; c < cardFaces.Length; c++)
+                for (int cardIndex = 0; cardIndex < cardFaces.Length; cardIndex++)
                 {
-                    Cards.Add(new Card(suit, cardFaces[c], cardFaceValues[c], cardPointValues[c]));
+                    Cards.Add(new Card(suit, cardFaces[cardIndex], cardFaceValues[cardIndex], cardPointValues[cardIndex]));
                 }
             }
         }
@@ -50,12 +49,12 @@ namespace DeuxCentsCardGame
         public void ShuffleDeck()
         {
             Console.WriteLine("Shuffling cards...");
-            for (int i = 0; i < Cards.Count; i++)
+            for (int cardIndex = 0; cardIndex < Cards.Count; cardIndex++)
             {
-                int randomCardIndex = Random.Shared.Next(i, Cards.Count);
+                int randomCardIndex = Random.Shared.Next(cardIndex, Cards.Count);
                 Card temp = Cards[randomCardIndex];
-                Cards[randomCardIndex] = Cards[i];
-                Cards[i] = temp;
+                Cards[randomCardIndex] = Cards[cardIndex];
+                Cards[cardIndex] = temp;
             }   
         }
 
