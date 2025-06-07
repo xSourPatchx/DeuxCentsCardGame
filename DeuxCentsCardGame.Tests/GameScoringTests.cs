@@ -52,8 +52,8 @@ namespace DeuxCentsCardGame.Tests
             SetPrivateField(game, "_currentWinningBid", 50);
             SetPrivateField(game, "_currentWinningBidIndex", 0); // team one won the bet
 
-            var hasBet = new bool[4] { false, false, false, false }; // team two hasnt placed a bet
-            SetPrivateField(game, "_playerHasBet", hasBet);
+            var playerHasBet = new bool[4] { false, false, false, false }; // team two hasnt placed a bet
+            SetPrivateField(game, "_playerHasBet", playerHasBet);
 
             // 2. When or Act - Call the private method using reflection
             var method = typeof(Game).GetMethod("UpdateTeamPoints", 
@@ -81,8 +81,8 @@ namespace DeuxCentsCardGame.Tests
             SetPrivateField(game, "_currentWinningBid", 50);
             SetPrivateField(game, "_currentWinningBidIndex", 1);
 
-            var hasBet = new bool[4] { false, true, false, false };
-            SetPrivateField(game, "_playerHasBet", hasBet);
+            var playerHasBet = new bool[4] { false, true, false, false };
+            SetPrivateField(game, "_playerHasBet", playerHasBet);
 
             // 2. When or Act - Call the private method using reflection
             var method = typeof(Game).GetMethod("UpdateTeamPoints", 
@@ -115,8 +115,8 @@ namespace DeuxCentsCardGame.Tests
             SetPrivateField(game, "_currentWinningBid", 50);
             SetPrivateField(game, "_currentWinningBidIndex", 0);
 
-            var hasBet = new bool[4] { true, false, false, false };
-            SetPrivateField(game, "_playerHasBet", hasBet);
+            var playerHasBet = new bool[4] { true, false, false, false };
+            SetPrivateField(game, "_playerHasBet", playerHasBet);
 
             // 2. When or Act - Call the private method using reflection
             var method = typeof(Game).GetMethod("UpdateTeamPoints", 
@@ -149,8 +149,8 @@ namespace DeuxCentsCardGame.Tests
             SetPrivateField(game, "_currentWinningBid", 50);
             SetPrivateField(game, "_currentWinningBidIndex", 0);
 
-            var hasBet = new bool[4] { true, false, false, false };
-            SetPrivateField(game, "_playerHasBet", hasBet);
+            var playerHasBet = new bool[4] { true, false, false, false };
+            SetPrivateField(game, "_playerHasBet", playerHasBet);
 
             int initialTeamOneTotalPoints = 50;
 
@@ -180,8 +180,8 @@ namespace DeuxCentsCardGame.Tests
             SetPrivateField(game, "_currentWinningBid", 50);
             SetPrivateField(game, "_currentWinningBidIndex", 0);
 
-            var hasBet = new bool[4] { true, false, false, false };
-            SetPrivateField(game, "_playerHasBet", hasBet);
+            var playerHasBet = new bool[4] { true, false, false, false };
+            SetPrivateField(game, "_playerHasBet", playerHasBet);
 
             int initialTeamOneTotalPoints = 50;
 

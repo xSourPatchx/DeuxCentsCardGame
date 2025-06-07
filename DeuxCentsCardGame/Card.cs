@@ -68,7 +68,7 @@ namespace DeuxCentsCardGame
             return CardSuit == otherCard.CardSuit;
         }
 
-        public bool CanBePlayed(CardSuit? leadingSuit, List<Card> hand)
+        public bool IsPlayableCard(CardSuit? leadingSuit, List<Card> hand)
         {
             // Can play if no leading suit established
             if (!leadingSuit.HasValue)
@@ -82,7 +82,7 @@ namespace DeuxCentsCardGame
             return !hand.Any(card => card.CardSuit == leadingSuit.Value);
         }
 
-        public bool Beats(Card otherCard, CardSuit? trumpSuit, CardSuit? leadingSuit)
+        public bool WinsAgainst(Card otherCard, CardSuit? trumpSuit, CardSuit? leadingSuit)
         {
             // first case - current card is trump AND other card is not - we win
             if (IsTrump(trumpSuit) && !otherCard.IsTrump(trumpSuit))

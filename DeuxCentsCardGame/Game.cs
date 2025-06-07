@@ -60,9 +60,9 @@ namespace DeuxCentsCardGame
             _deck.ShuffleDeck();
             DealCards();
             UIConsoleGameView.DisplayAllHands(_players, _dealerIndex); // display all players hands
-            BettingRound();
+            ProcessBettingRound();
             SelectTrumpSuit();
-            PlayRound();
+            ProcessRound();
             UpdateScore();
             EndGameCheck();
         }
@@ -98,11 +98,11 @@ namespace DeuxCentsCardGame
             }
         }
 
-        public void BettingRound()
+        public void ProcessBettingRound()
         {
             _ui.DisplayMessage("Betting round begins!\n");
-            List<int> bets = new(new int[_players.Count]);
-            bool[] hasPassed = new bool[_players.Count];
+            List<int> bidValue = new(new int[_players.Count]);
+            bool[] playerHasPassed = new bool[_players.Count];
             bool bettingRoundEnded = false;
             _playerHasBet = new bool[_players.Count]; // track if a player has placed a bet for over 100 scoring purposes
 
@@ -110,11 +110,11 @@ namespace DeuxCentsCardGame
 
             while (!bettingRoundEnded)
             {
-                bettingRoundEnded = ProcessBettingRound(startingIndex, hasPassed, bets);
+                bettingRoundEnded = ProcessBettingRound(startingIndex, playerHasPassed, bidValue);
             }
 
-            DisplayBettingResults(hasPassed, bets);
-            DetermineWinningBid(bets);
+            DisplayBettingResults(playerHasPassed, bidValue);
+            DetermineWinningBid(bidValue);
         }
 
         private bool ProcessBettingRound(int startingIndex, bool[] hasPassed, List<int> bets)
@@ -239,7 +239,7 @@ namespace DeuxCentsCardGame
             _ui.DisplayFormattedMessage("\nTrump suit is {0}.", Deck.CardSuitToString(_trumpSuit.Value));
         }
 
-        private void PlayRound()
+        private void ProcessRound()
         {
             int currentPlayerIndex = _currentWinningBidIndex;
 
@@ -256,7 +256,7 @@ namespace DeuxCentsCardGame
                 _ui.DisplayMessage("\n#########################\n");
                 _ui.DisplayFormattedMessage("Trick #{0}:", trickNumber + 1);
 
-                PlayTrick(currentPlayerIndex, leadingSuit, currentTrick);
+                ProcessTrick(currentPlayerIndex, leadingSuit, currentTrick);
 
                 (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick, _trumpSuit);
                 
@@ -268,7 +268,7 @@ namespace DeuxCentsCardGame
             }
         }
 
-        private void PlayTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick)
+        private void ProcessTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick)
         {
             for (int trickIndex = 0; trickIndex < _players.Count; trickIndex++)
                 {
@@ -305,7 +305,7 @@ namespace DeuxCentsCardGame
 
                 Card selectedCard = currentPlayer.Hand[cardIndex];
 
-                if (selectedCard.CanBePlayed(leadingSuit, currentPlayer.Hand))
+                if (selectedCard.IsPlayableCard(leadingSuit, currentPlayer.Hand))
                 {
                     return selectedCard;
                 }
@@ -323,7 +323,7 @@ namespace DeuxCentsCardGame
 
             for (int i = 1; i < trick.Count; i++)
             {        
-                if (trick[i].card.Beats(trickWinner.card, trumpSuit, leadingSuit))
+                if (trick[i].card.WinsAgainst(trickWinner.card, trumpSuit, leadingSuit))
                 {
                     trickWinner = trick[i];
                 }

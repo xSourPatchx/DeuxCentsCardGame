@@ -134,7 +134,7 @@ namespace DeuxCentsCardGame.Tests
             };
 
             // 2. When or Act
-            bool result = card.CanBePlayed(leadingSuit, hand);
+            bool result = card.IsPlayableCard(leadingSuit, hand);
 
             // 3. Then or Assert
             Assert.True(result);
@@ -155,7 +155,7 @@ namespace DeuxCentsCardGame.Tests
             };
 
             // 2. When or Act
-            bool result = card.CanBePlayed(leadingSuit, hand);
+            bool result = card.IsPlayableCard(leadingSuit, hand);
 
             // 3. Then or Assert
             Assert.True(result);
@@ -176,7 +176,7 @@ namespace DeuxCentsCardGame.Tests
             };
 
             // 2. When or Act
-            bool result = card.CanBePlayed(leadingSuit, hand);
+            bool result = card.IsPlayableCard(leadingSuit, hand);
 
             // 3. Then or Assert
             Assert.True(result);
@@ -198,7 +198,7 @@ namespace DeuxCentsCardGame.Tests
             };
 
             // 2. When or Act
-            bool result = card.CanBePlayed(leadingSuit, hand);
+            bool result = card.IsPlayableCard(leadingSuit, hand);
 
             // 3. Then or Assert
             Assert.False(result);
@@ -220,7 +220,7 @@ namespace DeuxCentsCardGame.Tests
             };
 
             // 2. When or Act
-            bool result = card.CanBePlayed(leadingSuit, hand);
+            bool result = card.IsPlayableCard(leadingSuit, hand);
 
             // 3. Then or Assert
             Assert.False(result);
@@ -242,7 +242,7 @@ namespace DeuxCentsCardGame.Tests
             };
 
             // 2. When or Act
-            bool result = card.CanBePlayed(leadingSuit, hand);
+            bool result = card.IsPlayableCard(leadingSuit, hand);
 
             // 3. Then or Assert
             Assert.False(result);
@@ -265,7 +265,7 @@ namespace DeuxCentsCardGame.Tests
             };
 
             // 2. When or Act
-            bool result = card.CanBePlayed(leadingSuit, hand);
+            bool result = card.IsPlayableCard(leadingSuit, hand);
 
             // 3. Then or Assert
             Assert.True(result);
@@ -280,7 +280,7 @@ namespace DeuxCentsCardGame.Tests
             var trumpSuit = CardSuit.Hearts;
 
             // 2. When or Act
-            bool result = trumpCard.Beats(nonTrumpCard, trumpSuit, null);
+            bool result = trumpCard.WinsAgainst(nonTrumpCard, trumpSuit, null);
 
             // 3. Then or Assert
             Assert.True(result);
@@ -295,7 +295,7 @@ namespace DeuxCentsCardGame.Tests
             var trumpSuit = CardSuit.Hearts;
 
             // 2. When or Act
-            bool result = nonTrumpCard.Beats(trumpCard, trumpSuit, null);
+            bool result = nonTrumpCard.WinsAgainst(trumpCard, trumpSuit, null);
 
             // 3. Then or Assert
             Assert.False(result);
@@ -310,7 +310,7 @@ namespace DeuxCentsCardGame.Tests
             var trumpSuit = CardSuit.Hearts;
 
             // 2. When or Act
-            bool result = highTrump.Beats(lowTrump, trumpSuit, null);
+            bool result = highTrump.WinsAgainst(lowTrump, trumpSuit, null);
 
             // 3. Then or Assert
             Assert.True(result);
@@ -325,7 +325,7 @@ namespace DeuxCentsCardGame.Tests
             var trumpSuit = CardSuit.Hearts;
 
             // 2. When or Act
-            bool result = lowTrump.Beats(highTrump, trumpSuit, null);
+            bool result = lowTrump.WinsAgainst(highTrump, trumpSuit, null);
 
             // 3. Then or Assert
             Assert.False(result);
@@ -340,7 +340,7 @@ namespace DeuxCentsCardGame.Tests
             var trumpSuit = CardSuit.Hearts;
 
             // 2. When or Act
-            bool result = highCard.Beats(lowCard, trumpSuit, null);
+            bool result = highCard.WinsAgainst(lowCard, trumpSuit, null);
 
             // 3. Then or Assert
             Assert.True(result);
@@ -356,7 +356,7 @@ namespace DeuxCentsCardGame.Tests
             var leadingSuit = CardSuit.Spades;
 
             // 2. When or Act
-            bool result = leadingSuitCard.Beats(nonLeadingSuitCard, trumpSuit, leadingSuit);
+            bool result = leadingSuitCard.WinsAgainst(nonLeadingSuitCard, trumpSuit, leadingSuit);
 
             // 3. Then or Assert
             Assert.True(result);
@@ -372,7 +372,7 @@ namespace DeuxCentsCardGame.Tests
             var leadingSuit = CardSuit.Spades;
 
             // 2. When or Act
-            bool result = nonLeadingSuitCard.Beats(leadingSuitCard, trumpSuit, leadingSuit);
+            bool result = nonLeadingSuitCard.WinsAgainst(leadingSuitCard, trumpSuit, leadingSuit);
 
             // 3. Then or Assert
             Assert.False(result);
@@ -388,7 +388,7 @@ namespace DeuxCentsCardGame.Tests
             var leadingSuit = CardSuit.Spades;
 
             // 2. When or Act - secondCard was played first, so firstCard should lose
-            bool result = firstCard.Beats(secondCard, trumpSuit, leadingSuit);
+            bool result = firstCard.WinsAgainst(secondCard, trumpSuit, leadingSuit);
 
             // 3. Then or Assert
             Assert.False(result);
@@ -402,7 +402,7 @@ namespace DeuxCentsCardGame.Tests
             var card2 = CreateCard(CardSuit.Clubs, CardFace.Ace);
 
             // 2. When or Act
-            bool result = card1.Beats(card2, null, null);
+            bool result = card1.WinsAgainst(card2, null, null);
 
             // 3. Then or Assert
             Assert.False(result);
@@ -418,7 +418,7 @@ namespace DeuxCentsCardGame.Tests
             var leadingSuit = CardSuit.Spades;
 
             // 2. When or Act
-            bool result = trumpCard.Beats(leadingSuitCard, trumpSuit, leadingSuit);
+            bool result = trumpCard.WinsAgainst(leadingSuitCard, trumpSuit, leadingSuit);
 
             // 3. Then or Assert
             Assert.True(result);
@@ -433,7 +433,7 @@ namespace DeuxCentsCardGame.Tests
             var trumpSuit = CardSuit.Hearts;
 
             // 2. When or Act
-            bool result = card1.Beats(card2, trumpSuit, null);
+            bool result = card1.WinsAgainst(card2, trumpSuit, null);
 
             // 3. Then or Assert
             Assert.False(result);
