@@ -62,8 +62,8 @@ namespace DeuxCentsCardGame
             UIConsoleGameView.DisplayAllHands(_players, _dealerIndex); // display all players hands
             ProcessBettingRound();
             SelectTrumpSuit();
-            ProcessRound();
-            UpdateScore();
+            PlayRound();
+            CalculateRoundScores();
             EndGameCheck();
         }
 
@@ -130,7 +130,7 @@ namespace DeuxCentsCardGame
                         return true;
 
                     if (hasPassed.Count(pass => pass) >= 3) // End the betting round if 3 players have passed                 
-                        return HandleThreePlayerPassed(playerIndex, hasPassed);
+                        return FinalizeBettingAfterThreePasses(playerIndex, hasPassed);
                 }
 
                 return false;
@@ -156,7 +156,7 @@ namespace DeuxCentsCardGame
                     _ui.DisplayMessage("");
                 
                     if (bet == MaximumBet)
-                        return HandleMaximumBet(playerIndex, hasPassed, bets); // End the betting round immediately
+                        return FinalizeBettingAfterMaximumBet(playerIndex, hasPassed, bets); // End the betting round immediately
                     else
                         return false;
                 }
@@ -179,7 +179,7 @@ namespace DeuxCentsCardGame
             return bet >= MinimumBet && bet <= MaximumBet && bet % BetIncrement == 0 && !bets.Contains(bet);
         }
 
-        private bool HandleMaximumBet(int playerIndex, bool[] hasPassed, List<int> bets)
+        private bool FinalizeBettingAfterMaximumBet(int playerIndex, bool[] hasPassed, List<int> bets)
         {
             _ui.DisplayFormattedMessage("{0} bet {1}. Betting round ends.\n", _players[playerIndex].Name, MaximumBet);
             for (int otherPlayerIndex = 0; otherPlayerIndex < _players.Count; otherPlayerIndex++)
@@ -193,7 +193,7 @@ namespace DeuxCentsCardGame
             return true;
         }
 
-        private bool HandleThreePlayerPassed(int playerIndex, bool[] hasBet)
+        private bool FinalizeBettingAfterThreePasses(int playerIndex, bool[] hasBet)
         {
             _ui.DisplayMessage("Three players have passed, betting round ends");
             if (!hasBet.Any(bet => bet)) // Inserting default bet of 50 to player 4 if all prior players passed
@@ -239,7 +239,7 @@ namespace DeuxCentsCardGame
             _ui.DisplayFormattedMessage("\nTrump suit is {0}.", Deck.CardSuitToString(_trumpSuit.Value));
         }
 
-        private void ProcessRound()
+        private void PlayRound()
         {
             int currentPlayerIndex = _currentWinningBidIndex;
 
@@ -256,7 +256,7 @@ namespace DeuxCentsCardGame
                 _ui.DisplayMessage("\n#########################\n");
                 _ui.DisplayFormattedMessage("Trick #{0}:", trickNumber + 1);
 
-                ProcessTrick(currentPlayerIndex, leadingSuit, currentTrick);
+                PlayTrick(currentPlayerIndex, leadingSuit, currentTrick);
 
                 (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick, _trumpSuit);
                 
@@ -264,18 +264,18 @@ namespace DeuxCentsCardGame
 
                 currentPlayerIndex = _players.IndexOf(trickWinner); // set winning player as the current player for the next trick
                 trickPoints = currentTrick.Sum(trick => trick.card.CardPointValue); // adding all trick points to trickPoints
-                UpdateTrickPoints(currentPlayerIndex, trickPoints);
+                AddTrickPointsToTeam(currentPlayerIndex, trickPoints);
             }
         }
 
-        private void ProcessTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick)
+        private void PlayTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick)
         {
             for (int trickIndex = 0; trickIndex < _players.Count; trickIndex++)
                 {
                     int playerIndex = (currentPlayerIndex + trickIndex) % _players.Count; // ensuring player who won the bet goes first;
                     Player currentPlayer = _players[playerIndex];
                     
-                    Card playedCard = ValidateCardInput(currentPlayer, leadingSuit);
+                    Card playedCard = GetValidCardFromPlayer(currentPlayer, leadingSuit);
                     currentPlayer.RemoveCard(playedCard);
 
                     if (trickIndex == 0)
@@ -288,7 +288,7 @@ namespace DeuxCentsCardGame
                 }
         }
 
-        private Card ValidateCardInput(Player currentPlayer, CardSuit? leadingSuit)
+        private Card GetValidCardFromPlayer(Player currentPlayer, CardSuit? leadingSuit)
         {
             UIConsoleGameView.DisplayHand(currentPlayer);
 
@@ -332,7 +332,7 @@ namespace DeuxCentsCardGame
             return (trickWinner.card, trickWinner.player);
         }
 
-        private void UpdateTrickPoints(int trickWinnerIndex, int trickPoints)
+        private void AddTrickPointsToTeam(int trickWinnerIndex, int trickPoints)
         {
             bool isTeamOne = trickWinnerIndex % 2 == 0;
             string teamName = isTeamOne ? "Team One" : "Team Two";
@@ -349,7 +349,7 @@ namespace DeuxCentsCardGame
             return playerIndex % 2 == 0;
         }
 
-        private void UpdateTeamPoints(bool isTeamOne)
+        private void CalculateAndUpdateTeamScore(bool isTeamOne)
         {
             int teamRoundPoints;
             int teamTotalPoints;
@@ -401,7 +401,7 @@ namespace DeuxCentsCardGame
             }
         }
 
-        private void UpdateScore() // tally points and end the round
+        private void CalculateRoundScores() // tally points and end the round
         {
             _ui.DisplayMessage("\nEnd of round. Scoring:");
             _ui.DisplayFormattedMessage("Team One (Player 1 & Player 3) scored : {0}", _teamOneRoundPoints);
@@ -409,8 +409,8 @@ namespace DeuxCentsCardGame
 
             bool bidWinnerIsTeamOne = IsTeamOne(_currentWinningBidIndex);
             
-            UpdateTeamPoints(bidWinnerIsTeamOne);
-            UpdateTeamPoints(!bidWinnerIsTeamOne);
+            CalculateAndUpdateTeamScore(bidWinnerIsTeamOne);
+            CalculateAndUpdateTeamScore(!bidWinnerIsTeamOne);
 
             _ui.DisplayFormattedMessage("\nTeam One has a total of {0} points", _teamOneTotalPoints);
             _ui.DisplayFormattedMessage("Team Two has a total of {0} points", _teamTwoTotalPoints);

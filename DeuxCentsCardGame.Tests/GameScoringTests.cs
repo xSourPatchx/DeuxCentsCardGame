@@ -56,7 +56,7 @@ namespace DeuxCentsCardGame.Tests
             SetPrivateField(game, "_playerHasBet", playerHasBet);
 
             // 2. When or Act - Call the private method using reflection
-            var method = typeof(Game).GetMethod("UpdateTeamPoints", 
+            var method = typeof(Game).GetMethod("CalculateAndUpdateTeamScore", 
                 BindingFlags.NonPublic | BindingFlags.Instance);
             method.Invoke(game, new object[] { true });
 
@@ -69,7 +69,7 @@ namespace DeuxCentsCardGame.Tests
         }
 
         [Fact]
-        public void UpdateTeamPoints_WhenTeamOneScoreOver100AndTeamOneDidNotBet_TeamOneRoundPointsIsZero()
+        public void CalculateAndUpdateTeamScore_WhenTeamOneScoreOver100AndTeamOneDidNotBet_TeamOneRoundPointsIsZero()
         {
             // 1. Given or Arrange
             var game = CreateGameInstance();
@@ -85,7 +85,7 @@ namespace DeuxCentsCardGame.Tests
             SetPrivateField(game, "_playerHasBet", playerHasBet);
 
             // 2. When or Act - Call the private method using reflection
-            var method = typeof(Game).GetMethod("UpdateTeamPoints", 
+            var method = typeof(Game).GetMethod("CalculateAndUpdateTeamScore", 
                 BindingFlags.NonPublic | BindingFlags.Instance);
             method.Invoke(game, new object[] { true }); // Pass true for Team One
 
@@ -103,7 +103,7 @@ namespace DeuxCentsCardGame.Tests
         }
 
         [Fact]
-        public void UpdateTeamPoints_WhenTeamTwoScoreOver100AndTeamTwoDidNotBet_TeamTwoRoundPointsIsZero()
+        public void CalculateAndUpdateTeamScore_WhenTeamTwoScoreOver100AndTeamTwoDidNotBet_TeamTwoRoundPointsIsZero()
         {
             // 1. Given or Arrange
             var game = CreateGameInstance();
@@ -119,7 +119,7 @@ namespace DeuxCentsCardGame.Tests
             SetPrivateField(game, "_playerHasBet", playerHasBet);
 
             // 2. When or Act - Call the private method using reflection
-            var method = typeof(Game).GetMethod("UpdateTeamPoints", 
+            var method = typeof(Game).GetMethod("CalculateAndUpdateTeamScore", 
                 BindingFlags.NonPublic | BindingFlags.Instance);
             method.Invoke(game, new object[] { false }); // Pass false for Team Two
 
@@ -137,7 +137,7 @@ namespace DeuxCentsCardGame.Tests
         }
         
         [Fact]
-        public void UpdateTeamPoints_WhenTeamOneScoreUnder100AndMadeBid_TeamOneRoundPointsIncreases()
+        public void CalculateAndUpdateTeamScore_WhenTeamOneScoreUnder100AndMadeBid_TeamOneRoundPointsIncreases()
         {
             // 1. Given or Arrange
             var game = CreateGameInstance();
@@ -155,7 +155,7 @@ namespace DeuxCentsCardGame.Tests
             int initialTeamOneTotalPoints = 50;
 
             // 2. When or Act - Call the private method using reflection
-            var method = typeof(Game).GetMethod("UpdateTeamPoints", 
+            var method = typeof(Game).GetMethod("CalculateAndUpdateTeamScore", 
                 BindingFlags.NonPublic | BindingFlags.Instance);
             method.Invoke(game, new object[] { true }); // Pass true for Team One
 
@@ -168,7 +168,7 @@ namespace DeuxCentsCardGame.Tests
         }
         
         [Fact]
-        public void UpdateTeamPoints_WhenTeamOneScoreUnder100AndFailedBid_TeamOneRoundPointsDecrease()
+        public void CalculateAndUpdateTeamScore_WhenTeamOneScoreUnder100AndFailedBid_TeamOneRoundPointsDecrease()
         {
             // 1. Given or Arrange
             var game = CreateGameInstance();
@@ -186,7 +186,7 @@ namespace DeuxCentsCardGame.Tests
             int initialTeamOneTotalPoints = 50;
 
             // 2. When or Act - Call the private method using reflection
-            var method = typeof(Game).GetMethod("UpdateTeamPoints", 
+            var method = typeof(Game).GetMethod("CalculateAndUpdateTeamScore", 
                 BindingFlags.NonPublic | BindingFlags.Instance);
             method.Invoke(game, new object[] { true }); // Pass true for Team One
 
