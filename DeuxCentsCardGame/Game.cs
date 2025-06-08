@@ -44,15 +44,15 @@ namespace DeuxCentsCardGame
             _trumpSuit =  null;
         }
 
-        public void Start()
+        public void StartGame()
         {
             while (!_gameEnded)
             {
-                NewGame();
+                NewRound();
             }
         }
 
-        public void NewGame()
+        public void NewRound()
         {
             _ui.ClearScreen();
             _ui.DisplayMessage("Starting a new round...");
@@ -344,7 +344,7 @@ namespace DeuxCentsCardGame
                 _teamTwoRoundPoints += trickPoints; 
         }
 
-        private bool IsTeamOne(int playerIndex)
+        private bool IsPlayerOnTeamOne(int playerIndex)
         {
             return playerIndex % 2 == 0;
         }
@@ -407,7 +407,7 @@ namespace DeuxCentsCardGame
             _ui.DisplayFormattedMessage("Team One (Player 1 & Player 3) scored : {0}", _teamOneRoundPoints);
             _ui.DisplayFormattedMessage("Team Two (Player 2 & Player 4) scored : {0}", _teamTwoRoundPoints);
 
-            bool bidWinnerIsTeamOne = IsTeamOne(_currentWinningBidIndex);
+            bool bidWinnerIsTeamOne = IsPlayerOnTeamOne(_currentWinningBidIndex);
             
             CalculateAndUpdateTeamScore(bidWinnerIsTeamOne);
             CalculateAndUpdateTeamScore(!bidWinnerIsTeamOne);

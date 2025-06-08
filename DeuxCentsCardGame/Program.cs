@@ -6,7 +6,7 @@
         {
             UIConsoleGameView ui = new UIConsoleGameView();
             Game game = new Game(ui);
-            game.Start();
+            game.StartGame();
             Console.ReadKey();
         }
     }

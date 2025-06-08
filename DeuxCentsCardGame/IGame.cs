@@ -2,7 +2,7 @@
 {
     public interface IGame
     {
-        public void Start();
-        public void NewGame();
+        public void StartGame();
+        public void NewRound();
     }
 }
