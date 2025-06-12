@@ -13,24 +13,24 @@ namespace DeuxCentsCardGame
         private readonly List<Player> _players;
         private bool[] _playerHasBet;
 
-        private bool _gameEnded;
+        private bool _isGameEnded;
         private int _currentWinningBid;
         private int _currentWinningBidIndex;
         private CardSuit? _trumpSuit;
+        public int DealerIndex = 3; // dealer starts at player 4 (index 3)
 
         // scoring properties
         private int _teamOneRoundPoints;
         private int _teamTwoRoundPoints;
         private int _teamOneTotalPoints;
         private int _teamTwoTotalPoints;
-        public int _dealerIndex = 3; // dealer starts at player 4 (index 3)
 
         // UI reference
         private readonly IUIConsoleGameView _ui;
 
-        public Game(IUIConsoleGameView userInterfaceConsoleGameView)
+        public Game(IUIConsoleGameView ui)
         {
-            _ui = userInterfaceConsoleGameView;
+            _ui = ui;
             _deck = new Deck();
             _players =
             [
@@ -46,7 +46,7 @@ namespace DeuxCentsCardGame
 
         public void StartGame()
         {
-            while (!_gameEnded)
+            while (!_isGameEnded)
             {
                 NewRound();
             }
@@ -59,18 +59,18 @@ namespace DeuxCentsCardGame
             ResetRound();
             _deck.ShuffleDeck();
             DealCards();
-            UIConsoleGameView.DisplayAllHands(_players, _dealerIndex); // display all players hands
-            ProcessBettingRound();
+            UIConsoleGameView.DisplayAllHands(_players, DealerIndex); // display all players hands
+            ExecuteBettingRound();
             SelectTrumpSuit();
             PlayRound();
-            CalculateRoundScores();
+            ScoreRound();
             EndGameCheck();
         }
 
         private void ResetRound()
         {
             _deck = new Deck();
-            _gameEnded = false;
+            _isGameEnded = false;
             _teamOneRoundPoints = 0;
             _teamTwoRoundPoints = 0;
             _currentWinningBid = 0;
@@ -81,7 +81,7 @@ namespace DeuxCentsCardGame
 
         private void RotateDealer()
         {
-            _dealerIndex = (_dealerIndex + 1) % _players.Count;
+            DealerIndex = (DealerIndex + 1) % _players.Count;
         }
 
         private void DealCards()
@@ -98,26 +98,26 @@ namespace DeuxCentsCardGame
             }
         }
 
-        public void ProcessBettingRound()
+        public void ExecuteBettingRound()
         {
             _ui.DisplayMessage("Betting round begins!\n");
-            List<int> bidValue = new(new int[_players.Count]);
+            List<int> bets = new(new int[_players.Count]);
             bool[] playerHasPassed = new bool[_players.Count];
             bool bettingRoundEnded = false;
             _playerHasBet = new bool[_players.Count]; // track if a player has placed a bet for over 100 scoring purposes
 
-            int startingIndex = _dealerIndex % _players.Count;
+            int startingIndex = DealerIndex % _players.Count;
 
             while (!bettingRoundEnded)
             {
-                bettingRoundEnded = ProcessBettingRound(startingIndex, playerHasPassed, bidValue);
+                bettingRoundEnded = HandleBettingRound(startingIndex, playerHasPassed, bets);
             }
 
-            DisplayBettingResults(playerHasPassed, bidValue);
-            DetermineWinningBid(bidValue);
+            DisplayBettingResults(playerHasPassed, bets);
+            SelectWinningBid(bets);
         }
 
-        private bool ProcessBettingRound(int startingIndex, bool[] hasPassed, List<int> bets)
+        private bool HandleBettingRound(int startingIndex, bool[] hasPassed, List<int> bets)
         {
             for (int i = 0; i < _players.Count; i++)
                 {
@@ -126,7 +126,7 @@ namespace DeuxCentsCardGame
                     if (hasPassed[playerIndex])
                         continue; // Skip players who have already passed
                     
-                    if (ProcessPlayerBets(playerIndex, hasPassed, bets))
+                    if (HandlePlayerBets(playerIndex, hasPassed, bets))
                         return true;
 
                     if (hasPassed.Count(pass => pass) >= 3) // End the betting round if 3 players have passed                 
@@ -136,7 +136,7 @@ namespace DeuxCentsCardGame
                 return false;
         }
 
-        private bool ProcessPlayerBets(int playerIndex, bool[] hasPassed, List<int> bets)
+        private bool HandlePlayerBets(int playerIndex, bool[] hasPassed, List<int> bets)
         {
             while (true)
             {
@@ -145,7 +145,7 @@ namespace DeuxCentsCardGame
 
                 if (betInput == "pass")
                 {
-                    ProcessPassInput(playerIndex, hasPassed, bets);
+                    HandlePassInput(playerIndex, hasPassed, bets);
                     return false;
                 }
                 
@@ -167,7 +167,7 @@ namespace DeuxCentsCardGame
             }
         }
 
-        private void ProcessPassInput(int playerIndex, bool[] hasPassed, List<int> bets)
+        private void HandlePassInput(int playerIndex, bool[] hasPassed, List<int> bets)
         {
             _ui.DisplayFormattedMessage("\n{0} passed\n", _players[playerIndex].Name);
             hasPassed[playerIndex] = true;
@@ -221,7 +221,7 @@ namespace DeuxCentsCardGame
             }
         }
 
-        private void DetermineWinningBid(List<int> bets)
+        private void SelectWinningBid(List<int> bets)
         {
             _currentWinningBid = bets.Max();
             _currentWinningBidIndex = bets.IndexOf(_currentWinningBid);
@@ -264,7 +264,7 @@ namespace DeuxCentsCardGame
 
                 currentPlayerIndex = _players.IndexOf(trickWinner); // set winning player as the current player for the next trick
                 trickPoints = currentTrick.Sum(trick => trick.card.CardPointValue); // adding all trick points to trickPoints
-                AddTrickPointsToTeam(currentPlayerIndex, trickPoints);
+                AwardTrickPoints(currentPlayerIndex, trickPoints);
             }
         }
 
@@ -332,7 +332,7 @@ namespace DeuxCentsCardGame
             return (trickWinner.card, trickWinner.player);
         }
 
-        private void AddTrickPointsToTeam(int trickWinnerIndex, int trickPoints)
+        private void AwardTrickPoints(int trickWinnerIndex, int trickPoints)
         {
             bool isTeamOne = trickWinnerIndex % 2 == 0;
             string teamName = isTeamOne ? "Team One" : "Team Two";
@@ -401,7 +401,7 @@ namespace DeuxCentsCardGame
             }
         }
 
-        private void CalculateRoundScores() // tally points and end the round
+        private void ScoreRound() // tally points and end the round
         {
             _ui.DisplayMessage("\nEnd of round. Scoring:");
             _ui.DisplayFormattedMessage("Team One (Player 1 & Player 3) scored : {0}", _teamOneRoundPoints);
@@ -424,7 +424,7 @@ namespace DeuxCentsCardGame
                 _ui.DisplayMessage("Game over!");
                 _ui.DisplayFormattedMessage("Team One finished with {0} points", _teamOneTotalPoints);
                 _ui.DisplayFormattedMessage("Team Two finished with {0} points", _teamTwoTotalPoints);
-                _gameEnded = true;
+                _isGameEnded = true;
             }
             else
             {
