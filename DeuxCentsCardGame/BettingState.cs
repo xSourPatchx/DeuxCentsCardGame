@@ -38,12 +38,11 @@ namespace DeuxCentsCardGame
         {
             _ui.DisplayMessage("Betting round begins!\n");
 
-            bool bettingRoundEnded = false;
             int startingIndex = _dealerIndex % _players.Count;
 
-            while (!bettingRoundEnded)
+            while (!IsBettingRoundComplete)
             {
-                bettingRoundEnded = HandleBettingRound(startingIndex);
+                IsBettingRoundComplete = HandleBettingRound(startingIndex);
             }
 
             DisplayBettingResults();
