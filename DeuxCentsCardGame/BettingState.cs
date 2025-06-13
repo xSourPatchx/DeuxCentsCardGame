@@ -9,8 +9,8 @@ namespace DeuxCentsCardGame
 
         // Betting state
         public List<int> PlayerBids { get; set; }
-        public bool[] PlayerHasBet { get; set; }
-        public bool[] PlayerHasPassed { get; set; } 
+        public List<bool> PlayerHasBet { get; set; }
+        public List<bool> PlayerHasPassed { get; set; } 
         public int CurrentWinningBid { get; set; }
         public int CurrentWinningBidIndex { get; set; }
         public bool IsBettingRoundComplete { get; set; }
@@ -27,12 +27,11 @@ namespace DeuxCentsCardGame
             _dealerIndex = dealerIndex;
 
             PlayerBids = new(new int[_players.Count]);
-            PlayerHasBet = new bool[_players.Count];
-            PlayerHasPassed = new bool[_players.Count];
+            PlayerHasBet = new List<bool>(_players.Count);
+            PlayerHasPassed = new List<bool>(_players.Count);
             CurrentWinningBid = 0;
             CurrentWinningBidIndex = 0;
             IsBettingRoundComplete = false;
-
         }
 
         public void ExecuteBettingRound()
@@ -52,6 +51,14 @@ namespace DeuxCentsCardGame
             IsBettingRoundComplete = true;
         }
 
+        public void ResetForNewRound()
+        {
+            PlayerBids = Enumerable.Repeat(0, _players.Count).ToList();
+            PlayerHasBet = Enumerable.Repeat(false, _players.Count).ToList();
+            PlayerHasPassed = Enumerable.Repeat(false, _players.Count).ToList();
+            IsBettingRoundComplete = false;
+        }
+
         private bool HandleBettingRound(int startingIndex)
         {
             for (int i = 0; i < _players.Count; i++)
@@ -59,13 +66,13 @@ namespace DeuxCentsCardGame
                     int currentPlayerIndex = (startingIndex + i) % _players.Count;
 
                     if (PlayerHasPassed[currentPlayerIndex])
-                        continue; // Skip players who have already passed
+                        continue;
                     
                     if (HandlePlayerBids(currentPlayerIndex))
                         return true;
 
-                    if (PlayerHasPassed.Count(pass => pass) >= 3) // End the betting round if 3 players have passed                 
-                        return FinalizeBettingAfterThreePasses();
+                    if (PlayerHasPassed.Count(pass => pass) >= 3)                 
+                        return FinalizeBettingAfterThreePasses(currentPlayerIndex);
                 }
 
                 return false;
@@ -88,12 +95,11 @@ namespace DeuxCentsCardGame
                 {
                     return HandleValidBet(currentPlayerIndex, bet);
                 }
-                else
-                {
-                    _ui.DisplayMessage("Invalid bet, please try again");
-                }
+
+                _ui.DisplayMessage("Invalid bet, please try again");
             }
         }
+
         private void HandlePassInput(int currentPlayerIndex)
         {
             _ui.DisplayFormattedMessage("\n{0} passed\n", _players[currentPlayerIndex].Name);
@@ -137,18 +143,18 @@ namespace DeuxCentsCardGame
             return true;   
         }
 
-        private bool FinalizeBettingAfterThreePasses()
+        private bool FinalizeBettingAfterThreePasses(int currentPlayerIndex)
         {
             _ui.DisplayMessage("Three players have passed, betting round ends");
             
-            // If all players passed except one, that player gets the minimum bet
+            // Check if all players passed and no bets placed
             if (PlayerBids.All(bet => bet <= 0))
             {
-                int lastPlayerIndex = (_dealerIndex + 1) % _players.Count;
-                PlayerHasBet[lastPlayerIndex] = true;
+                int lastBiddingPlayerIndex = (currentPlayerIndex + 1) % _players.Count;
+                PlayerHasBet[lastBiddingPlayerIndex] = true;
+                PlayerBids[lastBiddingPlayerIndex] = MinimumBet;                
                 CurrentWinningBid = MinimumBet;
-                CurrentWinningBidIndex = lastPlayerIndex;
-                PlayerBids[lastPlayerIndex] = MinimumBet;
+                CurrentWinningBidIndex = lastBiddingPlayerIndex;
             }
 
             return true;
@@ -161,7 +167,7 @@ namespace DeuxCentsCardGame
             {
                 string result;
                 if (PlayerHasPassed[i])
-                    result = PlayerHasPassed[i] ? "Passed after betting" : "Passed";
+                    result = PlayerHasBet[i] ? "Passed after betting" : "Passed";
                 else
                     result = $"Bet {PlayerBids[i]}";
 
@@ -172,7 +178,7 @@ namespace DeuxCentsCardGame
         private void DetermineWinningBid()
         {
             CurrentWinningBid = PlayerBids.Max();
-            CurrentWinningBidIndex = PlayerBids.IndexOf(CurrentWinningBidIndex = PlayerBids.IndexOf(CurrentWinningBid));
+            CurrentWinningBidIndex = PlayerBids.IndexOf(CurrentWinningBid);
             _ui.DisplayFormattedMessage("\n{0} won the bid.", _players[CurrentWinningBidIndex].Name);
             _ui.DisplayMessage("\n#########################\n");
             UIConsoleGameView.DisplayHand(_players[CurrentWinningBidIndex]);
