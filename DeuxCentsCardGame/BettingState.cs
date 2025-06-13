@@ -61,7 +61,7 @@ namespace DeuxCentsCardGame
                     if (PlayerHasPassed[currentPlayerIndex])
                         continue; // Skip players who have already passed
                     
-                    if (HandlePlayerBets(currentPlayerIndex))
+                    if (HandlePlayerBids(currentPlayerIndex))
                         return true;
 
                     if (PlayerHasPassed.Count(pass => pass) >= 3) // End the betting round if 3 players have passed                 
@@ -71,7 +71,7 @@ namespace DeuxCentsCardGame
                 return false;
         }
 
-        private bool HandlePlayerBets(int currentPlayerIndex)
+        private bool HandlePlayerBids(int currentPlayerIndex)
         {
             while (true)
             {
@@ -101,7 +101,7 @@ namespace DeuxCentsCardGame
             PlayerBids[currentPlayerIndex] = -1;     
         }
 
-        private static bool IsValidBet(int bet)
+        private bool IsValidBet(int bet)
         {
             return bet >= MinimumBet &&
                    bet <= MaximumBet && 
@@ -112,7 +112,7 @@ namespace DeuxCentsCardGame
         private bool HandleValidBet(int currentPlayerIndex, int bet)
         {
             PlayerBids[currentPlayerIndex] = bet;
-            PlayerHasPassed[currentPlayerIndex] = true;
+            PlayerHasBet[currentPlayerIndex] = true;
             _ui.DisplayMessage("");
         
             if (bet == MaximumBet)
