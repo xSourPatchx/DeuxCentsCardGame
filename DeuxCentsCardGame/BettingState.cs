@@ -2,20 +2,22 @@ namespace DeuxCentsCardGame
 {
     public class BettingState
     {
-        // Betting constants
+        // Betting constants (Will move to GameConfig Class)
         public const int MinimumBet = 50;
         public const int MaximumBet = 100;
         public const int BetIncrement = 5;
 
-        // Betting state
+        // Public betting state properties
+        public int CurrentWinningBid { get; private set; }
+        public int CurrentWinningBidIndex { get; private set; }
+        public bool IsBettingRoundComplete { get; private set; }
+
         public List<int> PlayerBids { get; set; }
         public List<bool> PlayerHasBet { get; set; }
-        public List<bool> PlayerHasPassed { get; set; } 
-        public int CurrentWinningBid { get; set; }
-        public int CurrentWinningBidIndex { get; set; }
-        public bool IsBettingRoundComplete { get; set; }
+        public List<bool> PlayerHasPassed { get; set; }
 
-        // Betting properties
+
+        // Private betting state fields
         private readonly List<Player> _players;
         private readonly IUIConsoleGameView _ui;
         private readonly int _dealerIndex;
@@ -26,12 +28,7 @@ namespace DeuxCentsCardGame
             _ui = ui;
             _dealerIndex = dealerIndex;
 
-            PlayerBids = new(new int[_players.Count]);
-            PlayerHasBet = new List<bool>(_players.Count);
-            PlayerHasPassed = new List<bool>(_players.Count);
-            CurrentWinningBid = 0;
-            CurrentWinningBidIndex = 0;
-            IsBettingRoundComplete = false;
+            ResetBettingRound();
         }
 
         public void ExecuteBettingRound()
@@ -50,31 +47,37 @@ namespace DeuxCentsCardGame
             IsBettingRoundComplete = true;
         }
 
-        public void ResetForNewRound()
+        public void ResetBettingRound()
         {
-            PlayerBids = Enumerable.Repeat(0, _players.Count).ToList();
-            PlayerHasBet = Enumerable.Repeat(false, _players.Count).ToList();
-            PlayerHasPassed = Enumerable.Repeat(false, _players.Count).ToList();
+            // Comments are more Unity friendly
+            // PlayerBids = Enumerable.Repeat(0, _players.Count).ToList();
+            // PlayerHasBet = Enumerable.Repeat(false, _players.Count).ToList();
+            // PlayerHasPassed = Enumerable.Repeat(false, _players.Count).ToList();
+            PlayerBids = new(new int[_players.Count]);
+            PlayerHasBet = new List<bool>(_players.Count);
+            PlayerHasPassed = new List<bool>(_players.Count);
+            CurrentWinningBid = 0;
+            CurrentWinningBidIndex = 0;
             IsBettingRoundComplete = false;
         }
 
         private bool HandleBettingRound(int startingIndex)
         {
             for (int i = 0; i < _players.Count; i++)
-                {
-                    int currentPlayerIndex = (startingIndex + i) % _players.Count;
+            {
+                int currentPlayerIndex = (startingIndex + i) % _players.Count;
 
-                    if (PlayerHasPassed[currentPlayerIndex])
-                        continue;
-                    
-                    if (HandlePlayerBids(currentPlayerIndex))
-                        return true;
+                if (PlayerHasPassed[currentPlayerIndex])
+                    continue;
 
-                    if (PlayerHasPassed.Count(pass => pass) >= 3)                 
-                        return FinalizeBettingAfterThreePasses(currentPlayerIndex);
-                }
+                if (HandlePlayerBids(currentPlayerIndex))
+                    return true;
 
-                return false;
+                if (PlayerHasPassed.Count(pass => pass) >= 3)
+                    return HandleThreePassesScenario(currentPlayerIndex);
+            }
+
+            return false;
         }
 
         private bool HandlePlayerBids(int currentPlayerIndex)
@@ -89,7 +92,7 @@ namespace DeuxCentsCardGame
                     HandlePassInput(currentPlayerIndex);
                     return false;
                 }
-                
+
                 if (int.TryParse(betInput, out int bet) && IsValidBet(bet))
                 {
                     return HandleValidBet(currentPlayerIndex, bet);
@@ -103,14 +106,14 @@ namespace DeuxCentsCardGame
         {
             _ui.DisplayFormattedMessage("\n{0} passed\n", _players[currentPlayerIndex].Name);
             PlayerHasPassed[currentPlayerIndex] = true;
-            PlayerBids[currentPlayerIndex] = -1;     
+            PlayerBids[currentPlayerIndex] = -1;
         }
 
         private bool IsValidBet(int bet)
         {
             return bet >= MinimumBet &&
-                   bet <= MaximumBet && 
-                   bet % BetIncrement == 0 && 
+                   bet <= MaximumBet &&
+                   bet % BetIncrement == 0 &&
                    !PlayerBids.Contains(bet);
         }
 
@@ -119,16 +122,16 @@ namespace DeuxCentsCardGame
             PlayerBids[currentPlayerIndex] = bet;
             PlayerHasBet[currentPlayerIndex] = true;
             _ui.DisplayMessage("");
-        
+
             if (bet == MaximumBet)
             {
-                return FinalizeBettingAfterMaximumBet(currentPlayerIndex); // End the betting round immediately
+                return HandleMaximumBetScenario(currentPlayerIndex); // End the betting round immediately
             }
 
             return false;
         }
 
-        private bool FinalizeBettingAfterMaximumBet(int playerIndex)
+        private bool HandleMaximumBetScenario(int playerIndex)
         {
             _ui.DisplayFormattedMessage("{0} bet {1}. Betting round ends.\n", _players[playerIndex].Name, MaximumBet);
             for (int otherPlayerIndex = 0; otherPlayerIndex < _players.Count; otherPlayerIndex++)
@@ -139,19 +142,19 @@ namespace DeuxCentsCardGame
                     PlayerBids[otherPlayerIndex] = -1;
                 }
             }
-            return true;   
+            return true;
         }
 
-        private bool FinalizeBettingAfterThreePasses(int currentPlayerIndex)
+        private bool HandleThreePassesScenario(int currentPlayerIndex)
         {
             _ui.DisplayMessage("Three players have passed, betting round ends");
-            
+
             // Check if all players passed and no bets placed
             if (PlayerBids.All(bet => bet <= 0))
             {
                 int lastBiddingPlayerIndex = (currentPlayerIndex + 1) % _players.Count;
                 PlayerHasBet[lastBiddingPlayerIndex] = true;
-                PlayerBids[lastBiddingPlayerIndex] = MinimumBet;                
+                PlayerBids[lastBiddingPlayerIndex] = MinimumBet;
                 CurrentWinningBid = MinimumBet;
                 CurrentWinningBidIndex = lastBiddingPlayerIndex;
             }
@@ -162,22 +165,28 @@ namespace DeuxCentsCardGame
         private void DisplayBettingResults()
         {
             _ui.DisplayMessage("\nBetting round complete, here are the results:");
+
             for (int i = 0; i < _players.Count; i++)
             {
-                string result;
-                if (PlayerHasPassed[i])
-                    result = PlayerHasBet[i] ? "Passed after betting" : "Passed";
-                else
-                    result = $"Bet {PlayerBids[i]}";
-
+                string result = GetPlayerBettingResult(i);
                 _ui.DisplayFormattedMessage("{0} : {1}", _players[i].Name, result);
             }
+        }
+
+        private string GetPlayerBettingResult(int playerIndex)
+        {
+            if (PlayerHasPassed[playerIndex])
+            {
+                return PlayerHasBet[playerIndex] ? "Passed after betting" : "Passed";
+            }
+            return $"Bet {PlayerBids[playerIndex]}";
         }
 
         private void DetermineWinningBid()
         {
             CurrentWinningBid = PlayerBids.Max();
             CurrentWinningBidIndex = PlayerBids.IndexOf(CurrentWinningBid);
+
             _ui.DisplayFormattedMessage("\n{0} won the bid.", _players[CurrentWinningBidIndex].Name);
             _ui.DisplayMessage("\n#########################\n");
             UIConsoleGameView.DisplayHand(_players[CurrentWinningBidIndex]);
