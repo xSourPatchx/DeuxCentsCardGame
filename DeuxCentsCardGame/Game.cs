@@ -3,21 +3,21 @@ namespace DeuxCentsCardGame
     public class Game : IGame
     {
         // Game constants
+        private const int TEAM_ONE_PLAYER_1 = 0;
+        private const int TEAM_ONE_PLAYER_2 = 2;
+        private const int TEAM_TWO_PLAYER_1 = 1;
+        private const int TEAM_TWO_PLAYER_2 = 3;
+        private const int PLAYERS_PER_TEAM = 2;
+        private const int TOTAL_PLAYERS = 4;
         private const int WinningScore = 200;
-        private const int MinimumBet = 50;
-        private const int MaximumBet = 100;
-        private const int BetIncrement = 5;
-
+        
         // Game state properties
         private Deck _deck;
         private readonly List<Player> _players;
-        private bool[] _playerHasBet;
-
+        private BettingState _bettingState;
         private bool _isGameEnded;
-        private int _currentWinningBid;
-        private int _currentWinningBidIndex;
         private CardSuit? _trumpSuit;
-        public int DealerIndex = 3; // dealer starts at player 4 (index 3)
+        public int DealerIndex = TEAM_TWO_PLAYER_2; // dealer starts at player 4 (index 3)
 
         // scoring properties
         private int _teamOneRoundPoints;
@@ -40,8 +40,8 @@ namespace DeuxCentsCardGame
                 new("Player 4"),
             ];
 
-            _playerHasBet = new bool[4];
-            _trumpSuit =  null;
+            _bettingState = new BettingState(_players, _ui, DealerIndex);
+            _trumpSuit = null;
         }
 
         public void StartGame()
@@ -73,8 +73,6 @@ namespace DeuxCentsCardGame
             _isGameEnded = false;
             _teamOneRoundPoints = 0;
             _teamTwoRoundPoints = 0;
-            _currentWinningBid = 0;
-            _currentWinningBidIndex = 0;
             _trumpSuit = null;
             RotateDealer();
         }
@@ -100,140 +98,14 @@ namespace DeuxCentsCardGame
 
         public void ExecuteBettingRound()
         {
-            _ui.DisplayMessage("Betting round begins!\n");
-            List<int> bets = new(new int[_players.Count]);
-            bool[] playerHasPassed = new bool[_players.Count];
-            bool bettingRoundEnded = false;
-            _playerHasBet = new bool[_players.Count]; // track if a player has placed a bet for over 100 scoring purposes
-
-            int startingIndex = DealerIndex % _players.Count;
-
-            while (!bettingRoundEnded)
-            {
-                bettingRoundEnded = HandleBettingRound(startingIndex, playerHasPassed, bets);
-            }
-
-            DisplayBettingResults(playerHasPassed, bets);
-            SelectWinningBid(bets);
-        }
-
-        private bool HandleBettingRound(int startingIndex, bool[] hasPassed, List<int> bets)
-        {
-            for (int i = 0; i < _players.Count; i++)
-                {
-                    int playerIndex = (startingIndex + i) % _players.Count;
-
-                    if (hasPassed[playerIndex])
-                        continue; // Skip players who have already passed
-                    
-                    if (HandlePlayerBets(playerIndex, hasPassed, bets))
-                        return true;
-
-                    if (hasPassed.Count(pass => pass) >= 3) // End the betting round if 3 players have passed                 
-                        return FinalizeBettingAfterThreePasses(playerIndex, hasPassed);
-                }
-
-                return false;
-        }
-
-        private bool HandlePlayerBets(int playerIndex, bool[] hasPassed, List<int> bets)
-        {
-            while (true)
-            {
-                string prompt = $"{_players[playerIndex].Name}, enter a bet (between {MinimumBet}-{MaximumBet}, intervals of {BetIncrement}) or 'pass': ";
-                string betInput = _ui.GetUserInput(prompt).ToLower();
-
-                if (betInput == "pass")
-                {
-                    HandlePassInput(playerIndex, hasPassed, bets);
-                    return false;
-                }
-                
-                if (int.TryParse(betInput, out int bet) && IsValidBet(bet, bets))
-                {
-                    bets[playerIndex] = bet;
-                    _playerHasBet[playerIndex] = true;
-                    _ui.DisplayMessage("");
-                
-                    if (bet == MaximumBet)
-                        return FinalizeBettingAfterMaximumBet(playerIndex, hasPassed, bets); // End the betting round immediately
-                    else
-                        return false;
-                }
-                else
-                {
-                    _ui.DisplayMessage("Invalid bet, please try again");
-                }
-            }
-        }
-
-        private void HandlePassInput(int playerIndex, bool[] hasPassed, List<int> bets)
-        {
-            _ui.DisplayFormattedMessage("\n{0} passed\n", _players[playerIndex].Name);
-            hasPassed[playerIndex] = true;
-            bets[playerIndex] = -1;
-        }
-
-        private static bool IsValidBet(int bet, List<int> bets)
-        {
-            return bet >= MinimumBet && bet <= MaximumBet && bet % BetIncrement == 0 && !bets.Contains(bet);
-        }
-
-        private bool FinalizeBettingAfterMaximumBet(int playerIndex, bool[] hasPassed, List<int> bets)
-        {
-            _ui.DisplayFormattedMessage("{0} bet {1}. Betting round ends.\n", _players[playerIndex].Name, MaximumBet);
-            for (int otherPlayerIndex = 0; otherPlayerIndex < _players.Count; otherPlayerIndex++)
-            {
-                if (otherPlayerIndex != playerIndex && !hasPassed[otherPlayerIndex])
-                {
-                    hasPassed[otherPlayerIndex] = true;
-                    bets[otherPlayerIndex] = -1;
-                }
-            }
-            return true;
-        }
-
-        private bool FinalizeBettingAfterThreePasses(int playerIndex, bool[] hasBet)
-        {
-            _ui.DisplayMessage("Three players have passed, betting round ends");
-            if (!hasBet.Any(bet => bet)) // Inserting default bet of 50 to player 4 if all prior players passed
-            {
-                int lastPlayerIndex = (playerIndex + 1) % _players.Count;
-                hasBet[lastPlayerIndex] = true;
-                _currentWinningBid = MinimumBet;
-                _currentWinningBidIndex = lastPlayerIndex;
-            }
-            return true;
-        }
-
-        private void DisplayBettingResults(bool[] hasPassed, List<int> bets)
-        {
-            _ui.DisplayMessage("\nBetting round complete, here are the results:");
-            for (int i = 0; i < _players.Count; i++)
-            {
-                string result;
-                if (hasPassed[i])
-                    result = _playerHasBet[i] ? "Passed after betting" : "Passed";
-                else
-                    result = $"Bet {bets[i]}";
-
-                _ui.DisplayFormattedMessage("{0} : {1}", _players[i].Name, result);
-            }
-        }
-
-        private void SelectWinningBid(List<int> bets)
-        {
-            _currentWinningBid = bets.Max();
-            _currentWinningBidIndex = bets.IndexOf(_currentWinningBid);
-            _ui.DisplayFormattedMessage("\n{0} won the bid.", _players[_currentWinningBidIndex].Name);
-            _ui.DisplayMessage("\n#########################\n");
-            UIConsoleGameView.DisplayHand(_players[_currentWinningBidIndex]);
+            _bettingState.ResetBettingRound();
+            _bettingState.ExecuteBettingRound();
         }
 
         private void SelectTrumpSuit()
         {
             string[] validSuits = Enum.GetNames<CardSuit>().Select(suit => suit.ToLower()).ToArray();    
-            string prompt = $"{_players[_currentWinningBidIndex].Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")";
+            string prompt = $"{_players[_bettingState.CurrentWinningBidIndex].Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")";
             string trumpSuitString = _ui.GetOptionInput(prompt, validSuits);    
             _trumpSuit = Deck.StringToCardSuit(trumpSuitString);
             _ui.DisplayFormattedMessage("\nTrump suit is {0}.", Deck.CardSuitToString(_trumpSuit.Value));
@@ -241,11 +113,10 @@ namespace DeuxCentsCardGame
 
         private void PlayRound()
         {
-            int currentPlayerIndex = _currentWinningBidIndex;
+            int currentPlayerIndex = _bettingState.CurrentWinningBidIndex;
 
             Card trickWinningCard;
             Player trickWinner;
-
 
             for (int trickNumber = 0; trickNumber < _players[currentPlayerIndex].Hand.Count; trickNumber++)
             {
@@ -334,14 +205,15 @@ namespace DeuxCentsCardGame
 
         private void AwardTrickPoints(int trickWinnerIndex, int trickPoints)
         {
-            bool isTeamOne = trickWinnerIndex % 2 == 0;
-            string teamName = isTeamOne ? "Team One" : "Team Two";
+            // bool isTeamOne = trickWinnerIndex % 2 == 0;
+            string teamName = IsPlayerOnTeamOne(trickWinnerIndex) ? "Team One" : "Team Two";
      
             _ui.DisplayFormattedMessage("{0} collected {1} points for {2}", _players[trickWinnerIndex].Name, trickPoints, teamName);
-            if (isTeamOne)
+            if (IsPlayerOnTeamOne(trickWinnerIndex))
+            {
                 _teamOneRoundPoints += trickPoints;
-            else
-                _teamTwoRoundPoints += trickPoints; 
+            }
+            _teamTwoRoundPoints += trickPoints; 
         }
 
         private bool IsPlayerOnTeamOne(int playerIndex)
@@ -360,14 +232,14 @@ namespace DeuxCentsCardGame
             {
                 teamRoundPoints = _teamOneRoundPoints;
                 teamTotalPoints = _teamOneTotalPoints;
-                teamDidNotPlaceBet = !_playerHasBet[0] && !_playerHasBet[2]; // Check if Players 1 and 3 placed bets
+                teamDidNotPlaceBet = !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_2]; // Check if Players 1 and 3 placed bets
                 teamName = "Team One";
             }
             else
             {
                 teamRoundPoints = _teamTwoRoundPoints;
                 teamTotalPoints = _teamTwoTotalPoints;
-                teamDidNotPlaceBet = !_playerHasBet[1] && !_playerHasBet[3]; // Check if Players 2 and 4 placed bets
+                teamDidNotPlaceBet = !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_2]; // Check if Players 2 and 4 placed bets
                 teamName = "Team Two";
             }
 
@@ -378,14 +250,14 @@ namespace DeuxCentsCardGame
                 _ui.DisplayFormattedMessage("{0} did not place any bets, their points do not count.", teamName);
                 teamRoundPoints = 0;
             }
-            else if (teamRoundPoints >= _currentWinningBid)
+            else if (teamRoundPoints >= _bettingState.CurrentWinningBid)
             {
-                _ui.DisplayFormattedMessage("{0} made their bet of {1} and wins {2} points.", teamName, _currentWinningBid, teamRoundPoints);                
+                _ui.DisplayFormattedMessage("{0} made their bet of {1} and wins {2} points.", teamName, _bettingState.CurrentWinningBid, teamRoundPoints);                
             }
             else    
             {
-                _ui.DisplayFormattedMessage("{0} did not make their bet of {1} and loses {1} points.", teamName, _currentWinningBid);   
-                teamRoundPoints = -_currentWinningBid;
+                _ui.DisplayFormattedMessage("{0} did not make their bet of {1} and loses {1} points.", teamName, _bettingState.CurrentWinningBid);   
+                teamRoundPoints = -_bettingState.CurrentWinningBid;
             }
 
             // Update the appropriate team's total points
@@ -407,7 +279,7 @@ namespace DeuxCentsCardGame
             _ui.DisplayFormattedMessage("Team One (Player 1 & Player 3) scored : {0}", _teamOneRoundPoints);
             _ui.DisplayFormattedMessage("Team Two (Player 2 & Player 4) scored : {0}", _teamTwoRoundPoints);
 
-            bool bidWinnerIsTeamOne = IsPlayerOnTeamOne(_currentWinningBidIndex);
+            bool bidWinnerIsTeamOne = IsPlayerOnTeamOne(_bettingState.CurrentWinningBidIndex);
             
             CalculateAndUpdateTeamScore(bidWinnerIsTeamOne);
             CalculateAndUpdateTeamScore(!bidWinnerIsTeamOne);

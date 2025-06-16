@@ -27,8 +27,6 @@ namespace DeuxCentsCardGame
             _players = players;
             _ui = ui;
             _dealerIndex = dealerIndex;
-
-            ResetBettingRound();
         }
 
         public void ExecuteBettingRound()
@@ -49,13 +47,9 @@ namespace DeuxCentsCardGame
 
         public void ResetBettingRound()
         {
-            // Comments are more Unity friendly
-            // PlayerBids = Enumerable.Repeat(0, _players.Count).ToList();
-            // PlayerHasBet = Enumerable.Repeat(false, _players.Count).ToList();
-            // PlayerHasPassed = Enumerable.Repeat(false, _players.Count).ToList();
-            PlayerBids = new(new int[_players.Count]);
-            PlayerHasBet = new List<bool>(_players.Count);
-            PlayerHasPassed = new List<bool>(_players.Count);
+            PlayerBids = Enumerable.Repeat(0, _players.Count).ToList();
+            PlayerHasBet = Enumerable.Repeat(false, _players.Count).ToList();
+            PlayerHasPassed = Enumerable.Repeat(false, _players.Count).ToList();
             CurrentWinningBid = 0;
             CurrentWinningBidIndex = 0;
             IsBettingRoundComplete = false;
