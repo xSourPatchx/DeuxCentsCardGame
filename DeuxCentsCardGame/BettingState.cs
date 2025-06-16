@@ -8,8 +8,8 @@ namespace DeuxCentsCardGame
         public const int BetIncrement = 5;
 
         // Public betting state properties
-        public int CurrentWinningBid { get; private set; }
-        public int CurrentWinningBidIndex { get; private set; }
+        public int CurrentWinningBid { get; set; }
+        public int CurrentWinningBidIndex { get; set; }
         public bool IsBettingRoundComplete { get; private set; }
 
         public List<int> PlayerBids { get; set; }

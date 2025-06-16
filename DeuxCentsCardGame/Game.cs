@@ -213,7 +213,10 @@ namespace DeuxCentsCardGame
             {
                 _teamOneRoundPoints += trickPoints;
             }
-            _teamTwoRoundPoints += trickPoints; 
+            else
+            {
+                _teamTwoRoundPoints += trickPoints;
+            }
         }
 
         private bool IsPlayerOnTeamOne(int playerIndex)
