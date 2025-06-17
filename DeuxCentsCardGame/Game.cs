@@ -114,11 +114,11 @@ namespace DeuxCentsCardGame
         private void PlayRound()
         {
             int currentPlayerIndex = _bettingState.CurrentWinningBidIndex;
-
+            int totalTricks = _players[currentPlayerIndex].Hand.Count;
             Card trickWinningCard;
             Player trickWinner;
 
-            for (int trickNumber = 0; trickNumber < _players[currentPlayerIndex].Hand.Count; trickNumber++)
+            for (int trickNumber = 0; trickNumber < totalTricks; trickNumber++)
             {
                 int trickPoints = 0;
                 CardSuit? leadingSuit = null;
@@ -224,55 +224,63 @@ namespace DeuxCentsCardGame
             return playerIndex % 2 == 0;
         }
 
-        private void CalculateAndUpdateTeamScore(bool isTeamOne)
+        private void CalculateAndUpdateTeamScore(bool isTeamOneScore)
         {
             int teamRoundPoints;
-            int teamTotalPoints;
-            bool teamDidNotPlaceBet;
+            int currentTeamTotalPoints;
+            bool teamWonBid;
+            bool teamLostBid;
             string teamName;
 
-            if (isTeamOne)
+            if (isTeamOneScore)
             {
                 teamRoundPoints = _teamOneRoundPoints;
-                teamTotalPoints = _teamOneTotalPoints;
-                teamDidNotPlaceBet = !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_2]; // Check if Players 1 and 3 placed bets
+                currentTeamTotalPoints = _teamOneTotalPoints;
+                teamWonBid = IsPlayerOnTeamOne(_bettingState.CurrentWinningBidIndex);
+                teamLostBid = !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_2]; // Check if Players 1 and 3 placed bets
                 teamName = "Team One";
             }
             else
             {
                 teamRoundPoints = _teamTwoRoundPoints;
-                teamTotalPoints = _teamTwoTotalPoints;
-                teamDidNotPlaceBet = !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_2]; // Check if Players 2 and 4 placed bets
+                currentTeamTotalPoints = _teamTwoTotalPoints;
+                teamWonBid = !IsPlayerOnTeamOne(_bettingState.CurrentWinningBidIndex);
+                teamLostBid = !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_2]; // Check if Players 2 and 4 placed bets
                 teamName = "Team Two";
             }
 
-            bool teamOver100Points = teamTotalPoints >= 100; // check if total point is over 100
+            int pointsAwardedForRound = teamRoundPoints; // Default to collected points
 
-            if (teamOver100Points && teamDidNotPlaceBet) // if both condition is true, points are reset
+            if (teamWonBid)
             {
-                _ui.DisplayFormattedMessage("{0} did not place any bets, their points do not count.", teamName);
-                teamRoundPoints = 0;
+                if (teamRoundPoints >= _bettingState.CurrentWinningBid)
+                {
+                    _ui.DisplayFormattedMessage("{0} (bidding team) made their bet of {1} and wins {2} points.", teamName, _bettingState.CurrentWinningBid, teamRoundPoints);
+                }
+                else
+                {
+                    _ui.DisplayFormattedMessage("{0} (bidding team) did not make their bet of {1} and loses {1} points.", teamName, _bettingState.CurrentWinningBid);
+                    pointsAwardedForRound = -_bettingState.CurrentWinningBid;
+                }
             }
-            else if (teamRoundPoints >= _bettingState.CurrentWinningBid)
+            else // Non-bidding team
             {
-                _ui.DisplayFormattedMessage("{0} made their bet of {1} and wins {2} points.", teamName, _bettingState.CurrentWinningBid, teamRoundPoints);                
-            }
-            else    
-            {
-                _ui.DisplayFormattedMessage("{0} did not make their bet of {1} and loses {1} points.", teamName, _bettingState.CurrentWinningBid);   
-                teamRoundPoints = -_bettingState.CurrentWinningBid;
+                _ui.DisplayFormattedMessage("{0} (non-bidding team) collected {1} points.", teamName, teamRoundPoints);
             }
 
-            // Update the appropriate team's total points
-            if (isTeamOne)
+            if (currentTeamTotalPoints >= 100 && teamLostBid)
             {
-                _teamOneRoundPoints = teamRoundPoints;
-                _teamOneTotalPoints += teamRoundPoints;
+                _ui.DisplayFormattedMessage("{0} did not place any bets AND their total points are {1} (>= 100). Their round points do not count.", teamName, currentTeamTotalPoints);
+                pointsAwardedForRound = 0; // Override points awarded
+            }
+
+            if (isTeamOneScore)
+            {
+                _teamOneTotalPoints += pointsAwardedForRound;
             }
             else
             {
-                _teamTwoRoundPoints = teamRoundPoints;
-                _teamTwoTotalPoints += teamRoundPoints;
+                _teamTwoTotalPoints += pointsAwardedForRound;
             }
         }
 
