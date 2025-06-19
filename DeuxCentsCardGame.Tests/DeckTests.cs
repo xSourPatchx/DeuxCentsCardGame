@@ -244,5 +244,6 @@ namespace DeuxCentsCardGame.Tests
             // it's extremely unlikely with 40 cards
             Assert.NotEqual(firstShuffle, secondShuffle);
         }
+        
     }
 }
