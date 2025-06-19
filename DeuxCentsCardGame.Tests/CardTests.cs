@@ -1,6 +1,3 @@
-// using Xunit;
-// using DeuxCentsCardGame;
-
 namespace DeuxCentsCardGame.Tests
 {
     public class CardTests

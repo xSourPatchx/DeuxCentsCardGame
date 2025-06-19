@@ -11,7 +11,7 @@
    - [x] Remove all `Thread.Sleep()` calls from your UI class - these will cause Unity to freeze. Replace with Unity-appropriate timing mechanisms later.
    - [x] Fix `ProcessPlayerBets` return type to return just `bool`, currently returns `(bool bettingRoundEnded, int bet)` but the `bet` value is unused.
    - [ ] Simplify Complex Methods and break down large methods into smaller, focused ones: 
-       - [ ] `ProcessBettingRound`: Extract validation logic.
+       - [x] `ProcessBettingRound`: Extract validation logic.
        - [ ] `PlayRound`: Split into `PlayAllTricks()` and `PlaySingleTrick()`.
        - [ ] `UpdateTeamPoints`: Extract team logic into helper methods.
    - [ ] Eliminate Static Dependencies in `UIConsoleGameView` interface which will cause issues in Unity.
