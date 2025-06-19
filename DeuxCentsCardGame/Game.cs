@@ -40,7 +40,7 @@ namespace DeuxCentsCardGame
                 new("Player 4"),
             ];
 
-            _bettingState = new BettingState(_players, _ui, DealerIndex);
+            // _bettingState = new BettingState(_players, _ui, DealerIndex);
             _trumpSuit = null;
         }
 
@@ -65,6 +65,7 @@ namespace DeuxCentsCardGame
             PlayRound();
             ScoreRound();
             EndGameCheck();
+            RotateDealer();
         }
 
         private void ResetRound()
@@ -74,7 +75,8 @@ namespace DeuxCentsCardGame
             _teamOneRoundPoints = 0;
             _teamTwoRoundPoints = 0;
             _trumpSuit = null;
-            RotateDealer();
+            _bettingState = new BettingState(_players, _ui, DealerIndex);
+            // RotateDealer();
         }
 
         private void RotateDealer()
