@@ -9,23 +9,18 @@ namespace DeuxCentsCardGame.Tests
         
         public GameScoringTests()
         {
-            _mockUI = new Mock<IUIConsoleGameView>(); // Set up mock UI for testing
-            // Tell the mock UI object to accept any string message without actually displaying it
-            // and mark this setup as something we can verify happened later if needed
+            _mockUI = new Mock<IUIConsoleGameView>();
             _mockUI.Setup(ui => ui.DisplayMessage(It.IsAny<string>())).Verifiable();
-
-            // Tell the mock UI object to accept any formatted string message with any array of parameters
-            // without actually displaying it, and mark this setup as something we can verify happened later if needed
             _mockUI.Setup(ui => ui.DisplayFormattedMessage(
-                    It.IsAny<string>(),  // Accept any format string
-                    It.IsAny<object[]>() // Accept any array of parameters
+                    It.IsAny<string>(),
+                    It.IsAny<object[]>()
                 )).Verifiable();
         }
         
-        private Game CreateGameInstance() // Test helpers
+        private Game CreateGameInstance()
         {
             var game = new Game(_mockUI.Object);
-            return game; // Create a Game instance with mocked UI
+            return game;
         }
         
         private void SetPrivateField(object obj, string fieldName, object value)
@@ -43,11 +38,9 @@ namespace DeuxCentsCardGame.Tests
         
         private void SetBettingStateFields(Game game, int currentWinningBid, int currentWinningBidIndex, bool[] playerHasBet)
         {
-            // Get the _bettingState field from the game
             var bettingStateField = typeof(Game).GetField("_bettingState", BindingFlags.NonPublic | BindingFlags.Instance);
             var bettingState = bettingStateField.GetValue(game);
             
-            // Set properties on the betting state object
             SetPrivateProperty(bettingState, "CurrentWinningBid", currentWinningBid);
             SetPrivateProperty(bettingState, "CurrentWinningBidIndex", currentWinningBidIndex);
             SetPrivateProperty(bettingState, "PlayerHasBet", playerHasBet.ToList());
@@ -66,149 +59,200 @@ namespace DeuxCentsCardGame.Tests
             }
         }
 
-        [Fact]
-        public void UpdateTeamOnePoints_WhenTeamOneScoreOver100AndTeamOneDidNotBet_TeamOneRoundPointsIsZero()
+        private (int teamOneTotalPoints, int teamTwoTotalPoints) GetTeamTotalPoints(Game game)
         {
-            // 1. Given or Arrange
-            var game = CreateGameInstance();
-
-            SetPrivateField(game, "_teamOneTotalPoints", 100);
-            SetPrivateField(game, "_teamOneRoundPoints", 60);
-
-            var playerHasBet = new bool[4] { false, false, false, false }; // team one hasn't placed a bet
-            SetBettingStateFields(game, 50, 0, playerHasBet); // team one won the bet
-
-            // 2. When or Act - Call the private method using reflection
-            var method = typeof(Game).GetMethod("CalculateAndUpdateTeamScore", 
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            method.Invoke(game, new object[] { true }); // Pass true for Team One
-
-            var teamOneRoundPoints = (int)typeof(Game)
-                .GetField("_teamOneRoundPoints", BindingFlags.NonPublic | BindingFlags.Instance)
+            var teamOneTotalPoints = (int)typeof(Game)
+                .GetField("_teamOneTotalPoints", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(game);
+                
+            var teamTwoTotalPoints = (int)typeof(Game)
+                .GetField("_teamTwoTotalPoints", BindingFlags.NonPublic | BindingFlags.Instance)
+                .GetValue(game);
+                
+            return (teamOneTotalPoints, teamTwoTotalPoints);
+        }
 
-            // 3. Then or Assert
-            Assert.Equal(0, teamOneRoundPoints); 
+        private void ScoreBothTeams(Game game, bool teamOneBid)
+        {
+            var scoreBidWinningTeamMethod = typeof(Game).GetMethod("ScoreBidWinningTeam", 
+                BindingFlags.NonPublic | BindingFlags.Instance);
+            var scoreBidLosingTeamMethod = typeof(Game).GetMethod("ScoreBidLosingTeam", 
+                BindingFlags.NonPublic | BindingFlags.Instance);
+
+            if (teamOneBid)
+            {
+                // Team One is bidding team, Team Two is losing team
+                scoreBidWinningTeamMethod.Invoke(game, new object[] { true });
+                scoreBidLosingTeamMethod.Invoke(game, new object[] { false });
+            }
+            else
+            {
+                // Team Two is bidding team, Team One is losing team
+                scoreBidWinningTeamMethod.Invoke(game, new object[] { false });
+                scoreBidLosingTeamMethod.Invoke(game, new object[] { true });
+            }
         }
 
         [Fact]
-        public void CalculateAndUpdateTeamScore_WhenTeamOneScoreOver100AndTeamOneDidNotBet_TeamOneRoundPointsIsZero()
+        public void CompleteRoundScoring_WhenTeamOneBidsAndMakes_BothTeamsScoreCorrectly()
         {
-            // 1. Given or Arrange
-            var game = CreateGameInstance();
-
-            SetPrivateField(game, "_teamOneTotalPoints", 100);
-            SetPrivateField(game, "_teamTwoTotalPoints", 90);
-            SetPrivateField(game, "_teamOneRoundPoints", 60); // Team One collected 60 points
-            SetPrivateField(game, "_teamTwoRoundPoints", 40); // Team Two collected 40 points
-
-            // Player 1 (Team Two) bet, Player 0 (Team One) did not. So Team One did not place a bet.
-            var playerHasBet = new bool[4] { false, true, false, false };
-            SetBettingStateFields(game, 50, 1, playerHasBet); // Winning bid by Player 1 (Team Two)
-
-            // 2. When or Act - Call the private method for Team One (non-bidding)
-            var method = typeof(Game).GetMethod("CalculateAndUpdateTeamScore", 
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            method.Invoke(game, new object[] { true }); // Pass true for Team One
-
-            var teamOneRoundPoints = (int)typeof(Game)
-                .GetField("_teamOneRoundPoints", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(game);
-
-            // 3. Then or Assert
-            Assert.Equal(0, teamOneRoundPoints);
-            // Assert.Equal(40, teamTwoRoundPoints);
-        }
-
-        [Fact]
-        public void CalculateAndUpdateTeamScore_WhenTeamTwoScoreOver100AndTeamTwoDidNotBet_TeamTwoRoundPointsIsZero()
-        {
-            // 1. Given or Arrange
-            var game = CreateGameInstance();
-
-            SetPrivateField(game, "_teamOneTotalPoints", 90);
-            SetPrivateField(game, "_teamTwoTotalPoints", 100);
-            SetPrivateField(game, "_teamOneRoundPoints", 60); // Team One collected 60 points
-            SetPrivateField(game, "_teamTwoRoundPoints", 40); // Team Two collected 40 points
-
-            // Player 0 (Team One) bet, Player 1 (Team Two) did not. So Team Two did not place a bet.
-            var playerHasBet = new bool[4] { true, false, false, false };
-            SetBettingStateFields(game, 50, 0, playerHasBet); // Winning bid by Player 0 (Team One)
-
-            // 2. When or Act - Call the private method for Team Two (non-bidding)
-            var method = typeof(Game).GetMethod("CalculateAndUpdateTeamScore", 
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            method.Invoke(game, new object[] { false }); // Pass false for Team Two
-
-            var teamOneRoundPoints = (int)typeof(Game)
-                .GetField("_teamOneRoundPoints", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(game);
-
-            var teamTwoRoundPoints = (int)typeof(Game)
-                .GetField("_teamTwoRoundPoints", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(game);
-
-            // 3. Then or Assert
-            Assert.Equal(60, teamOneRoundPoints); // Team One round points should remain unchanged
-            Assert.Equal(0, teamTwoRoundPoints);
-        }
-        
-        [Fact]
-        public void CalculateAndUpdateTeamScore_WhenTeamOneScoreUnder100AndMadeBid_TeamOneRoundPointsIncreases()
-        {
-            // 1. Given or Arrange
+            // Given or Arrange
             var game = CreateGameInstance();
 
             SetPrivateField(game, "_teamOneTotalPoints", 50);
             SetPrivateField(game, "_teamTwoTotalPoints", 60);
-            SetPrivateField(game, "_teamOneRoundPoints", 60); // Team One collected 60 points
+            SetPrivateField(game, "_teamOneRoundPoints", 60); // Team One made their bid
+            SetPrivateField(game, "_teamTwoRoundPoints", 40); // Team Two gets their round points
+
+            var playerHasBet = new bool[4] { true, false, false, false }; // Team One bet
+            SetBettingStateFields(game, 50, 0, playerHasBet); // Team One won the bid
+
+            int initialTeamOneTotal = 50;
+            int initialTeamTwoTotal = 60;
+
+            // When or Act - Score both teams
+            ScoreBothTeams(game, teamOneBid: true);
+
+            var (finalTeamOneTotal, finalTeamTwoTotal) = GetTeamTotalPoints(game);
+
+            // Then or Assert
+            Assert.Equal(initialTeamOneTotal + 60, finalTeamOneTotal); // Team One gets their round points
+            Assert.Equal(initialTeamTwoTotal + 40, finalTeamTwoTotal); // Team Two gets their round points
+        }
+
+        [Fact]
+        public void CompleteRoundScoring_WhenTeamOneBidsAndFails_BothTeamsScoreCorrectly()
+        {
+            // Given or Arrange
+            var game = CreateGameInstance();
+
+            SetPrivateField(game, "_teamOneTotalPoints", 50);
+            SetPrivateField(game, "_teamTwoTotalPoints", 60);
+            SetPrivateField(game, "_teamOneRoundPoints", 40); // Team One failed their bid (40 < 50)
+            SetPrivateField(game, "_teamTwoRoundPoints", 60); // Team Two gets their round points
+
+            var playerHasBet = new bool[4] { true, false, false, false }; // Team One bet
+            SetBettingStateFields(game, 50, 0, playerHasBet); // Team One won the bid but failed to make it
+
+            int initialTeamOneTotal = 50;
+            int initialTeamTwoTotal = 60;
+
+            // When or Act - Score both teams
+            ScoreBothTeams(game, teamOneBid: true);
+
+            var (finalTeamOneTotal, finalTeamTwoTotal) = GetTeamTotalPoints(game);
+
+            // Then or Assert
+            Assert.Equal(initialTeamOneTotal - 50, finalTeamOneTotal); // Team One loses their bid amount
+            Assert.Equal(initialTeamTwoTotal + 60, finalTeamTwoTotal); // Team Two still gets their round points
+        }
+
+        [Fact]
+        public void CompleteRoundScoring_WhenTeamTwoBidsAndMakes_BothTeamsScoreCorrectly()
+        {
+            // Given or Arrange
+            var game = CreateGameInstance();
+
+            SetPrivateField(game, "_teamOneTotalPoints", 50);
+            SetPrivateField(game, "_teamTwoTotalPoints", 60);
+            SetPrivateField(game, "_teamOneRoundPoints", 35); // Team One gets their round points
+            SetPrivateField(game, "_teamTwoRoundPoints", 65); // Team Two made their bid
+
+            var playerHasBet = new bool[4] { false, true, false, false }; // Team Two bet
+            SetBettingStateFields(game, 50, 1, playerHasBet); // Team Two won the bid
+
+            int initialTeamOneTotal = 50;
+            int initialTeamTwoTotal = 60;
+
+            // When or Act - Score both teams
+            ScoreBothTeams(game, teamOneBid: false);
+
+            var (finalTeamOneTotal, finalTeamTwoTotal) = GetTeamTotalPoints(game);
+
+            // Then or Assert
+            Assert.Equal(initialTeamOneTotal + 35, finalTeamOneTotal); // Team One gets their round points
+            Assert.Equal(initialTeamTwoTotal + 65, finalTeamTwoTotal); // Team Two gets their round points
+        }
+
+        [Fact]
+        public void CompleteRoundScoring_WhenBiddingTeamOver100AndDidNotBet_BiddingTeamScoresZero()
+        {
+            // Given or Arrange
+            var game = CreateGameInstance();
+
+            SetPrivateField(game, "_teamOneTotalPoints", 120); // Over 100
+            SetPrivateField(game, "_teamTwoTotalPoints", 80);
+            SetPrivateField(game, "_teamOneRoundPoints", 60); // Team One collected points but didn't bet
             SetPrivateField(game, "_teamTwoRoundPoints", 40);
 
-            var playerHasBet = new bool[4] { true, false, false, false };
-            SetBettingStateFields(game, 50, 0, playerHasBet); // Winning bid by Player 0 (Team One)
+            var playerHasBet = new bool[4] { false, false, false, false }; // Nobody bet (shouldn't happen in real game, but testing the logic)
+            SetBettingStateFields(game, 50, 0, playerHasBet); // Team One "won" but didn't actually bet
 
-            int initialTeamOneTotalPoints = 50;
+            int initialTeamOneTotal = 120;
+            int initialTeamTwoTotal = 80;
 
-            // 2. When or Act - Call the private method for Team One (bidding)
-            var method = typeof(Game).GetMethod("CalculateAndUpdateTeamScore", 
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            method.Invoke(game, new object[] { true }); // Pass true for Team One
+            // When or Act - Score both teams
+            ScoreBothTeams(game, teamOneBid: true);
 
-            var teamOneTotalPoints = (int)typeof(Game)
-                .GetField("_teamOneTotalPoints", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(game);
+            var (finalTeamOneTotal, finalTeamTwoTotal) = GetTeamTotalPoints(game);
 
-            // 3. Then or Assert
-            Assert.Equal(initialTeamOneTotalPoints + 60, teamOneTotalPoints);
+            // Then or Assert
+            Assert.Equal(initialTeamOneTotal, finalTeamOneTotal); // Team One scores 0 (no change)
+            Assert.Equal(initialTeamTwoTotal + 40, finalTeamTwoTotal); // Team Two still gets their points
         }
-        
+
         [Fact]
-        public void CalculateAndUpdateTeamScore_WhenTeamOneScoreUnder100AndFailedBid_TeamOneRoundPointsDecrease()
+        public void CompleteRoundScoring_WhenNonBiddingTeamOver100AndDidNotBet_NonBiddingTeamScoresZero()
         {
-            // 1. Given or Arrange
+            // Given or Arrange
             var game = CreateGameInstance();
 
-            SetPrivateField(game, "_teamOneTotalPoints", 50);
-            SetPrivateField(game, "_teamTwoTotalPoints", 60);
-            SetPrivateField(game, "_teamOneRoundPoints", 40); // Less than winning bid (40 < 50)
-            SetPrivateField(game, "_teamTwoRoundPoints", 60);
+            SetPrivateField(game, "_teamOneTotalPoints", 80);
+            SetPrivateField(game, "_teamTwoTotalPoints", 120); // Over 100
+            SetPrivateField(game, "_teamOneRoundPoints", 60); // Team One made their bid
+            SetPrivateField(game, "_teamTwoRoundPoints", 40); // Team Two collected points but didn't bet
 
-            var playerHasBet = new bool[4] { true, false, false, false };
-            SetBettingStateFields(game, 50, 0, playerHasBet); // Winning bid by Player 0 (Team One)
+            var playerHasBet = new bool[4] { true, false, false, false }; // Only Team One bet
+            SetBettingStateFields(game, 50, 0, playerHasBet); // Team One won the bid
 
-            int initialTeamOneTotalPoints = 50;
+            int initialTeamOneTotal = 80;
+            int initialTeamTwoTotal = 120;
 
-            // 2. When or Act - Call the private method for Team One (bidding)
-            var method = typeof(Game).GetMethod("CalculateAndUpdateTeamScore", 
-                BindingFlags.NonPublic | BindingFlags.Instance);
-            method.Invoke(game, new object[] { true }); // Pass true for Team One
+            // When or Act - Score both teams
+            ScoreBothTeams(game, teamOneBid: true);
 
-            var teamOneTotalPoints = (int)typeof(Game)
-                .GetField("_teamOneTotalPoints", BindingFlags.NonPublic | BindingFlags.Instance)
-                .GetValue(game);
+            var (finalTeamOneTotal, finalTeamTwoTotal) = GetTeamTotalPoints(game);
 
-            // 3. Then or Assert
-            Assert.Equal(initialTeamOneTotalPoints - 50, teamOneTotalPoints);
+            // Then or Assert
+            Assert.Equal(initialTeamOneTotal + 60, finalTeamOneTotal); // Team One gets their points (made bid)
+            Assert.Equal(initialTeamTwoTotal, finalTeamTwoTotal); // Team Two scores 0 (no change, over 100 and didn't bet)
+        }
+
+        [Fact]
+        public void CompleteRoundScoring_WhenBothTeamsOver100AndNeitherBet_BothTeamsScoreZero()
+        {
+            // Given or Arrange
+            var game = CreateGameInstance();
+
+            SetPrivateField(game, "_teamOneTotalPoints", 120);
+            SetPrivateField(game, "_teamTwoTotalPoints", 110);
+            SetPrivateField(game, "_teamOneRoundPoints", 60);
+            SetPrivateField(game, "_teamTwoRoundPoints", 40);
+
+            var playerHasBet = new bool[4] { false, false, false, false }; // Neither team bet
+            SetBettingStateFields(game, 50, 0, playerHasBet);
+
+            int initialTeamOneTotal = 120;
+            int initialTeamTwoTotal = 110;
+
+            // When or Act - Score both teams
+            ScoreBothTeams(game, teamOneBid: true);
+
+            var (finalTeamOneTotal, finalTeamTwoTotal) = GetTeamTotalPoints(game);
+
+            // Then or Assert
+            Assert.Equal(initialTeamOneTotal, finalTeamOneTotal); // Team One scores 0
+            Assert.Equal(initialTeamTwoTotal, finalTeamTwoTotal); // Team Two scores 0
         }
     }
 }

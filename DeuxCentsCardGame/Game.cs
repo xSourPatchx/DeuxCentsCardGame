@@ -70,7 +70,7 @@ namespace DeuxCentsCardGame
         private void ResetRound()
         {
             _deck = new Deck();
-            _isGameEnded = false;
+            // _isGameEnded = false;
             _teamOneRoundPoints = 0;
             _teamTwoRoundPoints = 0;
             _trumpSuit = null;
