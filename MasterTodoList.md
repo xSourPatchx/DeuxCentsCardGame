@@ -12,7 +12,7 @@
    - [x] Fix `ProcessPlayerBets` return type to return just `bool`, currently returns `(bool bettingRoundEnded, int bet)` but the `bet` value is unused.
    - [ ] Simplify Complex Methods and break down large methods into smaller, focused ones: 
        - [x] `ProcessBettingRound`: Extract validation logic.
-       - [ ] `PlayRound`: Split into `PlayAllTricks()` and `PlaySingleTrick()`.
+       - [ ] `PlayAllTricks`: Add `PlaySingleTrick()` to simplify.
        - [ ] `UpdateTeamPoints`: Extract team logic into helper methods.
    - [ ] Eliminate Static Dependencies in `UIConsoleGameView` interface which will cause issues in Unity.
    - [ ] Consider adding GetValidCards Helper Method, could be useful for Unity implementation where you might want to highlight valid cards in the UI.

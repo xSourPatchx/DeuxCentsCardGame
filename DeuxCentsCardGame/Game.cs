@@ -116,7 +116,13 @@ namespace DeuxCentsCardGame
         private void PlayRound()
         {
             int currentPlayerIndex = _bettingState.CurrentWinningBidIndex;
-            int totalTricks = _players[currentPlayerIndex].Hand.Count;
+            PlayAllTricks(currentPlayerIndex);
+        }
+
+        private void PlayAllTricks(int startingPlayerIndex)
+        {
+            int totalTricks = _players[startingPlayerIndex].Hand.Count;
+            int currentPlayerIndex = startingPlayerIndex;
 
             Card trickWinningCard;
             Player trickWinner;
