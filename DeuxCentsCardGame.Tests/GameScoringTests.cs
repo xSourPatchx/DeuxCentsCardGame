@@ -20,7 +20,24 @@ namespace DeuxCentsCardGame.Tests
         private Game CreateGameInstance()
         {
             var game = new Game(_mockUI.Object);
+            // Initialize the betting state that would normally be created in NewRound()
+            InitializeBettingState(game);
             return game;
+        }
+
+        private void InitializeBettingState(Game game)
+        {
+            // Get the players list
+            var playersField = typeof(Game).GetField("_players", BindingFlags.NonPublic | BindingFlags.Instance);
+            var players = playersField.GetValue(game);
+            
+            // Get the dealer index
+            var dealerIndexField = typeof(Game).GetField("DealerIndex", BindingFlags.Public | BindingFlags.Instance);
+            var dealerIndex = (int)dealerIndexField.GetValue(game);
+            
+            // Create and set the betting state
+            var bettingState = Activator.CreateInstance(typeof(BettingState), players, _mockUI.Object, dealerIndex);
+            SetPrivateField(game, "_bettingState", bettingState);
         }
         
         private void SetPrivateField(object obj, string fieldName, object value)
@@ -41,22 +58,15 @@ namespace DeuxCentsCardGame.Tests
             var bettingStateField = typeof(Game).GetField("_bettingState", BindingFlags.NonPublic | BindingFlags.Instance);
             var bettingState = bettingStateField.GetValue(game);
             
-            SetPrivateProperty(bettingState, "CurrentWinningBid", currentWinningBid);
-            SetPrivateProperty(bettingState, "CurrentWinningBidIndex", currentWinningBidIndex);
-            SetPrivateProperty(bettingState, "PlayerHasBet", playerHasBet.ToList());
-        }
-
-        private void SetPrivateProperty(object obj, string propertyName, object value)
-        {
-            var property = obj.GetType().GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Public | BindingFlags.Instance);
-            if (property != null && property.CanWrite)
-            {
-                property.SetValue(obj, value);
-            }
-            else
-            {
-                throw new ArgumentException($"Property {propertyName} not found or not writable");
-            }
+            // Set the public properties directly
+            var currentWinningBidProp = typeof(BettingState).GetProperty("CurrentWinningBid");
+            currentWinningBidProp.SetValue(bettingState, currentWinningBid);
+            
+            var currentWinningBidIndexProp = typeof(BettingState).GetProperty("CurrentWinningBidIndex");
+            currentWinningBidIndexProp.SetValue(bettingState, currentWinningBidIndex);
+            
+            var playerHasBetProp = typeof(BettingState).GetProperty("PlayerHasBet");
+            playerHasBetProp.SetValue(bettingState, playerHasBet.ToList());
         }
 
         private (int teamOneTotalPoints, int teamTwoTotalPoints) GetTeamTotalPoints(Game game)
