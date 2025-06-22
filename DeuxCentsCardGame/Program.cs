@@ -1,4 +1,6 @@
-﻿namespace DeuxCentsCardGame
+﻿using DeuxCentsCardGame.UI;
+
+namespace DeuxCentsCardGame
 {
     class Program
     {

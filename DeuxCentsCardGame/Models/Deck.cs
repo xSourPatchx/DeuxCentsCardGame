@@ -1,4 +1,6 @@
-namespace DeuxCentsCardGame
+using DeuxCentsCardGame.Interfaces;
+
+namespace DeuxCentsCardGame.Models
 {
     public class Deck : IDeck
     {

@@ -1,3 +1,7 @@
+using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.UI;
+
 namespace DeuxCentsCardGame
 {
     public class Game : IGame

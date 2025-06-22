@@ -1,3 +1,5 @@
+using DeuxCentsCardGame.Models;
+
 namespace DeuxCentsCardGame.Tests
 {
     public class DeckTests

@@ -1,4 +1,5 @@
 using System.Reflection;
+using DeuxCentsCardGame.Interfaces;
 using Moq;
 
 namespace DeuxCentsCardGame.Tests

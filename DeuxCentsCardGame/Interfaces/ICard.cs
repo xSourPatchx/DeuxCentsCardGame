@@ -1,4 +1,6 @@
-﻿namespace DeuxCentsCardGame
+﻿using DeuxCentsCardGame.Models;
+
+namespace DeuxCentsCardGame.Interfaces
 {
     public interface ICard
     {

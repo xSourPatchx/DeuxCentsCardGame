@@ -1,4 +1,6 @@
-namespace DeuxCentsCardGame
+using DeuxCentsCardGame.Interfaces;
+
+namespace DeuxCentsCardGame.Models
 {
     public enum CardSuit { Clubs, Diamonds, Hearts, Spades }
     public enum CardFace { Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace }

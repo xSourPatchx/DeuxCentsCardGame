@@ -1,4 +1,4 @@
-namespace DeuxCentsCardGame
+namespace DeuxCentsCardGame.Interfaces
 {
     public interface IConsoleWrapper
     {

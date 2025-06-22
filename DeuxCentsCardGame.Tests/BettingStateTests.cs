@@ -1,3 +1,5 @@
+using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Models;
 using Moq;
 
 namespace DeuxCentsCardGame.Tests

@@ -1,4 +1,7 @@
-﻿namespace DeuxCentsCardGame
+﻿using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Interfaces;
+
+namespace DeuxCentsCardGame.UI
 {
     public class UIGameView : IUIGameView
     {
