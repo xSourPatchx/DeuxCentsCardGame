@@ -1,186 +1,194 @@
-using Moq;
-using Xunit;
-
-namespace DeuxCentsCardGame.Tests
+// Console Implementation
+namespace DeuxCentsCardGame
 {
-    public class GameTests
+    public class UIConsoleGameView : IUIGameView
     {
-        private readonly Mock<IUIConsoleGameView> _mockUI;
-        private readonly Game _game;
-
-        public GameTests()
+        private readonly IConsoleWrapper _console;
+        
+        public UIConsoleGameView() : this(new ConsoleWrapper()) { }
+        
+        public UIConsoleGameView(IConsoleWrapper console)
         {
-            _mockUI = new Mock<IUIConsoleGameView>();
-            _game = new Game(_mockUI.Object);
+            _console = console;
         }
 
-        [Fact]
-        public void Constructor_ShouldInitializeGame()
+        public void ClearScreen()
         {
-            // Assert
-            Assert.NotNull(_game);
-            Assert.Equal(4, _game.GetPlayers().Count);
-            Assert.Equal(3, _game.DealerIndex); // Initial dealer should be Player 4 (index 3)
+            _console.Clear();
         }
 
-        [Fact]
-        public void NewRound_ShouldResetRoundState()
+        public void DisplayMessage(string message)
         {
-            // Arrange
-            _game.DealerIndex = 1; // Change from default
-
-            // Act
-            _game.NewRound();
-
-            // Assert
-            Assert.Equal(0, _game.GetTeamOneRoundPoints());
-            Assert.Equal(0, _game.GetTeamTwoRoundPoints());
-            Assert.Null(_game.GetTrumpSuit());
-            Assert.NotNull(_game.GetBettingState());
+            _console.WriteLine(message);
         }
 
-        [Fact]
-        public void RotateDealer_ShouldIncrementDealerIndex()
+        public void DisplayFormattedMessage(string format, params object[] args)
         {
-            // Arrange
-            int initialDealerIndex = _game.DealerIndex;
-
-            // Act
-            _game.RotateDealer();
-
-            // Assert
-            Assert.Equal((initialDealerIndex + 1) % 4, _game.DealerIndex);
+            _console.WriteLine(format, args);
         }
 
-        [Fact]
-        public void DealCards_ShouldDistributeCardsEvenly()
+        public string GetUserInput(string prompt)
         {
-            // Act
-            _game.DealCards();
-
-            // Assert
-            var players = _game.GetPlayers();
-            Assert.Equal(13, players[0].Hand.Count);
-            Assert.Equal(13, players[1].Hand.Count);
-            Assert.Equal(13, players[2].Hand.Count);
-            Assert.Equal(13, players[3].Hand.Count);
+            _console.WriteLine(prompt);
+            return _console.ReadLine() ?? string.Empty;
         }
 
-        [Fact]
-        public void SelectTrumpSuit_ShouldSetTrumpSuit()
+        public int GetIntInput(string prompt, int min, int max)
         {
-            // Arrange
-            _mockUI.Setup(ui => ui.GetOptionInput(It.IsAny<string>(), It.IsAny<string[]>()))
-                   .Returns("hearts");
+            int result;
+            bool isValid;
 
-            // Act
-            _game.SelectTrumpSuit();
-
-            // Assert
-            Assert.Equal(CardSuit.Hearts, _game.GetTrumpSuit());
-        }
-
-        [Fact]
-        public void IsPlayerOnTeamOne_ShouldReturnCorrectTeam()
-        {
-            // Players 1 and 3 (indices 0 and 2) are Team One
-            Assert.True(_game.IsPlayerOnTeamOne(0));
-            Assert.False(_game.IsPlayerOnTeamOne(1));
-            Assert.True(_game.IsPlayerOnTeamOne(2));
-            Assert.False(_game.IsPlayerOnTeamOne(3));
-        }
-
-        [Fact]
-        public void AwardTrickPoints_ShouldAddPointsToCorrectTeam()
-        {
-            // Arrange
-            int initialTeamOnePoints = _game.GetTeamOneRoundPoints();
-            int initialTeamTwoPoints = _game.GetTeamTwoRoundPoints();
-            int trickPoints = 20;
-
-            // Act - Team One player (index 0)
-            _game.AwardTrickPoints(0, trickPoints);
-
-            // Assert
-            Assert.Equal(initialTeamOnePoints + trickPoints, _game.GetTeamOneRoundPoints());
-            Assert.Equal(initialTeamTwoPoints, _game.GetTeamTwoRoundPoints());
-
-            // Act - Team Two player (index 1)
-            _game.AwardTrickPoints(1, trickPoints);
-
-            // Assert
-            Assert.Equal(initialTeamOnePoints + trickPoints, _game.GetTeamOneRoundPoints());
-            Assert.Equal(initialTeamTwoPoints + trickPoints, _game.GetTeamTwoRoundPoints());
-        }
-
-        [Fact]
-        public void EndGameCheck_ShouldEndGameWhenScoreReached()
-        {
-            // Arrange
-            _game.SetTeamOneTotalPoints(200);
-
-            // Act
-            _game.EndGameCheck();
-
-            // Assert
-            Assert.True(_game.IsGameEnded());
-            _mockUI.Verify(ui => ui.DisplayMessage("Game over!"), Times.Once);
-        }
-
-        [Fact]
-        public void ScoreRound_ShouldHandleBidWinningTeamSuccess()
-        {
-            // Arrange
-            _game.SetBettingState(new BettingState(_game.GetPlayers(), _mockUI.Object, 0)
+            do
             {
-                CurrentWinningBid = 80,
-                CurrentWinningBidIndex = 0, // Team One player
-                PlayerHasBet = new List<bool> { true, false, false, false }
-            });
-            _game.SetTeamOneRoundPoints(100);
+                string input = GetUserInput(prompt);
+                isValid = int.TryParse(input, out result) && result >= min && result <= max;
 
-            // Act
-            _game.ScoreRound();
+                if (!isValid)
+                {
+                    DisplayMessage($"Invalid input. Please enter a number between {min} and {max}.");
+                }
+                
+            } while (!isValid);
 
-            // Assert
-            Assert.Equal(100, _game.GetTeamOneTotalPoints()); // Should add the round points
-            _mockUI.Verify(ui => ui.DisplayFormattedMessage("Team One made their bet of 80 and wins 100 points."), Times.Once);
+            return result;
         }
 
-        [Fact]
-        public void ScoreRound_ShouldHandleBidWinningTeamFailure()
+        public string GetOptionInput(string prompt, string[] options)
         {
-            // Arrange
-            _game.SetBettingState(new BettingState(_game.GetPlayers(), _mockUI.Object, 0)
+            string result;
+            bool isValid;
+
+            do
             {
-                CurrentWinningBid = 80,
-                CurrentWinningBidIndex = 0, // Team One player
-                PlayerHasBet = new List<bool> { true, false, false, false }
-            });
-            _game.SetTeamOneRoundPoints(60);
-            _game.SetTeamOneTotalPoints(50);
+                result = GetUserInput(prompt).ToLower();
+                isValid = options.Contains(result, StringComparer.OrdinalIgnoreCase);
+                
+                if (!isValid)
+                {
+                    DisplayMessage($"Invalid input. Please enter one of: {string.Join(", ", options)}");
+                }
+            } while (!isValid);
 
-            // Act
-            _game.ScoreRound();
-
-            // Assert
-            Assert.Equal(50 - 80, _game.GetTeamOneTotalPoints()); // Should subtract the bid amount
-            _mockUI.Verify(ui => ui.DisplayFormattedMessage("Team One did not make their bet of 80 and loses 80 points."), Times.Once);
+            return result;
         }
 
-        // Helper methods would need to be added to the Game class for testing purposes:
-        /*
-        public List<Player> GetPlayers() => _players;
-        public int GetTeamOneRoundPoints() => _teamOneRoundPoints;
-        public int GetTeamTwoRoundPoints() => _teamTwoRoundPoints;
-        public int GetTeamOneTotalPoints() => _teamOneTotalPoints;
-        public int GetTeamTwoTotalPoints() => _teamTwoTotalPoints;
-        public CardSuit? GetTrumpSuit() => _trumpSuit;
-        public BettingState GetBettingState() => _bettingState;
-        public bool IsGameEnded() => _isGameEnded;
-        public void SetTeamOneTotalPoints(int points) => _teamOneTotalPoints = points;
-        public void SetTeamTwoTotalPoints(int points) => _teamTwoTotalPoints = points;
-        public void SetBettingState(BettingState state) => _bettingState = state;
-        */
+        public void WaitForUser(string message = "Press any key to continue...")
+        {
+            DisplayMessage(message);
+            _console.ReadKey();
+        }
+
+        public void DisplayPlayerHand(IPlayer player)
+        {
+            _console.WriteLine($"{player.Name}'s hand:");
+            for (int cardIndex = 0; cardIndex < player.Hand.Count; cardIndex++)
+            {
+                _console.WriteLine($"{cardIndex}: {player.Hand[cardIndex]}");
+            }
+        }
+
+        public void DisplayAllPlayerHands(List<IPlayer> players, int dealerIndex)
+        {
+            DisplayAllPlayersHandQuadrant(
+                players[dealerIndex % players.Count],
+                players[(dealerIndex + 1) % players.Count],
+                players[(dealerIndex + 2) % players.Count],
+                players[(dealerIndex + 3) % players.Count]
+            );
+        }
+
+        public void ShowGameState(object gameState)
+        {
+            // Implementation can be added when GameState class is ready
+            DisplayMessage("Game state display not yet implemented");
+        }
+
+        private void DisplayAllPlayersHandQuadrant(IPlayer playerOne, IPlayer playerTwo, IPlayer playerThree, IPlayer playerFour)
+        {
+            DisplayPlayerHandQuadrant(playerOne, 0, 4);
+            DisplayPlayerHandQuadrant(playerTwo, _console.WindowWidth / 2, 4);
+            DisplayPlayerHandQuadrant(playerThree, 0, (_console.WindowHeight / 2) + 1);
+            DisplayPlayerHandQuadrant(playerFour, _console.WindowWidth / 2, (_console.WindowHeight / 2) + 1);
+            _console.WriteLine("\n#########################\n");
+        }
+
+        private void DisplayPlayerHandQuadrant(IPlayer player, int left, int top)
+        {
+            _console.SetCursorPosition(left, top);
+            _console.WriteLine($"{player.Name}'s hand:");
+            for (int cardIndex = 0; cardIndex < player.Hand.Count; cardIndex++)
+            {
+                _console.SetCursorPosition(left, top + cardIndex + 1);
+                _console.WriteLine($"{cardIndex} : {player.Hand[cardIndex]}");
+            }
+        }
+    }
+}
+
+
+// Future Unity Implementation Example
+namespace DeuxCentsCardGame.Unity
+{
+    public class UIUnityGameView : IUIGameView
+    {
+        // Unity-specific UI components would be injected here
+        // private Canvas _gameCanvas;
+        // private InputField _inputField;
+        // private Text _messageText;
+        // etc.
+
+        public void ClearScreen()
+        {
+            // Clear Unity UI elements
+        }
+
+        public void DisplayMessage(string message)
+        {
+            // Display in Unity UI Text component
+        }
+
+        public void DisplayFormattedMessage(string format, params object[] args)
+        {
+            DisplayMessage(string.Format(format, args));
+        }
+
+        public string GetUserInput(string prompt)
+        {
+            // Unity input handling - likely async
+            throw new NotImplementedException("Unity input handling requires async/await pattern");
+        }
+
+        public int GetIntInput(string prompt, int min, int max)
+        {
+            // Unity-specific implementation
+            throw new NotImplementedException();
+        }
+
+        public string GetOptionInput(string prompt, string[] options)
+        {
+            // Unity dropdown or button selection
+            throw new NotImplementedException();
+        }
+
+        public void WaitForUser(string message = "Press any key to continue...")
+        {
+            // Unity button or touch input
+            throw new NotImplementedException();
+        }
+
+        public void DisplayPlayerHand(IPlayer player)
+        {
+            // Display cards in Unity UI
+        }
+
+        public void DisplayAllPlayerHands(List<IPlayer> players, int dealerIndex)
+        {
+            // Unity multiplayer hand display
+        }
+
+        public void ShowGameState(object gameState)
+        {
+            // Unity game state UI
+        }
     }
 }

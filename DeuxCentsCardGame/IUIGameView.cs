@@ -1,6 +1,6 @@
 namespace DeuxCentsCardGame
 {
-    public interface IUIConsoleGameView
+    public interface IUIGameView
     {
         void ClearScreen();
         void DisplayMessage(string message);
@@ -9,7 +9,10 @@ namespace DeuxCentsCardGame
         int GetIntInput(string prompt, int min, int max);
         string GetOptionInput(string prompt, string[] options);
         void WaitForUser(string message = "Press any key to continue...");
-        // uncomment once GameState is implemented
-        // void ShowGameState(GameState state);
+        // void DisplayPlayerHand(IPlayer player);
+        // void DisplayAllPlayerHands(List<IPlayer> players, int dealerIndex);
+
+        // Optional for future Unity implementation
+        // void ShowGameState(GameState state);// or void ShowGameState(object gameState);
     }
 }

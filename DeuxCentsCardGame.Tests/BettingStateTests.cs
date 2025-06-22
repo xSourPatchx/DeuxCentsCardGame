@@ -4,13 +4,13 @@ namespace DeuxCentsCardGame.Tests
 {
     public class BettingStateTests
     {
-        private readonly Mock<IUIConsoleGameView> _mockUI;
+        private readonly Mock<IUIGameView> _mockUI;
         private readonly List<Player> _players;
         private readonly int _dealerIndex;
 
         public BettingStateTests()
         {
-            _mockUI = new Mock<IUIConsoleGameView>();
+            _mockUI = new Mock<IUIGameView>();
             _players = new List<Player>
             {
                 new Player("Player1"),

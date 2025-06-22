@@ -19,10 +19,10 @@ namespace DeuxCentsCardGame
 
         // Private betting state fields
         private readonly List<Player> _players;
-        private readonly IUIConsoleGameView _ui;
+        private readonly IUIGameView _ui;
         private readonly int _dealerIndex;
 
-        public BettingState(List<Player> players, IUIConsoleGameView ui, int dealerIndex)
+        public BettingState(List<Player> players, IUIGameView ui, int dealerIndex)
         {
             _players = players;
             _ui = ui;
@@ -183,7 +183,7 @@ namespace DeuxCentsCardGame
 
             _ui.DisplayFormattedMessage("\n{0} won the bid.", _players[CurrentWinningBidIndex].Name);
             _ui.DisplayMessage("\n#########################\n");
-            UIConsoleGameView.DisplayHand(_players[CurrentWinningBidIndex]);
+            UIGameView.DisplayHand(_players[CurrentWinningBidIndex]);
         }
     }
 }

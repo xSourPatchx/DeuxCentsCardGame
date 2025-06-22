@@ -5,11 +5,11 @@ namespace DeuxCentsCardGame.Tests
 {
     public class GameScoringTests
     {
-        private readonly Mock<IUIConsoleGameView> _mockUI;
+        private readonly Mock<IUIGameView> _mockUI;
         
         public GameScoringTests()
         {
-            _mockUI = new Mock<IUIConsoleGameView>();
+            _mockUI = new Mock<IUIGameView>();
             _mockUI.Setup(ui => ui.DisplayMessage(It.IsAny<string>())).Verifiable();
             _mockUI.Setup(ui => ui.DisplayFormattedMessage(
                     It.IsAny<string>(),

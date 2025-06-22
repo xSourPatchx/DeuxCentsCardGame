@@ -26,9 +26,9 @@ namespace DeuxCentsCardGame
         private int _teamTwoTotalPoints;
 
         // UI reference
-        private readonly IUIConsoleGameView _ui;
+        private readonly IUIGameView _ui;
 
-        public Game(IUIConsoleGameView ui)
+        public Game(IUIGameView ui)
         {
             _ui = ui;
             _deck = new Deck();
@@ -59,7 +59,7 @@ namespace DeuxCentsCardGame
             ResetRound();
             _deck.ShuffleDeck();
             DealCards();
-            UIConsoleGameView.DisplayAllHands(_players, DealerIndex); // display all players hands
+            UIGameView.DisplayAllHands(_players, DealerIndex); // display all players hands
             ExecuteBettingRound();
             SelectTrumpSuit();
             PlayRound();
@@ -170,7 +170,7 @@ namespace DeuxCentsCardGame
 
         private Card GetValidCardFromPlayer(Player currentPlayer, CardSuit? leadingSuit)
         {
-            UIConsoleGameView.DisplayHand(currentPlayer);
+            UIGameView.DisplayHand(currentPlayer);
 
             string leadingSuitString = leadingSuit.HasValue ? Deck.CardSuitToString(leadingSuit.Value) : "none";
             string trumpSuitString = _trumpSuit.HasValue ? Deck.CardSuitToString(_trumpSuit.Value) : "none";

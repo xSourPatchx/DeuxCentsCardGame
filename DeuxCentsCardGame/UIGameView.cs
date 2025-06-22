@@ -1,35 +1,41 @@
 ﻿namespace DeuxCentsCardGame
 {
-    public class UIConsoleGameView : IUIConsoleGameView
+    public class UIGameView : IUIGameView
     {
+        private readonly IConsoleWrapper _console;
+
+        public UIGameView() : this(new ConsoleWrapper()) { }
+
+        public UIGameView(IConsoleWrapper console)
+        {
+            _console = console;
+        }
+
         public void ClearScreen()
         {
-            Console.Clear();
-            // Thread.Sleep(200);
+            _console.Clear();
         }
 
         public void DisplayMessage(string message)
         {
-            Console.WriteLine(message);
-            // Thread.Sleep(200);
+            _console.WriteLine(message);
         }
 
         public void DisplayFormattedMessage(string format, params object[] args)
         {
-            Console.WriteLine(format, args);
-            // Thread.Sleep(200);
+            _console.WriteLine(format, args);
         }
 
         public string GetUserInput(string prompt)
         {
-            Console.WriteLine(prompt);
-            return Console.ReadLine() ?? string.Empty;
+            _console.WriteLine(prompt);
+            return _console.ReadLine() ?? string.Empty;
         }
 
         public int GetIntInput(string prompt, int min, int max)
         {
             int result;
-            bool isValid = false;
+            bool isValid;
 
             do
             {
@@ -41,7 +47,7 @@
                     DisplayMessage($"Invalid input. Please enter a number between {min} and {max}.");
                 }
                 
-            } while(!isValid);
+            } while (!isValid);
 
             return result;
         }
@@ -49,7 +55,7 @@
         public string GetOptionInput(string prompt, string[] options)
         {
             string result;
-            bool isValid = false;
+            bool isValid;
 
             do
             {
@@ -68,7 +74,7 @@
         public void WaitForUser(string message = "Press any key to continue...")
         {
             DisplayMessage(message);
-            Console.ReadKey();
+            _console.ReadKey();
         }
 
         // uncomment once GameState is implemented
@@ -88,10 +94,8 @@
             Console.WriteLine($"{player.Name}'s hand:");
             for (int playerIndex = 0; playerIndex < player.Hand.Count; playerIndex++)
             {
-                // Thread.Sleep(20);
                 Console.WriteLine($"{playerIndex}: {player.Hand[playerIndex]}");
             }
-            // Thread.Sleep(300);
         }
 
         private static void DisplayAllPlayersHand(IPlayer playerOne, IPlayer playerTwo, IPlayer playerThree, IPlayer playerFour)
@@ -108,11 +112,9 @@
             Console.WriteLine($"{player.Name}'s hand:");
             for (int cardIndex = 0; cardIndex < player.Hand.Count; cardIndex++)
             {
-                // Thread.Sleep(20);
                 Console.SetCursorPosition(left, top + cardIndex + 1);
                 Console.WriteLine($"{cardIndex} : {player.Hand[cardIndex]}");
             }
-            // Thread.Sleep(200);
         }
 
         private static void DisplayAllPlayersHandQuadrant(IPlayer playerOne, IPlayer playerTwo, IPlayer playerThree, IPlayer playerFour)
