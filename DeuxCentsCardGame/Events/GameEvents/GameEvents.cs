@@ -1,8 +1,8 @@
 using DeuxCentsCardGame.Models;
 
-namespace DeuxCentsCardGame.Events
+namespace DeuxCentsCardGame.Events.GameEvents
 {
-    // Event argument classes
+    // Event argument classes, need to break down into seperate classes
     public class CardPlayedEventArgs : EventArgs
     {
         public Player Player { get; }
