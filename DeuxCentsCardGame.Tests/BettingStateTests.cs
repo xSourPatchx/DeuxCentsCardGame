@@ -1,5 +1,7 @@
 using DeuxCentsCardGame.Interfaces;
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Core;
+using DeuxCentsCardGame.Events;
 using Moq;
 
 namespace DeuxCentsCardGame.Tests
@@ -9,6 +11,7 @@ namespace DeuxCentsCardGame.Tests
         private readonly Mock<IUIGameView> _mockUI;
         private readonly List<Player> _players;
         private readonly int _dealerIndex;
+        private readonly GameEventManager _eventManager;
 
         public BettingStateTests()
         {
@@ -21,13 +24,14 @@ namespace DeuxCentsCardGame.Tests
                 new Player("Player4")
             };
             _dealerIndex = 0;
+            _eventManager = new GameEventManager();
         }
 
         [Fact]
         public void Constructor_ShouldInitializeBettingState()
         {
             // Arrange & Act
-            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex, _eventManager);
 
             // Assert
             Assert.Equal(0, bettingState.CurrentWinningBid);
@@ -51,7 +55,7 @@ namespace DeuxCentsCardGame.Tests
         public void ResetBettingRound_ShouldInitializeAllLists()
         {
             // Arrange
-            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex, _eventManager);
 
             // Act
             bettingState.ResetBettingRound();
@@ -73,7 +77,7 @@ namespace DeuxCentsCardGame.Tests
         {
             // Arrange
             var twoPlayers = new List<Player> { new Player("P1"), new Player("P2") };
-            var bettingState = new BettingState(twoPlayers, _mockUI.Object, 0);
+            var bettingState = new BettingState(twoPlayers, _mockUI.Object, 0, _eventManager);
 
             // Act
             bettingState.ResetBettingRound();
@@ -88,7 +92,7 @@ namespace DeuxCentsCardGame.Tests
         public void ExecuteBettingRound_WithMaximumBet_ShouldEndImmediately()
         {
             // Arrange
-            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
             _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
@@ -114,7 +118,7 @@ namespace DeuxCentsCardGame.Tests
         public void ExecuteBettingRound_WithThreePasses_ShouldForceMinimumBet()
         {
             // Arrange
-            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
             _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
@@ -137,7 +141,7 @@ namespace DeuxCentsCardGame.Tests
         public void ExecuteBettingRound_WithValidBets_ShouldDetermineWinner()
         {
             // Arrange
-            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
             _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
@@ -166,7 +170,7 @@ namespace DeuxCentsCardGame.Tests
         public void ExecuteBettingRound_WithInvalidBets_ShouldPromptRetry(string invalidBet)
         {
             // Arrange
-            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
             _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
@@ -188,7 +192,7 @@ namespace DeuxCentsCardGame.Tests
         public void ExecuteBettingRound_WithDuplicateBets_ShouldRejectDuplicate()
         {
             // Arrange
-            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
             _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
@@ -214,7 +218,7 @@ namespace DeuxCentsCardGame.Tests
         {
             // Arrange
             var dealerIndex = 2; // Player3 is dealer
-            var bettingState = new BettingState(_players, _mockUI.Object, dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
             _mockUI.Setup(ui => ui.GetUserInput(It.IsAny<string>()))
@@ -231,7 +235,7 @@ namespace DeuxCentsCardGame.Tests
         public void ExecuteBettingRound_ShouldSkipPlayersWhoPassed()
         {
             // Arrange
-            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
             _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
@@ -255,7 +259,7 @@ namespace DeuxCentsCardGame.Tests
         public void ExecuteBettingRound_ShouldDisplayCorrectMessages()
         {
             // Arrange
-            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
             _mockUI.Setup(ui => ui.GetUserInput(It.IsAny<string>()))
@@ -274,7 +278,7 @@ namespace DeuxCentsCardGame.Tests
         public void ExecuteBettingRound_ShouldHandlePassAfterBetting()
         {
             // Arrange
-            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
             _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
@@ -329,7 +333,7 @@ namespace DeuxCentsCardGame.Tests
         public void ExecuteBettingRound_ShouldSetCompleteFlagCorrectly()
         {
             // Arrange
-            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
             _mockUI.Setup(ui => ui.GetUserInput(It.IsAny<string>()))
@@ -347,7 +351,7 @@ namespace DeuxCentsCardGame.Tests
         public void PlayerBids_ShouldTrackNegativeOneForPasses()
         {
             // Arrange
-            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex);
+            var bettingState = new BettingState(_players, _mockUI.Object, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
             _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))

@@ -2,7 +2,7 @@ using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Events.EventArgs
 {
-    public class TrumpSelectedEventArgs // : EventArgs
+    public class TrumpSelectedEventArgs : System.EventArgs
     {
         public CardSuit TrumpSuit { get; }
         public Player SelectedBy { get; }

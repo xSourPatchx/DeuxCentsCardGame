@@ -2,7 +2,7 @@ using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Events.EventArgs
 {
-    public class CardPlayedEventArgs // : EventArgs
+    public class CardPlayedEventArgs : System.EventArgs
     {
         public Player Player { get; }
         public Card Card { get; }

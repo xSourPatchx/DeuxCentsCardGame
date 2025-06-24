@@ -1,8 +1,9 @@
 using DeuxCentsCardGame.Interfaces;
 using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.UI;
+using DeuxCentsCardGame.Events;
 
-namespace DeuxCentsCardGame
+namespace DeuxCentsCardGame.Core
 {
     public class BettingState
     {
@@ -20,17 +21,18 @@ namespace DeuxCentsCardGame
         public List<bool> PlayerHasBet { get; set; }
         public List<bool> PlayerHasPassed { get; set; }
 
-
         // Private betting state fields
         private readonly List<Player> _players;
         private readonly IUIGameView _ui;
         private readonly int _dealerIndex;
+        private readonly GameEventManager _eventManager;
 
-        public BettingState(List<Player> players, IUIGameView ui, int dealerIndex)
+        public BettingState(List<Player> players, IUIGameView ui, int dealerIndex, GameEventManager eventManager)
         {
             _players = players;
             _ui = ui;
             _dealerIndex = dealerIndex;
+            _eventManager = eventManager;
         }
 
         public void ExecuteBettingRound()
@@ -105,6 +107,8 @@ namespace DeuxCentsCardGame
             _ui.DisplayFormattedMessage("\n{0} passed\n", _players[currentPlayerIndex].Name);
             PlayerHasPassed[currentPlayerIndex] = true;
             PlayerBids[currentPlayerIndex] = -1;
+
+            _eventManager.RaiseBettingAction(_players[currentPlayerIndex], -1, true);
         }
 
         private bool IsValidBet(int bet)
@@ -120,6 +124,8 @@ namespace DeuxCentsCardGame
             PlayerBids[currentPlayerIndex] = bet;
             PlayerHasBet[currentPlayerIndex] = true;
             _ui.DisplayMessage("");
+
+            _eventManager.RaiseBettingAction(_players[currentPlayerIndex], bet, false);
 
             if (bet == MaximumBet)
             {
@@ -138,6 +144,8 @@ namespace DeuxCentsCardGame
                 {
                     PlayerHasPassed[otherPlayerIndex] = true;
                     PlayerBids[otherPlayerIndex] = -1;
+
+                    _eventManager.RaiseBettingAction(_players[otherPlayerIndex], -1, true);
                 }
             }
             return true;
@@ -155,6 +163,8 @@ namespace DeuxCentsCardGame
                 PlayerBids[lastBiddingPlayerIndex] = MinimumBet;
                 CurrentWinningBid = MinimumBet;
                 CurrentWinningBidIndex = lastBiddingPlayerIndex;
+
+                _eventManager.RaiseBettingAction(_players[lastBiddingPlayerIndex], MinimumBet, false);
             }
 
             return true;

@@ -1,5 +1,7 @@
-using System.Reflection;
 using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Core;
+using DeuxCentsCardGame.Events;
+using System.Reflection;
 using Moq;
 
 namespace DeuxCentsCardGame.Tests
@@ -7,6 +9,7 @@ namespace DeuxCentsCardGame.Tests
     public class GameScoringTests
     {
         private readonly Mock<IUIGameView> _mockUI;
+        private readonly GameEventManager _eventManager;
         
         public GameScoringTests()
         {
@@ -16,6 +19,7 @@ namespace DeuxCentsCardGame.Tests
                     It.IsAny<string>(),
                     It.IsAny<object[]>()
                 )).Verifiable();
+            _eventManager = new GameEventManager();
         }
         
         private Game CreateGameInstance()
@@ -37,7 +41,7 @@ namespace DeuxCentsCardGame.Tests
             var dealerIndex = (int)dealerIndexField.GetValue(game);
             
             // Create and set the betting state
-            var bettingState = Activator.CreateInstance(typeof(BettingState), players, _mockUI.Object, dealerIndex);
+            var bettingState = Activator.CreateInstance(typeof(BettingState), players, _mockUI.Object, dealerIndex, _eventManager);
             SetPrivateField(game, "_bettingState", bettingState);
         }
         

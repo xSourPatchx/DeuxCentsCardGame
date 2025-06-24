@@ -1,6 +1,6 @@
 namespace DeuxCentsCardGame.Events.EventArgs
 {
-    public class GameOverEventArgs // : EventArgs
+    public class GameOverEventArgs : System.EventArgs
     {
         public int TeamOneFinalScore { get; }
         public int TeamTwoFinalScore { get; }

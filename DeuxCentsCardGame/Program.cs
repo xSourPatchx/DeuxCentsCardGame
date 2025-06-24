@@ -1,4 +1,5 @@
 ﻿using DeuxCentsCardGame.UI;
+using DeuxCentsCardGame.Core;
 
 namespace DeuxCentsCardGame
 {

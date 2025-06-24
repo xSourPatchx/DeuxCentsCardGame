@@ -1,8 +1,9 @@
 using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.Interfaces;
 using DeuxCentsCardGame.UI;
+using DeuxCentsCardGame.Events;
 
-namespace DeuxCentsCardGame
+namespace DeuxCentsCardGame.Core
 {
     public class Game : IGame
     {
@@ -28,9 +29,14 @@ namespace DeuxCentsCardGame
         private int _teamTwoRoundPoints;
         private int _teamOneTotalPoints;
         private int _teamTwoTotalPoints;
+        private int _currentRoundNumber = 1;
 
         // UI reference
         private readonly IUIGameView _ui;
+
+        // Event reference
+        private readonly GameEventManager _eventManager;
+        private readonly GameEventHandlers _eventHandler;
 
         public Game(IUIGameView ui)
         {
@@ -44,8 +50,10 @@ namespace DeuxCentsCardGame
                 new("Player 4"),
             ];
 
-            // _bettingState = new BettingState(_players, _ui, DealerIndex);
             _trumpSuit = null;
+
+            _eventManager = new GameEventManager();
+            _eventHandler = new GameEventHandlers(_eventManager, _ui);
         }
 
         public void StartGame()
@@ -54,15 +62,22 @@ namespace DeuxCentsCardGame
             {
                 NewRound();
             }
+
+            _eventHandler.UnsubscribeFromEvents();
         }
 
         public void NewRound()
         {
             _ui.ClearScreen();
-            _ui.DisplayMessage("Starting a new round...");
+            // _ui.DisplayMessage("Starting a new round...");
+            _eventManager.RaiseRoundStarted(_currentRoundNumber, _players[DealerIndex]);
+
             ResetRound();
             _deck.ShuffleDeck();
             DealCards();
+
+            _eventManager.RaiseCardsDealt(_players, DealerIndex);
+
             UIGameView.DisplayAllHands(_players, DealerIndex); // display all players hands
             ExecuteBettingRound();
             SelectTrumpSuit();
@@ -70,17 +85,17 @@ namespace DeuxCentsCardGame
             ScoreRound();
             EndGameCheck();
             RotateDealer();
+
+            _currentRoundNumber++;
         }
 
         private void ResetRound()
         {
             _deck = new Deck();
-            // _isGameEnded = false;
             _teamOneRoundPoints = 0;
             _teamTwoRoundPoints = 0;
             _trumpSuit = null;
-            _bettingState = new BettingState(_players, _ui, DealerIndex);
-            // RotateDealer();
+            _bettingState = new BettingState(_players, _ui, DealerIndex, _eventManager);
         }
 
         private void RotateDealer()
@@ -106,6 +121,13 @@ namespace DeuxCentsCardGame
         {
             _bettingState.ResetBettingRound();
             _bettingState.ExecuteBettingRound();
+            var allBids = new Dictionary<Player, int>();
+            for (int i = 0; i < _players.Count; i++)
+            {
+                allBids[_players[i]] = _bettingState.PlayerBids[i];
+            }
+            Player winningBidder = _players[_bettingState.CurrentWinningBidIndex];
+            _eventManager.RaiseBettingCompleted(winningBidder, _bettingState.CurrentWinningBid, allBids);
         }
 
         private void SelectTrumpSuit()
@@ -114,6 +136,9 @@ namespace DeuxCentsCardGame
             string prompt = $"{_players[_bettingState.CurrentWinningBidIndex].Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")";
             string trumpSuitString = _ui.GetOptionInput(prompt, validSuits);    
             _trumpSuit = Deck.StringToCardSuit(trumpSuitString);
+
+            _eventManager.RaiseTrumpSelected(_trumpSuit.Value, _players[_bettingState.CurrentWinningBidIndex]);
+
             _ui.DisplayFormattedMessage("\nTrump suit is {0}.", Deck.CardSuitToString(_trumpSuit.Value));
         }
 
@@ -140,7 +165,7 @@ namespace DeuxCentsCardGame
                 _ui.DisplayMessage("\n#########################\n");
                 _ui.DisplayFormattedMessage("Trick #{0}:", trickNumber + 1);
 
-                PlayTrick(currentPlayerIndex, leadingSuit, currentTrick);
+                PlayTrick(currentPlayerIndex, leadingSuit, currentTrick, trickNumber);
 
                 (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick, _trumpSuit);
                 
@@ -148,11 +173,14 @@ namespace DeuxCentsCardGame
 
                 currentPlayerIndex = _players.IndexOf(trickWinner); // set winning player as the current player for the next trick
                 trickPoints = currentTrick.Sum(trick => trick.card.CardPointValue); // adding all trick points to trickPoints
+
+                _eventManager.RaiseTrickCompleted(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
+
                 AwardTrickPoints(currentPlayerIndex, trickPoints);
             }
         }
 
-        private void PlayTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick)
+        private void PlayTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick, int trickNumber)
         {
             for (int trickIndex = 0; trickIndex < _players.Count; trickIndex++)
                 {
@@ -168,7 +196,10 @@ namespace DeuxCentsCardGame
                     }
 
                     currentTrick.Add((playedCard, currentPlayer));
-                    _ui.DisplayFormattedMessage("{0} played {1}\n", currentPlayer.Name, playedCard);
+                    
+                    // _ui.DisplayFormattedMessage("{0} played {1}\n", currentPlayer.Name, playedCard);
+
+                    _eventManager.RaiseCardPlayed(currentPlayer, playedCard, trickNumber, leadingSuit, _trumpSuit);
                 }
         }
 
@@ -218,7 +249,6 @@ namespace DeuxCentsCardGame
 
         private void AwardTrickPoints(int trickWinnerIndex, int trickPoints)
         {
-            // bool isTeamOne = trickWinnerIndex % 2 == 0;
             string teamName = IsPlayerOnTeamOne(trickWinnerIndex) ? "Team One" : "Team Two";
      
             _ui.DisplayFormattedMessage("{0} collected {1} points for {2}", _players[trickWinnerIndex].Name, trickPoints, teamName);
@@ -239,18 +269,19 @@ namespace DeuxCentsCardGame
 
         private void ScoreRound() // tally points and end the round
         {
-            _ui.DisplayMessage("\nEnd of round. Scoring:");
-            _ui.DisplayFormattedMessage("Team One (Player 1 & Player 3) scored : {0}", _teamOneRoundPoints);
-            _ui.DisplayFormattedMessage("Team Two (Player 2 & Player 4) scored : {0}", _teamTwoRoundPoints);
+            // _ui.DisplayMessage("\nEnd of round. Scoring:");
+            // _ui.DisplayFormattedMessage("Team One (Player 1 & Player 3) scored : {0}", _teamOneRoundPoints);
+            // _ui.DisplayFormattedMessage("Team Two (Player 2 & Player 4) scored : {0}", _teamTwoRoundPoints);
 
             bool bidWinnerIsTeamOne = IsPlayerOnTeamOne(_bettingState.CurrentWinningBidIndex);
             
             ScoreBidWinningTeam(bidWinnerIsTeamOne);
-
             ScoreBidLosingTeam(!bidWinnerIsTeamOne);
 
-            _ui.DisplayFormattedMessage("\nTeam One has a total of {0} points", _teamOneTotalPoints);
-            _ui.DisplayFormattedMessage("Team Two has a total of {0} points", _teamTwoTotalPoints);
+            // _ui.DisplayFormattedMessage("\nTeam One has a total of {0} points", _teamOneTotalPoints);
+            // _ui.DisplayFormattedMessage("Team Two has a total of {0} points", _teamTwoTotalPoints);
+
+            _eventManager.RaiseScoreUpdated(_teamOneRoundPoints, _teamTwoRoundPoints, _teamOneTotalPoints, _teamTwoTotalPoints, bidWinnerIsTeamOne, _bettingState.CurrentWinningBid);
         }
 
         private void ScoreBidWinningTeam(bool isTeamOne)
@@ -343,7 +374,6 @@ namespace DeuxCentsCardGame
                 awardedPoints = teamRoundPoints;
             }
 
-
             if (isTeamOne)
             {
                 _teamOneTotalPoints += awardedPoints;
@@ -358,10 +388,13 @@ namespace DeuxCentsCardGame
         {
             if (_teamOneTotalPoints >= WinningScore || _teamTwoTotalPoints >= WinningScore)
             {
-                _ui.DisplayMessage("\n#########################\n");
-                _ui.DisplayMessage("Game over!");
-                _ui.DisplayFormattedMessage("Team One finished with {0} points", _teamOneTotalPoints);
-                _ui.DisplayFormattedMessage("Team Two finished with {0} points", _teamTwoTotalPoints);
+                // _ui.DisplayMessage("\n#########################\n");
+                // _ui.DisplayMessage("Game over!");
+                // _ui.DisplayFormattedMessage("Team One finished with {0} points", _teamOneTotalPoints);
+                // _ui.DisplayFormattedMessage("Team Two finished with {0} points", _teamTwoTotalPoints);
+                
+                _eventManager.RaiseGameOver(_teamOneTotalPoints, _teamTwoTotalPoints);
+                
                 _isGameEnded = true;
             }
             else
