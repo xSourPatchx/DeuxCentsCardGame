@@ -37,7 +37,7 @@ namespace DeuxCentsCardGame.Core
 
         public void ExecuteBettingRound()
         {
-            _ui.DisplayMessage("Betting round begins!\n");
+            // _ui.DisplayMessage("Betting round begins!\n");
 
             int startingIndex = (_dealerIndex + 1) % _players.Count;
 
@@ -46,8 +46,18 @@ namespace DeuxCentsCardGame.Core
                 IsBettingRoundComplete = HandleBettingRound(startingIndex);
             }
 
-            DisplayBettingResults();
+            // DisplayBettingResults();
             DetermineWinningBid();
+
+            var allBids = new Dictionary<Player, int>();
+            for (int i = 0; i < _players.Count; i++)
+            {
+                allBids[_players[i]] = PlayerBids[i];
+            }
+
+            Player winningBidder = _players[CurrentWinningBidIndex];
+            _eventManager.RaiseBettingCompleted(winningBidder, CurrentWinningBid, allBids);
+
             IsBettingRoundComplete = true;
         }
 
@@ -104,7 +114,7 @@ namespace DeuxCentsCardGame.Core
 
         private void HandlePassInput(int currentPlayerIndex)
         {
-            _ui.DisplayFormattedMessage("\n{0} passed\n", _players[currentPlayerIndex].Name);
+            // _ui.DisplayFormattedMessage("\n{0} passed\n", _players[currentPlayerIndex].Name);
             PlayerHasPassed[currentPlayerIndex] = true;
             PlayerBids[currentPlayerIndex] = -1;
 
@@ -123,7 +133,6 @@ namespace DeuxCentsCardGame.Core
         {
             PlayerBids[currentPlayerIndex] = bet;
             PlayerHasBet[currentPlayerIndex] = true;
-            _ui.DisplayMessage("");
 
             _eventManager.RaiseBettingAction(_players[currentPlayerIndex], bet, false);
 
@@ -137,7 +146,7 @@ namespace DeuxCentsCardGame.Core
 
         private bool HandleMaximumBetScenario(int playerIndex)
         {
-            _ui.DisplayFormattedMessage("{0} bet {1}. Betting round ends.\n", _players[playerIndex].Name, MaximumBet);
+            // _ui.DisplayFormattedMessage("{0} bet {1}. Betting round ends.\n", _players[playerIndex].Name, MaximumBet);
             for (int otherPlayerIndex = 0; otherPlayerIndex < _players.Count; otherPlayerIndex++)
             {
                 if (otherPlayerIndex != playerIndex && !PlayerHasPassed[otherPlayerIndex])
@@ -148,12 +157,13 @@ namespace DeuxCentsCardGame.Core
                     _eventManager.RaiseBettingAction(_players[otherPlayerIndex], -1, true);
                 }
             }
+
             return true;
         }
 
         private bool HandleThreePassesScenario(int currentPlayerIndex)
         {
-            _ui.DisplayMessage("Three players have passed, betting round ends");
+            // _ui.DisplayMessage("Three players have passed, betting round ends");
 
             // Check if all players passed and no bets placed
             if (PlayerBids.All(bet => bet <= 0))
@@ -170,34 +180,34 @@ namespace DeuxCentsCardGame.Core
             return true;
         }
 
-        private void DisplayBettingResults()
-        {
-            _ui.DisplayMessage("\nBetting round complete, here are the results:");
+        // private void DisplayBettingResults()
+        // {
+        //     _ui.DisplayMessage("\nBetting round complete, here are the results:");
 
-            for (int i = 0; i < _players.Count; i++)
-            {
-                string result = GetPlayerBettingResult(i);
-                _ui.DisplayFormattedMessage("{0} : {1}", _players[i].Name, result);
-            }
-        }
+        //     for (int i = 0; i < _players.Count; i++)
+        //     {
+        //         string result = GetPlayerBettingResult(i);
+        //         _ui.DisplayFormattedMessage("{0} : {1}", _players[i].Name, result);
+        //     }
+        // }
 
-        private string GetPlayerBettingResult(int playerIndex)
-        {
-            if (PlayerHasPassed[playerIndex])
-            {
-                return PlayerHasBet[playerIndex] ? "Passed after betting" : "Passed";
-            }
-            return $"Bet {PlayerBids[playerIndex]}";
-        }
+        // private string GetPlayerBettingResult(int playerIndex)
+        // {
+        //     if (PlayerHasPassed[playerIndex])
+        //     {
+        //         return PlayerHasBet[playerIndex] ? "Passed after betting" : "Passed";
+        //     }
+        //     return $"Bet {PlayerBids[playerIndex]}";
+        // }
 
         private void DetermineWinningBid()
         {
             CurrentWinningBid = PlayerBids.Max();
             CurrentWinningBidIndex = PlayerBids.IndexOf(CurrentWinningBid);
 
-            _ui.DisplayFormattedMessage("\n{0} won the bid.", _players[CurrentWinningBidIndex].Name);
-            _ui.DisplayMessage("\n#########################\n");
-            UIGameView.DisplayHand(_players[CurrentWinningBidIndex]);
+            // _ui.DisplayFormattedMessage("\n{0} won the bid.", _players[CurrentWinningBidIndex].Name);
+            // _ui.DisplayMessage("\n#########################\n");
+            // UIGameView.DisplayHand(_players[CurrentWinningBidIndex]);
         }
     }
 }

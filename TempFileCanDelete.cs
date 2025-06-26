@@ -152,11 +152,8 @@ namespace DeuxCentsCardGame.Core
 
                 (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick, _trumpSuit);
 
-                // set winning player as the current player for the next trick
-                currentPlayerIndex = _players.IndexOf(trickWinner);
-                
-                // adding all trick points to trickPoints
-                trickPoints = currentTrick.Sum(trick => trick.card.CardPointValue);
+                currentPlayerIndex = _players.IndexOf(trickWinner); // set winning player as the current player for the next trick
+                trickPoints = currentTrick.Sum(trick => trick.card.CardPointValue); // adding all trick points to trickPoints
 
                 _eventManager.RaiseTrickCompleted(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
 
@@ -167,27 +164,27 @@ namespace DeuxCentsCardGame.Core
         private void PlayTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick, int trickNumber)
         {
             for (int trickIndex = 0; trickIndex < _players.Count; trickIndex++)
+            {
+                // ensuring player who won the bet goes first;
+                int playerIndex = (currentPlayerIndex + trickIndex) % _players.Count;
+                Player currentPlayer = _players[playerIndex];
+
+                // Raise event for player's turn (this will display their hand)
+                _eventManager.RaisePlayerTurn(currentPlayer, leadingSuit, _trumpSuit, trickNumber);
+                
+                Card playedCard = GetValidCardFromPlayer(currentPlayer, leadingSuit);
+
+                currentPlayer.RemoveCard(playedCard);
+
+                if (trickIndex == 0)
                 {
-                    // ensuring player who won the bet goes first;
-                    int playerIndex = (currentPlayerIndex + trickIndex) % _players.Count;
-                    Player currentPlayer = _players[playerIndex];
-
-                    // Raise event for player's turn and display their hand
-                    _eventManager.RaisePlayerTurn(currentPlayer, leadingSuit, _trumpSuit, trickNumber);
-
-                    Card playedCard = GetValidCardFromPlayer(currentPlayer, leadingSuit);
-
-                    currentPlayer.RemoveCard(playedCard);
-
-                    if (trickIndex == 0)
-                    {
-                        leadingSuit = playedCard.CardSuit;
-                    }
-
-                    currentTrick.Add((playedCard, currentPlayer));
-
-                    _eventManager.RaiseCardPlayed(currentPlayer, playedCard, trickNumber, leadingSuit, _trumpSuit);
+                    leadingSuit = playedCard.CardSuit;
                 }
+
+                currentTrick.Add((playedCard, currentPlayer));
+
+                _eventManager.RaiseCardPlayed(currentPlayer, playedCard, trickNumber, leadingSuit, _trumpSuit);
+            }
         }
 
         private Card GetValidCardFromPlayer(Player currentPlayer, CardSuit? leadingSuit)
@@ -234,7 +231,9 @@ namespace DeuxCentsCardGame.Core
         private void AwardTrickPoints(int trickWinnerIndex, int trickPoints)
         {
             string teamName = IsPlayerOnTeamOne(trickWinnerIndex) ? "Team One" : "Team Two";
-            _ui.DisplayFormattedMessage("{0} collected {1} points for {2}", _players[trickWinnerIndex].Name, trickPoints, teamName);
+            
+            // Raise event for trick points awarded
+            _eventManager.RaiseTrickPointsAwarded(_players[trickWinnerIndex], trickPoints, teamName);
 
             if (IsPlayerOnTeamOne(trickWinnerIndex))
             {
@@ -272,32 +271,38 @@ namespace DeuxCentsCardGame.Core
             int teamRoundPoints;
             int teamTotalPoints;
             bool teamCannotScore;
+            // string teamName;
 
             if (isTeamOne)
             {
                 teamRoundPoints = _teamOneRoundPoints;
                 teamTotalPoints = _teamOneTotalPoints;
                 teamCannotScore = teamTotalPoints >= 100 && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_2];
+                // teamName = "Team One";
             }
             else
             {
                 teamRoundPoints = _teamTwoRoundPoints;
                 teamTotalPoints = _teamTwoTotalPoints;
                 teamCannotScore = teamTotalPoints >= 100 && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_2];
+                // teamName = "Team Two";
             }
 
             int awardedPoints;
 
             if (teamCannotScore)
             {
+                // _ui.DisplayFormattedMessage("{0} did not place any bets and has over 100 points, so they score 0 points this round.", teamName);
                 awardedPoints = 0;
             }
             else if (teamRoundPoints >= _bettingState.CurrentWinningBid)
             {
+                // _ui.DisplayFormattedMessage("{0} made their bet of {1} and wins {2} points.", teamName, _bettingState.CurrentWinningBid, teamRoundPoints);
                 awardedPoints = teamRoundPoints;
             }
             else
             {
+                // _ui.DisplayFormattedMessage("{0} did not make their bet of {1} and loses {1} points.", teamName, _bettingState.CurrentWinningBid);
                 awardedPoints = -_bettingState.CurrentWinningBid;
             }
 
@@ -316,32 +321,38 @@ namespace DeuxCentsCardGame.Core
             int teamRoundPoints;
             int teamTotalPoints;
             bool teamCannotScore;
+            // string teamName;
 
             if (isTeamOne)
             {
                 teamRoundPoints = _teamOneRoundPoints;
                 teamTotalPoints = _teamOneTotalPoints;
                 teamCannotScore = teamTotalPoints >= 100 && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_2];
+                // teamName = "Team One";
             }
             else
             {
                 teamRoundPoints = _teamTwoRoundPoints;
                 teamTotalPoints = _teamTwoTotalPoints;
                 teamCannotScore = teamTotalPoints >= 100 && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_2];
+                // teamName = "Team Two";
             }
 
             int awardedPoints;
 
             if (teamCannotScore)
             {
+                // _ui.DisplayFormattedMessage("{0} did not place any bets and has over 100 points, so they score 0 points this round.", teamName);
                 awardedPoints = 0;
             }
             else if (teamRoundPoints >= _bettingState.CurrentWinningBid)
             {
+                // _ui.DisplayFormattedMessage("{0} made their bet of {1} and wins {2} points.", teamName, _bettingState.CurrentWinningBid, teamRoundPoints);
                 awardedPoints = teamRoundPoints;
             }
             else
             {
+                // _ui.DisplayFormattedMessage("{0} (non-betting team) scores {1} points.", teamName, teamRoundPoints);
                 awardedPoints = teamRoundPoints;
             }
 
@@ -364,8 +375,8 @@ namespace DeuxCentsCardGame.Core
             }
             else
             {
+                // Only UI interaction, should create an event to handle this
                 _ui.WaitForUser("\nPress any key to start the next round...");
-                _eventManager.RaiseGameOver(_teamOneTotalPoints, _teamTwoTotalPoints);
             }
         }
     }

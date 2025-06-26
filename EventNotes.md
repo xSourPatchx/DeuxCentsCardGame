@@ -1,8 +1,8 @@
 ### **Step-by-Step Implementation Guide**
    - [x] Define a custom EventArgs class (if you need to pass data) 
    - [x] Create the event in your publisher class (e.g., GameEngine)
-   - [ ] Subscribe to events in your subscriber class (e.g., UI or AI)
-   - [ ] Using Events in Your Card Game
+   - [x] Subscribe to events in your subscriber class (e.g., UI or AI)
+   - [x] Using Events in Your Card Game
 
 ### Notes
 Think of the event system like a radio broadcast system. You have the radio station (publisher), the radio waves (events), the message format (EventArgs), and the radio receivers (subscribers with their event handlers).

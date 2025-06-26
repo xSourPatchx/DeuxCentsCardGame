@@ -9,20 +9,24 @@ namespace DeuxCentsCardGame.Events
         public event EventHandler<RoundEventArgs>? RoundStarted;
         public event EventHandler<CardsDealtEventArgs>? CardsDealt;
 
-        // Betting and trump slection events
+        // Betting and trump selection events
         public event EventHandler<BettingEventArgs>? BettingAction;
         public event EventHandler<BettingCompletedEventArgs>? BettingCompleted;
         public event EventHandler<TrumpSelectedEventArgs>? TrumpSelected;
 
         // Card playing events
+        public event EventHandler<PlayerTurnEventArgs>? PlayerTurn;
         public event EventHandler<CardPlayedEventArgs>? CardPlayed;
         public event EventHandler<TrickCompletedEventArgs>? TrickCompleted;
 
         // Scoring events
         public event EventHandler<ScoreEventArgs>? ScoreUpdated;
+        public event EventHandler<TeamScoringEventArgs>? TeamScoring;
+        public event EventHandler<TrickPointsAwardedEventArgs>? TrickPointsAwarded;
 
         // Game end events
         public event EventHandler<GameOverEventArgs>? GameOver;
+        public event EventHandler<NextRoundEventArgs>? NextRoundPrompt;
 
         // Event raising methods
         protected virtual void OnRoundStarted(RoundEventArgs e)
@@ -50,6 +54,11 @@ namespace DeuxCentsCardGame.Events
             TrumpSelected?.Invoke(this, e);
         }
 
+        protected virtual void OnPlayerTurn(PlayerTurnEventArgs e)
+        {
+            PlayerTurn?.Invoke(this, e);
+        }
+
         protected virtual void OnCardPlayed(CardPlayedEventArgs e)
         {
             CardPlayed?.Invoke(this, e);
@@ -65,9 +74,24 @@ namespace DeuxCentsCardGame.Events
             ScoreUpdated?.Invoke(this, e);
         }
 
+        protected virtual void OnTeamScoring(TeamScoringEventArgs e)
+        {
+            TeamScoring?.Invoke(this, e);
+        }
+
+        protected virtual void OnTrickPointsAwarded(TrickPointsAwardedEventArgs e)
+        {
+            TrickPointsAwarded?.Invoke(this, e);
+        }
+
         protected virtual void OnGameOver(GameOverEventArgs e)
         {
             GameOver?.Invoke(this, e);
+        }
+
+        protected virtual void OnNextRoundPrompt(NextRoundEventArgs e)
+        {
+            NextRoundPrompt?.Invoke(this, e);
         }
 
         // Public methods to trigger events from game logic
@@ -96,6 +120,11 @@ namespace DeuxCentsCardGame.Events
             OnTrumpSelected(new TrumpSelectedEventArgs(trumpSuit, selectedBy));
         }
 
+        public void RaisePlayerTurn(Player player, CardSuit? leadingSuit, CardSuit? trumpSuit, int trickNumber)
+        {
+            OnPlayerTurn(new PlayerTurnEventArgs(player, leadingSuit, trumpSuit, trickNumber));
+        }
+
         public void RaiseCardPlayed(Player player, Card card, int trickNumber, CardSuit? leadingSuit, CardSuit? trumpSuit)
         {
             OnCardPlayed(new CardPlayedEventArgs(player, card, trickNumber, leadingSuit, trumpSuit));
@@ -109,6 +138,16 @@ namespace DeuxCentsCardGame.Events
         public void RaiseScoreUpdated(int teamOneRoundPoints, int teamTwoRoundPoints, int teamOneTotalPoints, int teamTwoTotalPoints, bool isBidWinnerTeamOne, int winningBid)
         {
             OnScoreUpdated(new ScoreEventArgs(teamOneRoundPoints, teamTwoRoundPoints, teamOneTotalPoints, teamTwoTotalPoints, isBidWinnerTeamOne, winningBid));
+        }
+
+        public void RaiseTeamScoring(string teamName, int roundPoints, int winningBid, bool madeBid, bool cannotScore, int awardedPoints)
+        {
+            OnTeamScoring(new TeamScoringEventArgs(teamName, roundPoints, winningBid, madeBid, cannotScore, awardedPoints));
+        }
+
+        public void RaiseTrickPointsAwarded(Player player, int trickPoints, string teamName)
+        {
+            OnTrickPointsAwarded(new TrickPointsAwardedEventArgs(player, trickPoints, teamName));
         }
 
         public void RaiseGameOver(int teamOneFinalScore, int teamTwoFinalScore)

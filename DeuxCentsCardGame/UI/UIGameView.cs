@@ -80,18 +80,6 @@ namespace DeuxCentsCardGame.UI
             _console.ReadKey();
         }
 
-        // uncomment once GameState is implemented
-        // public void ShowGameState(GameState state)
-        // {
-        //     DisplayMessage("\n###### Game State #######");
-        //     DisplayMessage($"Current Round: {state.CurrentRound}");
-        //     DisplayMessage($"Team 1 Score: {state.TeamOnePoints}");
-        //     DisplayMessage($"Team 2 Score: {state.TeamTwoPoints}");
-        //     // add more game state
-
-        //     DisplayMessage("#########################\n");
-        // }
-
         public static void DisplayHand(IPlayer player)
         {
             Console.WriteLine($"{player.Name}'s hand:");

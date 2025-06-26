@@ -1,5 +1,7 @@
+using DeuxCentsCardGame.Core;
 using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.UI;
 
 namespace DeuxCentsCardGame.Events
 {
@@ -28,87 +30,130 @@ namespace DeuxCentsCardGame.Events
             _eventManager.TrumpSelected += OnTrumpSelected;
 
             // Card playing events
+            _eventManager.PlayerTurn += OnPlayerTurn;
             _eventManager.CardPlayed += OnCardPlayed;
             _eventManager.TrickCompleted += OnTrickCompleted;
 
             // Scoring events
             _eventManager.ScoreUpdated += OnScoreUpdated;
+            _eventManager.TeamScoring += OnTeamScoring;
+            _eventManager.TrickPointsAwarded += OnTrickPointsAwarded;
 
             // Game end events
             _eventManager.GameOver += OnGameOver;
+            _eventManager.NextRoundPrompt += OnNextRoundPrompt;
         }
 
         // Event handlers
         private void OnRoundStarted(object? sender, RoundEventArgs e)
         {
-            // _ui.DisplayMessage($"\n=== Round {e.RoundNumber} Started ===");
-            // _ui.DisplayMessage($"Dealer: {e.Dealer.Name}");
-
+            _ui.ClearScreen();
             _ui.DisplayFormattedMessage("\nRound {0} Started. Dealer: {1}", e.RoundNumber, e.Dealer.Name);
         }
 
         private void OnCardsDealt(object? sender, CardsDealtEventArgs e)
         {
-            // _ui.DisplayMessage("Cards have been dealt to all players.");
-
+            _ui.DisplayMessage("Dealing cards...");
             _ui.DisplayFormattedMessage("\nCards dealt to all {0} players. Dealer index: {1}", e.Players.Count, e.DealerIndex);
-            // Update player hands in UI and enable betting/playing controls
+
+            // display all players hands
+            UIGameView.DisplayAllHands(e.Players, e.DealerIndex);
         }
 
         private void OnBettingAction(object? sender, BettingEventArgs e)
         {
-            // if (e.HasPassed)
-            // {
-            //     _ui.DisplayMessage($"{e.Player.Name} passed.");
-            // }
-            // else
-            // {
-            //     _ui.DisplayMessage($"{e.Player.Name} bet {e.Bet}.");
-            // }
+            if (e.HasPassed)
+            {
+                _ui.DisplayFormattedMessage("{0} passed\n", e.Player.Name);
+            }
+            else
+            {
+                _ui.DisplayFormattedMessage("{0} bet {1}\n", e.Player.Name, e.Bet);
 
-            string action = e.HasPassed ? "passed" : $"bid {e.Bet}";
-            _ui.DisplayFormattedMessage("{0} {1}", e.Player.Name, action);
+                if (e.Bet == BettingState.MaximumBet)
+                {
+                    _ui.DisplayFormattedMessage("{0} bid the maximum bet, betting round ends.", e.Player.Name);                
+                }
+            }
         }
 
         private void OnBettingCompleted(object? sender, BettingCompletedEventArgs e)
         {
-            _ui.DisplayMessage("\nBetting Round Results: ");
+            _ui.DisplayMessage("\nBetting round complete.");
+            _ui.DisplayMessage("Results:");
+
             foreach (var bid in e.AllBids)
             {
                 string bidText = bid.Value == -1 ? "Passed" : $"Bet {bid.Value}";
                 _ui.DisplayFormattedMessage("{0}: {1}", bid.Key.Name, bidText);
             }
-            _ui.DisplayFormattedMessage("\nWinning bidder: {0} with {1}",e.WinningBidder.Name, e.WinningBid);
-            // _ui.DisplayMessage($"\nWinning bidder: {e.WinningBidder.Name} with {e.WinningBid}");
+            _ui.DisplayFormattedMessage("\nThe winning bidder is {0} with {1}\n",e.WinningBidder.Name, e.WinningBid);
+
+            // Display winner's hand
+            UIGameView.DisplayHand(e.WinningBidder);
         }
 
         private void OnTrumpSelected(object? sender, TrumpSelectedEventArgs e)
         {
             _ui.DisplayFormattedMessage("\nTrump suit is {0} by {1}", e.TrumpSuit, e.SelectedBy.Name);
-            // _ui.DisplayMessage($"\n{e.SelectedBy.Name} selected {e.TrumpSuit} as trump suit."); 
+        }
+
+        private void OnPlayerTurn(object? sender, PlayerTurnEventArgs e)
+        {
+            UIGameView.DisplayHand(e.Player);
+            string leadingSuitInfo = e.LeadingSuit.HasValue ? $" (Leading suit is {e.LeadingSuit})" : "Not yet set.";
+            string trumpSuitInfo = e.TrumpSuit.HasValue ? $" (Trump suit is {e.TrumpSuit})" : "Not yet set.";
+
+            _ui.DisplayFormattedMessage("It's {0}'s turn to play in trick {1}", e.Player.Name, e.TrickNumber + 1);
+            if (e.LeadingSuit.HasValue)
+            {
+                _ui.DisplayFormattedMessage("Leading suit: {0}", leadingSuitInfo);
+            }
+            _ui.DisplayFormattedMessage("Trump suit: {0}", trumpSuitInfo);
         }
 
         private void OnCardPlayed(object? sender, CardPlayedEventArgs e)
         {
-            // string leadingInfo = e.LeadingSuit.HasValue ? $" (Leading: {e.LeadingSuit})" : "";
-            // _ui.DisplayMessage($"{e.Player.Name} played {e.Card}{leadingInfo}");
-
-            string leadingInfo = e.LeadingSuit.HasValue ? $" (Leading: {e.LeadingSuit})" : "";
-            _ui.DisplayFormattedMessage("{0} played {1} in trick {2}", e.Player.Name, e.Card, e.TrickNumber);
-
+            _ui.DisplayFormattedMessage("{0} played {1} in trick {2}\n", e.Player.Name, e.Card, e.TrickNumber + 1);
         }
 
         private void OnTrickCompleted(object? sender, TrickCompletedEventArgs e)
         {
-            _ui.DisplayFormattedMessage("\n Trick #{0} complete.", e.TrickNumber);
-            _ui.DisplayFormattedMessage("Winner: {0} with {1}", e.WinningPlayer.Name, e.WinningCard);
-            _ui.DisplayFormattedMessage("Trick points: {0}", e.TrickPoints);
-            
+            _ui.DisplayFormattedMessage("\nTrick #{0} complete.", e.TrickNumber + 1);
+
             // Display all cards played in the trick
             _ui.DisplayMessage("Cards played:");
             foreach (var (card, player) in e.PlayedCards)
             {
                 _ui.DisplayFormattedMessage("{0}: {1}", player.Name, card);
+            }
+
+            _ui.DisplayFormattedMessage("Winner: {0} with {1}", e.WinningPlayer.Name, e.WinningCard);
+            _ui.DisplayFormattedMessage("Trick points: {0}", e.TrickPoints);
+        }
+        
+        private void OnTrickPointsAwarded(object? sender, TrickPointsAwardedEventArgs e)
+        {
+            _ui.DisplayFormattedMessage("{0} collected {1} points for {2}", e.Player.Name, e.TrickPoints, e.TeamName);
+        }
+
+        private void OnTeamScoring(object? sender, TeamScoringEventArgs e)
+        {
+            if (e.CannotScore)
+            {
+                _ui.DisplayFormattedMessage("{0} did not place any bets and has over 100 points, so they score 0 points this round.", e.TeamName);
+            }
+            else if (e.MadeBid)
+            {
+                _ui.DisplayFormattedMessage("{0} made their bet of {1} and wins {2} points.", e.TeamName, e.WinningBid, e.AwardedPoints);
+            }
+            else if (e.AwardedPoints < 0)
+            {
+                _ui.DisplayFormattedMessage("{0} did not make their bet of {1} and loses {1} points.", e.TeamName, e.WinningBid);
+            }
+            else
+            {
+                _ui.DisplayFormattedMessage("{0} did not win the bid, scores {1} points.", e.TeamName, e.AwardedPoints);
             }
         }
 
@@ -129,14 +174,19 @@ namespace DeuxCentsCardGame.Events
             string winner = e.IsTeamOneWinner ? "Team One" : "Team Two";
 
             _ui.DisplayMessage("\n" + new string('-', 50));
-
             _ui.DisplayMessage("GAME OVER");
+
             _ui.DisplayMessage($"Final Scores:");
             _ui.DisplayFormattedMessage("Team One: {0} points", e.TeamOneFinalScore);
             _ui.DisplayFormattedMessage("Team Two: {0} points", e.TeamTwoFinalScore);
             
             _ui.DisplayFormattedMessage("\n {0} WINS!!", winner);
             _ui.DisplayMessage(new string('-', 50));
+        }
+
+        private void OnNextRoundPrompt(object? sender, NextRoundEventArgs e)
+        {
+            _ui.WaitForUser("\nPress any key to start the next round...");
         }
 
         // Method to unsubscribe from events for cleanup
@@ -147,10 +197,14 @@ namespace DeuxCentsCardGame.Events
             _eventManager.BettingAction -= OnBettingAction;
             _eventManager.BettingCompleted -= OnBettingCompleted;
             _eventManager.TrumpSelected -= OnTrumpSelected;
+            _eventManager.PlayerTurn -= OnPlayerTurn;
             _eventManager.CardPlayed -= OnCardPlayed;
             _eventManager.TrickCompleted -= OnTrickCompleted;
             _eventManager.ScoreUpdated -= OnScoreUpdated;
+            _eventManager.TeamScoring -= OnTeamScoring;
+            _eventManager.TrickPointsAwarded -= OnTrickPointsAwarded;
             _eventManager.GameOver -= OnGameOver;
+            _eventManager.NextRoundPrompt -= OnNextRoundPrompt;
         }
     }
 }

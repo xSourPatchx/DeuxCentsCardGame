@@ -22,3 +22,15 @@
 ### - **Dependency Injection**: Swap between AI, human, and network players easily
 
 ### - **Core Logic Separation**: Keep game rules in plain C# classes, not Unity-dependent code
+
+---
+
+### **Best Practices**
+- KISS (Keep It Simple, Stupid)
+- DRY (Don't Repeat Yourself)
+- YAGNI (You Ain't Gonna Need It)
+- SOLID (Single Responsibility, Open/Closed, Liskov Substitution, Interface Segregation, Dependency Inversion)
+- Favor Composition Over Inheritance
+- Separation of Concerns
+- Naming conventions
+- Code layout conventions

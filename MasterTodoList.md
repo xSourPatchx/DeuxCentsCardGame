@@ -41,7 +41,8 @@
 3. **Game State Management**
    - [ ] Implement a state machine pattern for game flow (e.g., `GameState` enum with transitions)
    - [ ] Create separate classes for different game states (`StartState`, `DealState`, `PlayState`, `EndState`, `BettingState`, `PlayingState`, etc.) to control flow
-   - [ ] Use events for game state changes (e.g., `OnCardPlayed`, `OnGameOver`, `OnRoundStarted`, `OnTrickCompleted`) for a decoupled design
+   - [x] Use events for game state changes (e.g., `OnCardPlayed`, `OnGameOver`, `OnRoundStarted`, `OnTrickCompleted`) for a decoupled design
+   - [ ] Add events for Round ended, Hand/cards updated, Invalid moves attempted, Game state changes.
    - [ ] Support saving and loading Game State by serializing the current game state to JSON to persist or debug state easily
 
 ### Architecture Improvements
@@ -112,3 +113,4 @@
 15. **Logging**
     - [ ] Add game event logging and integrate a logger (e.g., `ILogger`) to debug without cluttering UI. This logger can adapt to Unity’s `Debug.Log`
     - [ ] Create debug view of game state
+    - [ ] Add self documenting commment using XML for documentation
