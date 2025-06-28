@@ -1,383 +1,119 @@
+// SIMPLE APPROACH: Event System with Response Property
+
+// 1. Enhanced BetInputEventArgs.cs (already provided, but showing for completeness)
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Interfaces;
-using DeuxCentsCardGame.UI;
-using DeuxCentsCardGame.Events;
 
-namespace DeuxCentsCardGame.Core
+namespace DeuxCentsCardGame.Events.EventArgs
 {
-    public class Game : IGame
+    public class BetInputEventArgs : System.EventArgs
     {
-        // Game constants
-        private const int TEAM_ONE_PLAYER_1 = 0;
-        private const int TEAM_ONE_PLAYER_2 = 2;
-        private const int TEAM_TWO_PLAYER_1 = 1;
-        private const int TEAM_TWO_PLAYER_2 = 3;
-        private const int PLAYERS_PER_TEAM = 2;
-        private const int TOTAL_PLAYERS = 4;
-        private const int WinningScore = 200;
+        public Player CurrentPlayer { get; }
+        public int MinBet { get; }
+        public int MaxBet { get; }
+        public int BetIncrement { get; }
+        public string Response { get; set; } = string.Empty; // Response property for the event handler to set
         
-        // Game state properties
-        private Deck _deck;
-        private readonly List<Player> _players;
-        private BettingState _bettingState;
-        private bool _isGameEnded;
-        private CardSuit? _trumpSuit;
-
-        // dealer starts at player 4 (index 3)
-        public int DealerIndex = TEAM_TWO_PLAYER_2;
-
-        // scoring properties
-        private int _teamOneRoundPoints;
-        private int _teamTwoRoundPoints;
-        private int _teamOneTotalPoints;
-        private int _teamTwoTotalPoints;
-        private int _currentRoundNumber = 1;
-
-        // UI reference
-        private readonly IUIGameView _ui;
-
-        // Event reference
-        private readonly GameEventManager _eventManager;
-        private readonly GameEventHandlers _eventHandler;
-
-        public Game(IUIGameView ui)
+        public BetInputEventArgs(Player currentPlayer, int minBet, int maxBet, int betIncrement)
         {
-            _ui = ui;
-            _deck = new Deck();
-            _players =
-            [
-                new("Player 1"),
-                new("Player 2"),
-                new("Player 3"),
-                new("Player 4"),
-            ];
-
-            _trumpSuit = null;
-            _eventManager = new GameEventManager();
-            _eventHandler = new GameEventHandlers(_eventManager, _ui);
-        }
-
-        public void StartGame()
-        {
-            while (!_isGameEnded)
-            {
-                NewRound();
-            }
-
-            _eventHandler.UnsubscribeFromEvents();
-        }
-
-        public void NewRound()
-        {
-            _eventManager.RaiseRoundStarted(_currentRoundNumber, _players[DealerIndex]);
-            ResetRound();
-            _deck.ShuffleDeck();
-            DealCards();
-            _eventManager.RaiseCardsDealt(_players, DealerIndex);
-            ExecuteBettingRound();
-            SelectTrumpSuit();
-            PlayRound();
-            ScoreRound();
-            EndGameCheck();
-            RotateDealer();
-            _currentRoundNumber++;
-        }
-
-        private void ResetRound()
-        {
-            _deck = new Deck();
-            _teamOneRoundPoints = 0;
-            _teamTwoRoundPoints = 0;
-            _trumpSuit = null;
-            _bettingState = new BettingState(_players, _ui, DealerIndex, _eventManager);
-        }
-
-        private void RotateDealer()
-        {
-            DealerIndex = (DealerIndex + 1) % _players.Count;
-        }
-
-        private void DealCards()
-        {
-            foreach (Player player in _players)
-            {
-                player.Hand.Clear();
-            }
-
-            for (int cardIndex = 0; cardIndex < _deck.Cards.Count; cardIndex++)
-            {
-                _players[cardIndex % _players.Count].AddCard(_deck.Cards[cardIndex]);
-            }
-        }
-
-        public void ExecuteBettingRound()
-        {
-            _bettingState.ResetBettingRound();
-            _bettingState.ExecuteBettingRound();
-        }
-
-        private void SelectTrumpSuit()
-        {
-            string[] validSuits = Enum.GetNames<CardSuit>().Select(suit => suit.ToLower()).ToArray();    
-            string prompt = $"{_players[_bettingState.CurrentWinningBidIndex].Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")";
-            string trumpSuitString = _ui.GetOptionInput(prompt, validSuits);
-
-            _trumpSuit = Deck.StringToCardSuit(trumpSuitString);
-
-            _eventManager.RaiseTrumpSelected(_trumpSuit.Value, _players[_bettingState.CurrentWinningBidIndex]);
-        }
-
-        private void PlayRound()
-        {
-            int currentPlayerIndex = _bettingState.CurrentWinningBidIndex;
-            PlayAllTricks(currentPlayerIndex);
-        }
-
-        private void PlayAllTricks(int startingPlayerIndex)
-        {
-            int totalTricks = _players[startingPlayerIndex].Hand.Count;
-            int currentPlayerIndex = startingPlayerIndex;
-            Card trickWinningCard;
-            Player trickWinner;
-
-            for (int trickNumber = 0; trickNumber < totalTricks; trickNumber++)
-            {
-                int trickPoints = 0;
-                CardSuit? leadingSuit = null;
-
-                // empty list to hold tricks
-                List<(Card card, Player player)> currentTrick = [];
-
-                PlayTrick(currentPlayerIndex, leadingSuit, currentTrick, trickNumber);
-
-                (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick, _trumpSuit);
-
-                currentPlayerIndex = _players.IndexOf(trickWinner); // set winning player as the current player for the next trick
-                trickPoints = currentTrick.Sum(trick => trick.card.CardPointValue); // adding all trick points to trickPoints
-
-                _eventManager.RaiseTrickCompleted(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
-
-                AwardTrickPoints(currentPlayerIndex, trickPoints);
-            }
-        }
-
-        private void PlayTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick, int trickNumber)
-        {
-            for (int trickIndex = 0; trickIndex < _players.Count; trickIndex++)
-            {
-                // ensuring player who won the bet goes first;
-                int playerIndex = (currentPlayerIndex + trickIndex) % _players.Count;
-                Player currentPlayer = _players[playerIndex];
-
-                // Raise event for player's turn (this will display their hand)
-                _eventManager.RaisePlayerTurn(currentPlayer, leadingSuit, _trumpSuit, trickNumber);
-                
-                Card playedCard = GetValidCardFromPlayer(currentPlayer, leadingSuit);
-
-                currentPlayer.RemoveCard(playedCard);
-
-                if (trickIndex == 0)
-                {
-                    leadingSuit = playedCard.CardSuit;
-                }
-
-                currentTrick.Add((playedCard, currentPlayer));
-
-                _eventManager.RaiseCardPlayed(currentPlayer, playedCard, trickNumber, leadingSuit, _trumpSuit);
-            }
-        }
-
-        private Card GetValidCardFromPlayer(Player currentPlayer, CardSuit? leadingSuit)
-        {
-            string leadingSuitString = leadingSuit.HasValue ? Deck.CardSuitToString(leadingSuit.Value) : "none";
-            string trumpSuitString = _trumpSuit.HasValue ? Deck.CardSuitToString(_trumpSuit.Value) : "none";
-
-            string prompt = $"{currentPlayer.Name}, choose a card to play (enter index 0-{currentPlayer.Hand.Count - 1}" +
-                (leadingSuit.HasValue ? $", leading suit is {leadingSuitString}" : "") +
-                $" and trump suit is {trumpSuitString}):";
-
-            while (true)
-            {
-                int cardIndex = _ui.GetIntInput(prompt, 0, currentPlayer.Hand.Count - 1);
-                Card selectedCard = currentPlayer.Hand[cardIndex];
-
-                if (selectedCard.IsPlayableCard(leadingSuit, currentPlayer.Hand))
-                {
-                    return selectedCard;
-                }
-                else
-                {
-                    _ui.DisplayFormattedMessage("You must play the suit of {0} since it's in your deck, try again.\n", leadingSuitString);
-                }
-            }
-        }
-
-        private (Card winningCard, Player winningPlayer) DetermineTrickWinner(List<(Card card, Player player)> trick, CardSuit? trumpSuit)
-        {
-            var trickWinner = trick[0];
-            CardSuit? leadingSuit = trickWinner.card.CardSuit;
-
-            for (int i = 1; i < trick.Count; i++)
-            {        
-                if (trick[i].card.WinsAgainst(trickWinner.card, trumpSuit, leadingSuit))
-                {
-                    trickWinner = trick[i];
-                }
-            }
-
-            return (trickWinner.card, trickWinner.player);
-        }
-
-        private void AwardTrickPoints(int trickWinnerIndex, int trickPoints)
-        {
-            string teamName = IsPlayerOnTeamOne(trickWinnerIndex) ? "Team One" : "Team Two";
-            
-            // Raise event for trick points awarded
-            _eventManager.RaiseTrickPointsAwarded(_players[trickWinnerIndex], trickPoints, teamName);
-
-            if (IsPlayerOnTeamOne(trickWinnerIndex))
-            {
-                _teamOneRoundPoints += trickPoints;
-            }
-            else
-            {
-                _teamTwoRoundPoints += trickPoints;
-            }
-        }
-
-        private bool IsPlayerOnTeamOne(int playerIndex)
-        {
-            return playerIndex % 2 == 0;
-        }
-
-        // tally points and end the round 
-        private void ScoreRound()
-        {
-            bool bidWinnerIsTeamOne = IsPlayerOnTeamOne(_bettingState.CurrentWinningBidIndex);
-
-            ScoreBidWinningTeam(bidWinnerIsTeamOne);
-            ScoreBidLosingTeam(!bidWinnerIsTeamOne);
-
-            _eventManager.RaiseScoreUpdated(_teamOneRoundPoints, 
-                                            _teamTwoRoundPoints, 
-                                            _teamOneTotalPoints, 
-                                            _teamTwoTotalPoints, 
-                                            bidWinnerIsTeamOne, 
-                                            _bettingState.CurrentWinningBid);
-        }
-
-        private void ScoreBidWinningTeam(bool isTeamOne)
-        {
-            int teamRoundPoints;
-            int teamTotalPoints;
-            bool teamCannotScore;
-            // string teamName;
-
-            if (isTeamOne)
-            {
-                teamRoundPoints = _teamOneRoundPoints;
-                teamTotalPoints = _teamOneTotalPoints;
-                teamCannotScore = teamTotalPoints >= 100 && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_2];
-                // teamName = "Team One";
-            }
-            else
-            {
-                teamRoundPoints = _teamTwoRoundPoints;
-                teamTotalPoints = _teamTwoTotalPoints;
-                teamCannotScore = teamTotalPoints >= 100 && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_2];
-                // teamName = "Team Two";
-            }
-
-            int awardedPoints;
-
-            if (teamCannotScore)
-            {
-                // _ui.DisplayFormattedMessage("{0} did not place any bets and has over 100 points, so they score 0 points this round.", teamName);
-                awardedPoints = 0;
-            }
-            else if (teamRoundPoints >= _bettingState.CurrentWinningBid)
-            {
-                // _ui.DisplayFormattedMessage("{0} made their bet of {1} and wins {2} points.", teamName, _bettingState.CurrentWinningBid, teamRoundPoints);
-                awardedPoints = teamRoundPoints;
-            }
-            else
-            {
-                // _ui.DisplayFormattedMessage("{0} did not make their bet of {1} and loses {1} points.", teamName, _bettingState.CurrentWinningBid);
-                awardedPoints = -_bettingState.CurrentWinningBid;
-            }
-
-            if (isTeamOne)
-            {
-                _teamOneTotalPoints += awardedPoints;
-            }
-            else
-            {
-                _teamTwoTotalPoints += awardedPoints;
-            }     
-        }
-
-        private void ScoreBidLosingTeam(bool isTeamOne)
-        {
-            int teamRoundPoints;
-            int teamTotalPoints;
-            bool teamCannotScore;
-            // string teamName;
-
-            if (isTeamOne)
-            {
-                teamRoundPoints = _teamOneRoundPoints;
-                teamTotalPoints = _teamOneTotalPoints;
-                teamCannotScore = teamTotalPoints >= 100 && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_2];
-                // teamName = "Team One";
-            }
-            else
-            {
-                teamRoundPoints = _teamTwoRoundPoints;
-                teamTotalPoints = _teamTwoTotalPoints;
-                teamCannotScore = teamTotalPoints >= 100 && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_2];
-                // teamName = "Team Two";
-            }
-
-            int awardedPoints;
-
-            if (teamCannotScore)
-            {
-                // _ui.DisplayFormattedMessage("{0} did not place any bets and has over 100 points, so they score 0 points this round.", teamName);
-                awardedPoints = 0;
-            }
-            else if (teamRoundPoints >= _bettingState.CurrentWinningBid)
-            {
-                // _ui.DisplayFormattedMessage("{0} made their bet of {1} and wins {2} points.", teamName, _bettingState.CurrentWinningBid, teamRoundPoints);
-                awardedPoints = teamRoundPoints;
-            }
-            else
-            {
-                // _ui.DisplayFormattedMessage("{0} (non-betting team) scores {1} points.", teamName, teamRoundPoints);
-                awardedPoints = teamRoundPoints;
-            }
-
-            if (isTeamOne)
-            {
-                _teamOneTotalPoints += awardedPoints;
-            }
-            else
-            {
-                _teamTwoTotalPoints += awardedPoints;
-            }     
-        }
-
-        private void EndGameCheck()
-        {
-            if (_teamOneTotalPoints >= WinningScore || _teamTwoTotalPoints >= WinningScore)
-            {
-                _eventManager.RaiseGameOver(_teamOneTotalPoints, _teamTwoTotalPoints);
-                _isGameEnded = true;
-            }
-            else
-            {
-                // Only UI interaction, should create an event to handle this
-                _ui.WaitForUser("\nPress any key to start the next round...");
-            }
+            CurrentPlayer = currentPlayer;
+            MinBet = minBet;
+            MaxBet = maxBet;
+            BetIncrement = betIncrement;
         }
     }
 }
+
+// 2. Add to GameEventManager.cs
+
+// Add this event declaration:
+public event EventHandler<BetInputEventArgs>? BetInput;
+
+// Add this event raising method:
+protected virtual void OnBetInput(BetInputEventArgs e)
+{
+    BetInput?.Invoke(this, e);
+}
+
+// Add this public method:
+public string RaiseBetInput(Player currentPlayer, int minBet, int maxBet, int betIncrement)
+{
+    var args = new BetInputEventArgs(currentPlayer, minBet, maxBet, betIncrement);
+    OnBetInput(args);
+    
+    // Return the response that was set by the event handler
+    return args.Response;
+}
+
+// 3. Add to GameEventHandlers.cs
+
+// Add to SubscribeToEvents() method:
+_eventManager.BetInput += OnBetInput;
+
+// Add this new event handler method:
+private void OnBetInput(object? sender, BetInputEventArgs e)
+{
+    string prompt = $"{e.CurrentPlayer.Name}, enter a bet (between {e.MinBet}-{e.MaxBet}, intervals of {e.BetIncrement}) or 'pass': ";
+    string betInput = _ui.GetUserInput(prompt).ToLower();
+    
+    // Set the response in the event args
+    e.Response = betInput;
+}
+
+// Add to UnsubscribeFromEvents() method:
+_eventManager.BetInput -= OnBetInput;
+
+// 4. Modified BettingState.cs - HandlePlayerBids method
+
+private bool HandlePlayerBids(int currentPlayerIndex)
+{
+    while (true)
+    {
+        // Replace the two lines with this single call:
+        string betInput = _eventManager.RaiseBetInput(
+            _players[currentPlayerIndex], 
+            MinimumBet, 
+            MaximumBet, 
+            BetIncrement
+        );
+
+        if (betInput == "pass")
+        {
+            HandlePassInput(currentPlayerIndex);
+            return false;
+        }
+
+        if (int.TryParse(betInput, out int bet) && IsValidBet(bet))
+        {
+            return HandleValidBet(currentPlayerIndex, bet);
+        }
+
+        _ui.DisplayMessage("Invalid bet, please try again");
+    }
+}
+
+// NOTE: No other method signatures need to change - everything stays synchronous
+
+/* 
+HOW THIS WORKS:
+
+1. BettingState calls _eventManager.RaiseBetInput()
+2. GameEventManager fires the BetInput event
+3. GameEventHandlers.OnBetInput() handles the event:
+   - Shows the prompt
+   - Gets user input
+   - Sets e.Response = betInput
+4. Control returns to BettingState with the input
+
+BENEFITS:
+- Simple and straightforward
+- No async complexity
+- Easy to understand and debug
+- Clean separation of concerns
+- Ready for future Unity conversion (just change the event handler)
+
+MIGRATION TO UNITY:
+When you move to Unity, you'll only need to change the OnBetInput method:
+- Instead of console UI, show Unity UI
+- Instead of immediate response, you can still use this pattern with Unity's event system
+- The game logic in BettingState remains unchanged
+*/

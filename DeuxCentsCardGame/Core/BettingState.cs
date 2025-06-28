@@ -94,8 +94,12 @@ namespace DeuxCentsCardGame.Core
         {
             while (true)
             {
-                string prompt = $"{_players[currentPlayerIndex].Name}, enter a bet (between {MinimumBet}-{MaximumBet}, intervals of {BetIncrement}) or 'pass': ";
-                string betInput = _ui.GetUserInput(prompt).ToLower();
+                string betInput = _eventManager.RaiseBetInput(
+                    _players[currentPlayerIndex], 
+                    MinimumBet, 
+                    MaximumBet, 
+                    BetIncrement
+                );
 
                 if (betInput == "pass")
                 {

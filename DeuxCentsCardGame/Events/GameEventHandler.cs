@@ -25,6 +25,7 @@ namespace DeuxCentsCardGame.Events
             _eventManager.CardsDealt += OnCardsDealt;
 
             // Betting and trump selection events
+            _eventManager.BetInput += OnBetInput;
             _eventManager.BettingAction += OnBettingAction;
             _eventManager.BettingCompleted += OnBettingCompleted;
             _eventManager.TrumpSelected += OnTrumpSelected;
@@ -59,6 +60,15 @@ namespace DeuxCentsCardGame.Events
             // display all players hands
             UIGameView.DisplayAllHands(e.Players, e.DealerIndex);
         }
+
+        private void OnBetInput(object? sender, BetInputEventArgs e)
+        {
+            string prompt = $"{e.CurrentPlayer.Name}, enter a bet (between {e.MinimumBet}-{e.MaximumBet}, intervals of {e.BetIncrement}) or 'pass': ";
+            string betInput = _ui.GetUserInput(prompt).ToLower();
+            
+            e.Response = betInput;
+        }
+
 
         private void OnBettingAction(object? sender, BettingEventArgs e)
         {
@@ -194,6 +204,7 @@ namespace DeuxCentsCardGame.Events
         {
             _eventManager.RoundStarted -= OnRoundStarted;
             _eventManager.CardsDealt -= OnCardsDealt;
+            _eventManager.BetInput -= OnBetInput;
             _eventManager.BettingAction -= OnBettingAction;
             _eventManager.BettingCompleted -= OnBettingCompleted;
             _eventManager.TrumpSelected -= OnTrumpSelected;
