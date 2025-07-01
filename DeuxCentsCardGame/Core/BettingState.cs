@@ -23,30 +23,27 @@ namespace DeuxCentsCardGame.Core
 
         // Private betting state fields
         private readonly List<Player> _players;
-        private readonly IUIGameView _ui;
         private readonly int _dealerIndex;
         private readonly GameEventManager _eventManager;
 
-        public BettingState(List<Player> players, IUIGameView ui, int dealerIndex, GameEventManager eventManager)
+        public BettingState(List<Player> players, int dealerIndex, GameEventManager eventManager)
         {
             _players = players;
-            _ui = ui;
             _dealerIndex = dealerIndex;
             _eventManager = eventManager;
         }
 
         public void ExecuteBettingRound()
         {
-            // _ui.DisplayMessage("Betting round begins!\n");
-
             int startingIndex = (_dealerIndex + 1) % _players.Count;
+
+            _eventManager.RaiseBettingRoundStarted("Betting round begins!\n");
 
             while (!IsBettingRoundComplete)
             {
                 IsBettingRoundComplete = HandleBettingRound(startingIndex);
             }
 
-            // DisplayBettingResults();
             DetermineWinningBid();
 
             var allBids = new Dictionary<Player, int>();
@@ -95,10 +92,10 @@ namespace DeuxCentsCardGame.Core
             while (true)
             {
                 string betInput = _eventManager.RaiseBetInput(
-                    _players[currentPlayerIndex], 
-                    MinimumBet, 
-                    MaximumBet, 
-                    BetIncrement
+                                _players[currentPlayerIndex], 
+                                MinimumBet, 
+                                MaximumBet, 
+                                BetIncrement
                 );
 
                 if (betInput == "pass")
@@ -112,13 +109,12 @@ namespace DeuxCentsCardGame.Core
                     return HandleValidBet(currentPlayerIndex, bet);
                 }
 
-                _ui.DisplayMessage("Invalid bet, please try again");
+                _eventManager.RaiseInvalidBet("\nInvalid bet, please try again.\n");
             }
         }
 
         private void HandlePassInput(int currentPlayerIndex)
         {
-            // _ui.DisplayFormattedMessage("\n{0} passed\n", _players[currentPlayerIndex].Name);
             PlayerHasPassed[currentPlayerIndex] = true;
             PlayerBids[currentPlayerIndex] = -1;
 
@@ -150,7 +146,6 @@ namespace DeuxCentsCardGame.Core
 
         private bool HandleMaximumBetScenario(int playerIndex)
         {
-            // _ui.DisplayFormattedMessage("{0} bet {1}. Betting round ends.\n", _players[playerIndex].Name, MaximumBet);
             for (int otherPlayerIndex = 0; otherPlayerIndex < _players.Count; otherPlayerIndex++)
             {
                 if (otherPlayerIndex != playerIndex && !PlayerHasPassed[otherPlayerIndex])
@@ -167,8 +162,6 @@ namespace DeuxCentsCardGame.Core
 
         private bool HandleThreePassesScenario(int currentPlayerIndex)
         {
-            // _ui.DisplayMessage("Three players have passed, betting round ends");
-
             // Check if all players passed and no bets placed
             if (PlayerBids.All(bet => bet <= 0))
             {
@@ -208,10 +201,6 @@ namespace DeuxCentsCardGame.Core
         {
             CurrentWinningBid = PlayerBids.Max();
             CurrentWinningBidIndex = PlayerBids.IndexOf(CurrentWinningBid);
-
-            // _ui.DisplayFormattedMessage("\n{0} won the bid.", _players[CurrentWinningBidIndex].Name);
-            // _ui.DisplayMessage("\n#########################\n");
-            // UIGameView.DisplayHand(_players[CurrentWinningBidIndex]);
         }
     }
 }

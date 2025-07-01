@@ -10,7 +10,9 @@ namespace DeuxCentsCardGame.Events
         public event EventHandler<CardsDealtEventArgs>? CardsDealt;
 
         // Betting and trump selection events
+        public event EventHandler<BettingRoundStartedEventArgs>? BettingRoundStarted;
         public event EventHandler<BetInputEventArgs>? BetInput;
+        public event EventHandler<InvalidBetEventArgs>? InvalidBet;
         public event EventHandler<BettingEventArgs>? BettingAction;
         public event EventHandler<BettingCompletedEventArgs>? BettingCompleted;
         public event EventHandler<TrumpSelectedEventArgs>? TrumpSelected;
@@ -40,10 +42,21 @@ namespace DeuxCentsCardGame.Events
             CardsDealt?.Invoke(this, e);
         }
 
+        protected virtual void OnBettingRoundStarted(BettingRoundStartedEventArgs e)
+        {
+            BettingRoundStarted?.Invoke(this, e);
+        }
+
         protected virtual void OnBetInput(BetInputEventArgs e)
         {
             BetInput?.Invoke(this, e);
         }
+        
+        protected virtual void OnInvalidBet(InvalidBetEventArgs e)
+        {
+            InvalidBet?.Invoke(this, e);
+        }
+
         protected virtual void OnBettingAction(BettingEventArgs e)
         {
             BettingAction?.Invoke(this, e);
@@ -110,12 +123,22 @@ namespace DeuxCentsCardGame.Events
             OnCardsDealt(new CardsDealtEventArgs(players, dealerIndex));
         }
 
-        // using event to return response, might not be used in Unity
+        public void RaiseBettingRoundStarted(string message)
+        {
+            OnBettingRoundStarted(new BettingRoundStartedEventArgs(message));
+        }
+        
+        // here im using event to return response, might not be used in Unity
         public string RaiseBetInput(Player currentPlayer, int minBet, int maxBet, int betIncrement)
         {
             var args = new BetInputEventArgs(currentPlayer, minBet, maxBet, betIncrement);
             OnBetInput(args);
             return args.Response;
+        }
+
+        public void RaiseInvalidBet(string message)
+        {
+            OnInvalidBet(new InvalidBetEventArgs(message));
         }
 
         public void RaiseBettingAction(Player player, int bet, bool hasPassed = false)
