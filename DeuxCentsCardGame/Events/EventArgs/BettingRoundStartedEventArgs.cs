@@ -1,10 +1,10 @@
 namespace DeuxCentsCardGame.Events.EventArgs
 {
-    public class InvalidBetEventArgs : System.EventArgs
+    public class BettingRoundStartedEventArgs : System.EventArgs
     {
         public string Message { get; }
 
-        public InvalidBetEventArgs(string message)
+        public BettingRoundStartedEventArgs(string message)
         {
             Message = message;
         }

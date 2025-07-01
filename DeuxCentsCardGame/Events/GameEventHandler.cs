@@ -5,12 +5,12 @@ using DeuxCentsCardGame.UI;
 
 namespace DeuxCentsCardGame.Events
 {
-    public class GameEventHandlers
+    public class GameEventHandler
     {
         private readonly GameEventManager _eventManager;
         private readonly IUIGameView _ui;
 
-        public GameEventHandlers(GameEventManager eventManager, IUIGameView ui)
+        public GameEventHandler(GameEventManager eventManager, IUIGameView ui)
         {
             _eventManager = eventManager;
             _ui = ui;
@@ -25,7 +25,9 @@ namespace DeuxCentsCardGame.Events
             _eventManager.CardsDealt += OnCardsDealt;
 
             // Betting and trump selection events
+            _eventManager.BettingRoundStarted += OnBettingRoundStarted;
             _eventManager.BetInput += OnBetInput;
+            _eventManager.InvalidBet += OnInvalidBet;
             _eventManager.BettingAction += OnBettingAction;
             _eventManager.BettingCompleted += OnBettingCompleted;
             _eventManager.TrumpSelected += OnTrumpSelected;
@@ -49,16 +51,21 @@ namespace DeuxCentsCardGame.Events
         private void OnRoundStarted(object? sender, RoundEventArgs e)
         {
             _ui.ClearScreen();
-            _ui.DisplayFormattedMessage("\nRound {0} Started. Dealer: {1}", e.RoundNumber, e.Dealer.Name);
+            _ui.DisplayFormattedMessage("\nRound {0} Started. Dealer: {1}\n", e.RoundNumber, e.Dealer.Name);
         }
 
         private void OnCardsDealt(object? sender, CardsDealtEventArgs e)
         {
-            _ui.DisplayMessage("Dealing cards...");
+            _ui.DisplayMessage("Dealing cards...\n");
             _ui.DisplayFormattedMessage("\nCards dealt to all {0} players. Dealer index: {1}", e.Players.Count, e.DealerIndex);
 
             // display all players hands
             UIGameView.DisplayAllHands(e.Players, e.DealerIndex);
+        }
+
+        private void OnBettingRoundStarted(object? sender, BettingRoundStartedEventArgs e)
+        {
+            _ui.DisplayMessage(e.Message);
         }
 
         private void OnBetInput(object? sender, BetInputEventArgs e)
@@ -67,6 +74,11 @@ namespace DeuxCentsCardGame.Events
             string betInput = _ui.GetUserInput(prompt).ToLower();
             
             e.Response = betInput;
+        }
+
+        private void OnInvalidBet(object? sender, InvalidBetEventArgs e)
+        {
+            _ui.DisplayMessage(e.Message);
         }
 
 
@@ -204,7 +216,9 @@ namespace DeuxCentsCardGame.Events
         {
             _eventManager.RoundStarted -= OnRoundStarted;
             _eventManager.CardsDealt -= OnCardsDealt;
+            _eventManager.BettingRoundStarted -= OnBettingRoundStarted;
             _eventManager.BetInput -= OnBetInput;
+            _eventManager.InvalidBet -= OnInvalidBet;
             _eventManager.BettingAction -= OnBettingAction;
             _eventManager.BettingCompleted -= OnBettingCompleted;
             _eventManager.TrumpSelected -= OnTrumpSelected;

@@ -50,7 +50,7 @@ namespace DeuxCentsCardGame.Models
     
         public void ShuffleDeck()
         {
-            Console.WriteLine("Shuffling cards...");
+            Console.WriteLine("Shuffling cards...\n");
             for (int cardIndex = 0; cardIndex < Cards.Count; cardIndex++)
             {
                 int randomCardIndex = Random.Shared.Next(cardIndex, Cards.Count);

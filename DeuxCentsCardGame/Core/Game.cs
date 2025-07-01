@@ -38,7 +38,7 @@ namespace DeuxCentsCardGame.Core
 
         // Event reference
         private readonly GameEventManager _eventManager;
-        private readonly GameEventHandlers _eventHandler;
+        private readonly GameEventHandler _eventHandler;
 
         public Game(IUIGameView ui)
         {
@@ -54,7 +54,7 @@ namespace DeuxCentsCardGame.Core
 
             _trumpSuit = null;
             _eventManager = new GameEventManager();
-            _eventHandler = new GameEventHandlers(_eventManager, _ui);
+            _eventHandler = new GameEventHandler(_eventManager, _ui);
         }
 
         public void StartGame()
@@ -89,7 +89,7 @@ namespace DeuxCentsCardGame.Core
             _teamOneRoundPoints = 0;
             _teamTwoRoundPoints = 0;
             _trumpSuit = null;
-            _bettingState = new BettingState(_players, _ui, DealerIndex, _eventManager);
+            _bettingState = new BettingState(_players, /*_ui, */DealerIndex, _eventManager);
         }
 
         private void RotateDealer()
