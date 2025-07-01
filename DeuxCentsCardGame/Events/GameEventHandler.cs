@@ -60,7 +60,7 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayFormattedMessage("\nCards dealt to all {0} players. Dealer index: {1}", e.Players.Count, e.DealerIndex);
 
             // display all players hands
-            UIGameView.DisplayAllHands(e.Players, e.DealerIndex);
+            UIGameView.DisplayAllHands(e.Players, e.DealerIndex + 1);
         }
 
         private void OnBettingRoundStarted(object? sender, BettingRoundStartedEventArgs e)
