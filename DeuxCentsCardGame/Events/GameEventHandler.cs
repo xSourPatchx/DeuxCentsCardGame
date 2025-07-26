@@ -68,11 +68,6 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayMessage(e.Message);
         }
 
-        private void OnBettingRoundStarted(object? sender, BettingRoundStartedEventArgs e)
-        {
-            _ui.DisplayMessage(e.Message);
-        }
-
         private void OnBetInput(object? sender, BetInputEventArgs e)
         {
             string prompt = $"{e.CurrentPlayer.Name}, enter a bet (between {e.MinimumBet}-{e.MaximumBet}, intervals of {e.BetIncrement}) or 'pass': ";

@@ -23,7 +23,6 @@ namespace DeuxCentsCardGame.Core
         private readonly GameEventManager _eventManager;
 
         public BettingState(List<Player> players, int dealerIndex, GameEventManager eventManager)
-        public BettingState(List<Player> players, int dealerIndex, GameEventManager eventManager)
         {
             _players = players;
             _dealerIndex = dealerIndex;
@@ -90,10 +89,6 @@ namespace DeuxCentsCardGame.Core
             while (true)
             {
                 string betInput = _eventManager.RaiseBetInput(
-                                _players[currentPlayerIndex], 
-                                MinimumBet, 
-                                MaximumBet, 
-                                BetIncrement
                                 _players[currentPlayerIndex], 
                                 MinimumBet, 
                                 MaximumBet, 
