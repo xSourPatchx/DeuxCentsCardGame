@@ -23,6 +23,7 @@ namespace DeuxCentsCardGame.Core
         private readonly GameEventManager _eventManager;
 
         public BettingState(List<Player> players, int dealerIndex, GameEventManager eventManager)
+        public BettingState(List<Player> players, int dealerIndex, GameEventManager eventManager)
         {
             _players = players;
             _dealerIndex = dealerIndex;
@@ -32,6 +33,8 @@ namespace DeuxCentsCardGame.Core
         public void ExecuteBettingRound()
         {
             int startingIndex = (_dealerIndex + 1) % _players.Count;
+
+            _eventManager.RaiseBettingRoundStarted("Betting round begins!\n");
 
             _eventManager.RaiseBettingRoundStarted("Betting round begins!\n");
 
@@ -91,6 +94,10 @@ namespace DeuxCentsCardGame.Core
                                 MinimumBet, 
                                 MaximumBet, 
                                 BetIncrement
+                                _players[currentPlayerIndex], 
+                                MinimumBet, 
+                                MaximumBet, 
+                                BetIncrement
                 );
 
                 if (betInput == "pass")
@@ -104,6 +111,7 @@ namespace DeuxCentsCardGame.Core
                     return HandleValidBet(currentPlayerIndex, bet);
                 }
 
+                _eventManager.RaiseInvalidBet("\nInvalid bet, please try again.\n");
                 _eventManager.RaiseInvalidBet("\nInvalid bet, please try again.\n");
             }
         }
