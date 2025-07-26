@@ -124,5 +124,10 @@ namespace DeuxCentsCardGame.UI
                                                  players[(dealerIndex + 2) % players.Count],
                                                  players[(dealerIndex + 3) % players.Count]);
         }
+
+        public static void DisplayBettingResults()
+        { 
+            
+        }
     }
 }

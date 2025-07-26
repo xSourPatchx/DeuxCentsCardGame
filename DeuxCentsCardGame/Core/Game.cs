@@ -269,23 +269,9 @@ namespace DeuxCentsCardGame.Core
 
         private void ScoreBidWinningTeam(bool isTeamOne)
         {
-            int teamRoundPoints;
-            int teamTotalPoints;
-            bool teamCannotScore;
-
-            if (isTeamOne)
-            {
-                teamRoundPoints = _teamOneRoundPoints;
-                teamTotalPoints = _teamOneTotalPoints;
-                teamCannotScore = teamTotalPoints >= 100 && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_2];
-            }
-            else
-            {
-                teamRoundPoints = _teamTwoRoundPoints;
-                teamTotalPoints = _teamTwoTotalPoints;
-                teamCannotScore = teamTotalPoints >= 100 && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_2];
-            }
-
+            int teamRoundPoints = isTeamOne ? _teamOneRoundPoints : _teamTwoRoundPoints;
+            int teamTotalPoints = isTeamOne ? _teamOneTotalPoints : _teamTwoTotalPoints;
+            bool teamCannotScore = teamTotalPoints >= 100 && !_players[isTeamOne? TEAM_ONE_PLAYER_1 : TEAM_ONE_PLAYER_2].HasBet && !_players[isTeamOne? TEAM_ONE_PLAYER_2 : TEAM_ONE_PLAYER_1].HasBet;
             int awardedPoints;
 
             if (teamCannotScore)
@@ -313,23 +299,9 @@ namespace DeuxCentsCardGame.Core
 
         private void ScoreBidLosingTeam(bool isTeamOne)
         {
-            int teamRoundPoints;
-            int teamTotalPoints;
-            bool teamCannotScore;
-
-            if (isTeamOne)
-            {
-                teamRoundPoints = _teamOneRoundPoints;
-                teamTotalPoints = _teamOneTotalPoints;
-                teamCannotScore = teamTotalPoints >= 100 && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_ONE_PLAYER_2];
-            }
-            else
-            {
-                teamRoundPoints = _teamTwoRoundPoints;
-                teamTotalPoints = _teamTwoTotalPoints;
-                teamCannotScore = teamTotalPoints >= 100 && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_1] && !_bettingState.PlayerHasBet[TEAM_TWO_PLAYER_2];
-            }
-
+            int teamRoundPoints = isTeamOne ? _teamOneRoundPoints : _teamTwoRoundPoints;
+            int teamTotalPoints = isTeamOne ? _teamOneTotalPoints : _teamTwoTotalPoints;
+            bool teamCannotScore = teamTotalPoints >= 100 && !_players[isTeamOne? TEAM_ONE_PLAYER_1 : TEAM_ONE_PLAYER_2].HasBet && !_players[isTeamOne? TEAM_ONE_PLAYER_2 : TEAM_ONE_PLAYER_1].HasBet;
             int awardedPoints;
 
             if (teamCannotScore)

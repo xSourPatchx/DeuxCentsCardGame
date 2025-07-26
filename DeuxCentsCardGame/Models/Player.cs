@@ -6,6 +6,9 @@ namespace DeuxCentsCardGame.Models
     {
         public string Name { get; } = name;
         public List<Card> Hand { get; } = [];
+        public bool HasBet { get; set; }
+        public bool HasPassed { get; set; }
+        public int CurrentBid { get; set; }
 
         public void AddCard(Card card)
         {
@@ -15,6 +18,13 @@ namespace DeuxCentsCardGame.Models
         public void RemoveCard(Card card)
         {
             Hand.Remove(card);
+        }
+
+        public void ResetBettingState()
+        {
+            HasBet = false;
+            HasPassed = false;
+            CurrentBid = 0;
         }
     }
 }
