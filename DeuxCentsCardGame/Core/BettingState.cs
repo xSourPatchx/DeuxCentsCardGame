@@ -35,8 +35,6 @@ namespace DeuxCentsCardGame.Core
 
             _eventManager.RaiseBettingRoundStarted("Betting round begins!\n");
 
-            _eventManager.RaiseBettingRoundStarted("Betting round begins!\n");
-
             while (!IsBettingRoundComplete)
             {
                 IsBettingRoundComplete = HandleBettingRound(startingIndex);
@@ -45,6 +43,12 @@ namespace DeuxCentsCardGame.Core
             DetermineWinningBid();
 
             var allBids = new Dictionary<Player, int>();
+
+            foreach (var player in _players)
+            {
+                allBids[player] = player.CurrentBid;
+            }
+
             Player winningBidder = _players[CurrentWinningBidIndex];
 
             _eventManager.RaiseBettingCompleted(winningBidder, CurrentWinningBid, allBids);
@@ -107,7 +111,6 @@ namespace DeuxCentsCardGame.Core
                 }
 
                 _eventManager.RaiseInvalidBet("\nInvalid bet, please try again.\n");
-                _eventManager.RaiseInvalidBet("\nInvalid bet, please try again.\n");
             }
         }
 
@@ -150,11 +153,16 @@ namespace DeuxCentsCardGame.Core
         {
             for (int otherPlayerIndex = 0; otherPlayerIndex < _players.Count; otherPlayerIndex++)
             {
-                if (otherPlayerIndex != playerIndex && !_players[otherPlayerIndex].HasPassed)
+                var otherPlayer = _players[otherPlayerIndex];
+                if (otherPlayerIndex != playerIndex && !otherPlayer.HasPassed)
                 {
-                    _players[otherPlayerIndex].HasPassed = true;
+                    otherPlayer.HasPassed = true;
+                    if (!otherPlayer.HasBet)
+                    {
+                        otherPlayer.CurrentBid = -1;
+                    }
 
-                    _eventManager.RaiseBettingAction(_players[otherPlayerIndex], -1, true);
+                    _eventManager.RaiseBettingAction(otherPlayer, -1, true);
                 }
             }
 
