@@ -1,3 +1,5 @@
+// me
+
 using DeuxCentsCardGame.Interfaces;
 using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.UI;
@@ -51,9 +53,10 @@ namespace DeuxCentsCardGame.Core
 
             Player winningBidder = _players[CurrentWinningBidIndex];
 
-            _eventManager.RaiseBettingCompleted(winningBidder, CurrentWinningBid, allBids);
-
-            IsBettingRoundComplete = true;
+            if (CurrentWinningBid > 0)
+            {
+                _eventManager.RaiseBettingCompleted(winningBidder, CurrentWinningBid, allBids);
+            }
         }
 
         public void ResetBettingRound()
@@ -75,14 +78,19 @@ namespace DeuxCentsCardGame.Core
                 int currentPlayerIndex = (startingIndex + i) % _players.Count;
                 Player currentPlayer = _players[currentPlayerIndex];
 
+                // Skip players who have passed
                 if (currentPlayer.HasPassed)
                     continue;
 
+                // Parse and handle user input
                 if (HandlePlayerBids(currentPlayerIndex))
-                    return true;
+                    return true; // End betting round
 
+                // Check if three or more players have passed
                 if (_players.Count(pass => pass.HasPassed) >= 3)
-                    return HandleThreePassesScenario(currentPlayerIndex);
+                {
+                    return HandleThreePassesScenario();   
+                }
             }
 
             return false;
@@ -117,12 +125,15 @@ namespace DeuxCentsCardGame.Core
         private void HandlePassInput(int currentPlayerIndex)
         {
             var player = _players[currentPlayerIndex];
-            // bool hasBet = player.HasBet;
-            
             player.HasPassed = true;
-            player.CurrentBid = -1;
 
-            _eventManager.RaiseBettingAction(player, -1, true);
+            // Only set to -1 if they haven't placed a bet yet
+            if (!player.HasBet)
+            {
+                player.CurrentBid = -1;
+            }
+
+            _eventManager.RaiseBettingAction(player, player.CurrentBid, true);
         }
 
         private bool IsValidBet(int bet)
@@ -143,7 +154,7 @@ namespace DeuxCentsCardGame.Core
 
             if (bet == MaximumBet)
             {
-                return HandleMaximumBetScenario(currentPlayerIndex); // End the betting round immediately
+                return HandleMaximumBetScenario(currentPlayerIndex); // End round immediately
             }
 
             return false;
@@ -151,68 +162,64 @@ namespace DeuxCentsCardGame.Core
 
         private bool HandleMaximumBetScenario(int playerIndex)
         {
+            // Force all other players to pass when someone bets 100
             for (int otherPlayerIndex = 0; otherPlayerIndex < _players.Count; otherPlayerIndex++)
             {
-                var otherPlayer = _players[otherPlayerIndex];
-                if (otherPlayerIndex != playerIndex && !otherPlayer.HasPassed)
+                if (otherPlayerIndex != playerIndex && !_players[otherPlayerIndex].HasPassed)
                 {
+                    var otherPlayer = _players[otherPlayerIndex];
                     otherPlayer.HasPassed = true;
+
+                    // Preserve player existing bid if they had one
                     if (!otherPlayer.HasBet)
                     {
                         otherPlayer.CurrentBid = -1;
                     }
 
-                    _eventManager.RaiseBettingAction(otherPlayer, -1, true);
+                    _eventManager.RaiseBettingAction(otherPlayer, otherPlayer.CurrentBid, true);
                 }
             }
 
             return true;
         }
 
-        private bool HandleThreePassesScenario(int currentPlayerIndex)
+        private bool HandleThreePassesScenario()
         {
-            // Check if all players has placed a valid bet (not -1 and not 0)
-            if (_players.Any(pass => pass.CurrentBid > 0))
+            var activePlayers = _players.Where(pass => !pass.HasPassed).ToList();
+            
+            // Check if three players have passed and one remains
+            if (activePlayers.Count == 1)
             {
-                int lastBiddingPlayerIndex = (currentPlayerIndex + 1) % _players.Count;
-                var lastPlayer = _players[lastBiddingPlayerIndex];
-
-                lastPlayer.HasBet = true;
-                lastPlayer.CurrentBid = MinimumBet;
-
-                CurrentWinningBid = MinimumBet;
-                CurrentWinningBidIndex = lastBiddingPlayerIndex;
-
-                _eventManager.RaiseBettingAction(_players[lastBiddingPlayerIndex], MinimumBet, false);
+                // Check if this is the "first three pass" scenario or no one has placed a bet yet
+                if (!_players.Any(p => p.HasBet && p.CurrentBid > 0))
+                {
+                    // Force the last player to bet 50
+                    activePlayers[0].HasBet = true;
+                    activePlayers[0].CurrentBid = MinimumBet;
+                    activePlayers[0].HasPassed = true; // Mark as passed to end the round
+                    
+                    _eventManager.RaiseBettingAction(activePlayers[0], MinimumBet, false);
+                }
             }
-
+            
             return true;
         }
 
-        // private void DisplayBettingResults()
-        // {
-        //     _ui.DisplayMessage("\nBetting round complete, here are the results:");
-
-        //     for (int i = 0; i < _players.Count; i++)
-        //     {
-        //         string result = GetPlayerBettingResult(i);
-        //         _ui.DisplayFormattedMessage("{0} : {1}", _players[i].Name, result);
-        //     }
-        // }
-
-        // private string GetPlayerBettingResult(int playerIndex)
-        // {
-        //     if (PlayerHasPassed[playerIndex])
-        //     {
-        //         return PlayerHasBet[playerIndex] ? "Passed after betting" : "Passed";
-        //     }
-        //     return $"Bet {PlayerBids[playerIndex]}";
-        // }
-
         private void DetermineWinningBid()
         {
-            CurrentWinningBid = _players.Max(player => player.CurrentBid);
-            CurrentWinningBidIndex = _players.FindIndex(player => player.CurrentBid == CurrentWinningBid);
+            // Only consider valid bids (> 0)
+            var validBids = _players.Where(player => player.CurrentBid > 0);
+            
+            if (validBids.Any())
+            {
+                CurrentWinningBid = validBids.Max(player => player.CurrentBid);
+                CurrentWinningBidIndex = _players.FindIndex(player => player.CurrentBid == CurrentWinningBid);
+            }
+            else
+            {
+                CurrentWinningBid = 0;
+                CurrentWinningBidIndex = -1;
+            }
         }
     }
 }

@@ -1,7 +1,9 @@
 using DeuxCentsCardGame.Interfaces;
 using DeuxCentsCardGame.Core;
+using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.Events;
 using System.Reflection;
+
 using Moq;
 
 namespace DeuxCentsCardGame.Tests
@@ -41,7 +43,7 @@ namespace DeuxCentsCardGame.Tests
             var dealerIndex = (int)dealerIndexField.GetValue(game);
             
             // Create and set the betting state
-            var bettingState = Activator.CreateInstance(typeof(BettingState), players, _mockUI.Object, dealerIndex, _eventManager);
+            var bettingState = new BettingState((List<Player>)players, dealerIndex, _eventManager);
             SetPrivateField(game, "_bettingState", bettingState);
         }
         

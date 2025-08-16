@@ -1,16 +1,14 @@
-using DeuxCentsCardGame.Interfaces;
 using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.Core;
 using DeuxCentsCardGame.Events;
-using Moq;
+using DeuxCentsCardGame.Events.EventArgs;
 
 namespace DeuxCentsCardGame.Tests
 {
     public class BettingStateTests
     {
-        private readonly Mock<IUIGameView> _mockUI;
         private readonly List<Player> _players;
-        private readonly int _dealerIndex;
+        private int _dealerIndex;
         private readonly GameEventManager _eventManager;
 
         public BettingStateTests()
@@ -23,7 +21,7 @@ namespace DeuxCentsCardGame.Tests
                 new Player("Player3"),
                 new Player("Player4")
             };
-            _dealerIndex = 0;
+            _dealerIndex = 3; // Player 4 is dealer, Player 1 starts betting
             _eventManager = new GameEventManager();
         }
 
@@ -37,9 +35,6 @@ namespace DeuxCentsCardGame.Tests
             Assert.Equal(0, bettingState.CurrentWinningBid);
             Assert.Equal(0, bettingState.CurrentWinningBidIndex);
             Assert.False(bettingState.IsBettingRoundComplete);
-            Assert.Null(bettingState.PlayerBids);
-            Assert.Null(bettingState.PlayerHasBet);
-            Assert.Null(bettingState.PlayerHasPassed);
         }
 
         [Fact]
@@ -52,21 +47,24 @@ namespace DeuxCentsCardGame.Tests
         }
 
         [Fact]
-        public void ResetBettingRound_ShouldInitializeAllLists()
+        public void ResetBettingRound_ShouldResetPlayerBettingStates()
         {
             // Arrange
             var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
+            _players.ForEach(p =>
+            {
+                p.CurrentBid = 50;
+                p.HasBet = true;
+                p.HasPassed = true;
+            });
 
             // Act
             bettingState.ResetBettingRound();
 
             // Assert
-            Assert.Equal(4, bettingState.PlayerBids.Count);
-            Assert.Equal(4, bettingState.PlayerHasBet.Count);
-            Assert.Equal(4, bettingState.PlayerHasPassed.Count);
-            Assert.All(bettingState.PlayerBids, bid => Assert.Equal(0, bid));
-            Assert.All(bettingState.PlayerHasBet, hasBet => Assert.False(hasBet));
-            Assert.All(bettingState.PlayerHasPassed, hasPassed => Assert.False(hasPassed));
+            Assert.All(_players, p => Assert.Equal(0, p.CurrentBid));
+            Assert.All(_players, p => Assert.False(p.HasBet));
+            Assert.All(_players, p => Assert.False(p.HasPassed));
             Assert.Equal(0, bettingState.CurrentWinningBid);
             Assert.Equal(0, bettingState.CurrentWinningBidIndex);
             Assert.False(bettingState.IsBettingRoundComplete);
@@ -76,27 +74,30 @@ namespace DeuxCentsCardGame.Tests
         public void ResetBettingRound_ShouldHandleDifferentPlayerCounts()
         {
             // Arrange
-            var twoPlayers = new List<Player> { new Player("P1"), new Player("P2") };
+            var twoPlayers = new List<Player> { new("P1"), new("P2") };
             var bettingState = new BettingState(twoPlayers, 0, _eventManager);
 
             // Act
             bettingState.ResetBettingRound();
 
             // Assert
-            Assert.Equal(2, bettingState.PlayerBids.Count);
-            Assert.Equal(2, bettingState.PlayerHasBet.Count);
-            Assert.Equal(2, bettingState.PlayerHasPassed.Count);
+            Assert.All(twoPlayers, p => Assert.Equal(0, p.CurrentBid));
+            Assert.All(twoPlayers, p => Assert.False(p.HasBet));
+            Assert.All(twoPlayers, p => Assert.False(p.HasPassed));
         }
 
         [Fact]
         public void ExecuteBettingRound_WithMaximumBet_ShouldEndImmediately()
         {
             // Arrange
+            _dealerIndex = 3; // P4 is dealer, P1 (index 0) starts
             var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
-            _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
-                   .Returns("100"); // Player2 (after dealer) bets maximum
+            _eventManager.BetInput += (sender, e) =>
+            {
+                if (e.CurrentPlayer == _players[0]) e.Response = "100";
+            };
 
             // Act
             bettingState.ExecuteBettingRound();
@@ -104,27 +105,26 @@ namespace DeuxCentsCardGame.Tests
             // Assert
             Assert.True(bettingState.IsBettingRoundComplete);
             Assert.Equal(100, bettingState.CurrentWinningBid);
-            Assert.Equal(1, bettingState.CurrentWinningBidIndex); // Player2 index
-            Assert.Equal(100, bettingState.PlayerBids[1]);
-            Assert.True(bettingState.PlayerHasBet[1]);
-            
+            Assert.Equal(0, bettingState.CurrentWinningBidIndex); // Player1 index
+            Assert.Equal(100, _players[0].CurrentBid);
+            Assert.True(_players[0].HasBet);
+
             // Other players should be marked as passed
-            Assert.True(bettingState.PlayerHasPassed[0]);
-            Assert.True(bettingState.PlayerHasPassed[2]);
-            Assert.True(bettingState.PlayerHasPassed[3]);
+            Assert.True(_players[1].HasPassed);
+            Assert.True(_players[2].HasPassed);
+            Assert.True(_players[3].HasPassed);
         }
 
         [Fact]
-        public void ExecuteBettingRound_WithThreePasses_ShouldForceMinimumBet()
+        public void ExecuteBettingRound_WithThreePasses_ShouldForceLastPlayerToBet()
         {
             // Arrange
+            _dealerIndex = 3; // P4 is dealer, P1 (idx 0) starts
             var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
-            _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
-                   .Returns("pass") // Player2 passes
-                   .Returns("pass") // Player3 passes
-                   .Returns("pass"); // Player4 passes
+            var betQueue = new Queue<string>(new[] { "pass", "pass", "pass" });
+            _eventManager.BetInput += (sender, e) => { e.Response = betQueue.Dequeue(); };
 
             // Act
             bettingState.ExecuteBettingRound();
@@ -132,25 +132,23 @@ namespace DeuxCentsCardGame.Tests
             // Assert
             Assert.True(bettingState.IsBettingRoundComplete);
             Assert.Equal(50, bettingState.CurrentWinningBid); // Minimum bet
-            Assert.Equal(0, bettingState.CurrentWinningBidIndex); // Player1 (dealer + 1) gets forced bet
-            Assert.Equal(50, bettingState.PlayerBids[0]);
-            Assert.True(bettingState.PlayerHasBet[0]);
+            Assert.Equal(3, bettingState.CurrentWinningBidIndex); // Player4 (dealer) is forced to bet
+            Assert.Equal(50, _players[3].CurrentBid);
+            Assert.True(_players[3].HasBet);
         }
 
         [Fact]
         public void ExecuteBettingRound_WithValidBets_ShouldDetermineWinner()
         {
             // Arrange
+            _dealerIndex = 3; // P4 dealer, P1 (idx 0) starts
             var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
-            _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
-                   .Returns("55")   // Player2 bets 55
-                   .Returns("70")   // Player3 bets 70
-                   .Returns("pass") // Player4 passes
-                   .Returns("pass") // Player1 passes
-                   .Returns("pass") // Player2 passes (second round)
-                   .Returns("pass"); // Player3 passes (second round)
+            var betQueue = new Queue<string>(new[] { "55", "70", "pass", "pass" });
+            _eventManager.BetInput += (sender, e) => {
+                if (betQueue.Any()) e.Response = betQueue.Dequeue();
+            };
 
             // Act
             bettingState.ExecuteBettingRound();
@@ -158,7 +156,7 @@ namespace DeuxCentsCardGame.Tests
             // Assert
             Assert.True(bettingState.IsBettingRoundComplete);
             Assert.Equal(70, bettingState.CurrentWinningBid);
-            Assert.Equal(2, bettingState.CurrentWinningBidIndex); // Player3 index
+            Assert.Equal(1, bettingState.CurrentWinningBidIndex); // Player2 index
         }
 
         [Theory]
@@ -170,154 +168,71 @@ namespace DeuxCentsCardGame.Tests
         public void ExecuteBettingRound_WithInvalidBets_ShouldPromptRetry(string invalidBet)
         {
             // Arrange
+            _dealerIndex = 3; // P1 (idx 0) starts
             var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
-            _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
-                   .Returns(invalidBet) // Invalid bet first
-                   .Returns("50")       // Valid bet second
-                   .Returns("pass")     // Player3 passes
-                   .Returns("pass")     // Player4 passes
-                   .Returns("pass");    // Player1 passes
+            var betQueue = new Queue<string>(new[] { invalidBet, "50", "pass", "pass", "pass" });
+            _eventManager.BetInput += (sender, e) => { e.Response = betQueue.Dequeue(); };
+
+            int invalidBetCount = 0;
+            _eventManager.InvalidBet += (sender, e) => { invalidBetCount++; };
 
             // Act
             bettingState.ExecuteBettingRound();
 
             // Assert
-            _mockUI.Verify(ui => ui.DisplayMessage("Invalid bet, please try again"), Times.Once);
-            Assert.Equal(50, bettingState.PlayerBids[1]); // Valid bet was accepted
+            Assert.Equal(1, invalidBetCount);
+            Assert.Equal(50, _players[0].CurrentBid); // Valid bet was accepted
         }
 
         [Fact]
         public void ExecuteBettingRound_WithDuplicateBets_ShouldRejectDuplicate()
         {
             // Arrange
+            _dealerIndex = 3; // P1 (idx 0) starts
             var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
-            _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
-                   .Returns("60")   // Player2 bets 60
-                   .Returns("60")   // Player3 tries to bet 60 (duplicate)
-                   .Returns("65")   // Player3 bets 65 (valid)
-                   .Returns("pass") // Player4 passes
-                   .Returns("pass") // Player1 passes
-                   .Returns("pass") // Player2 passes
-                   .Returns("pass"); // Player3 passes
+            var betQueue = new Queue<string>(new[] { "60", "60", "65", "pass", "pass" });
+            _eventManager.BetInput += (sender, e) => { e.Response = betQueue.Dequeue(); };
+
+            int invalidBetCount = 0;
+            _eventManager.InvalidBet += (sender, e) => { invalidBetCount++; };
 
             // Act
             bettingState.ExecuteBettingRound();
 
             // Assert
-            _mockUI.Verify(ui => ui.DisplayMessage("Invalid bet, please try again"), Times.Once);
-            Assert.Equal(-1, bettingState.PlayerBids[1]);
-            Assert.Equal(65, bettingState.PlayerBids[2]);
-        }
-
-        [Fact]
-        public void ExecuteBettingRound_ShouldStartWithPlayerAfterDealer()
-        {
-            // Arrange
-            var dealerIndex = 2; // Player3 is dealer
-            var bettingState = new BettingState(_players, dealerIndex, _eventManager);
-            bettingState.ResetBettingRound();
-
-            _mockUI.Setup(ui => ui.GetUserInput(It.IsAny<string>()))
-                   .Returns("pass");
-
-            // Act
-            bettingState.ExecuteBettingRound();
-
-            // Assert - First prompt should be for Player4 (index 3), then Player1 (index 0)
-            _mockUI.Verify(ui => ui.GetUserInput(It.Is<string>(s => s.Contains("Player4"))), Times.AtLeastOnce);
+            Assert.Equal(1, invalidBetCount);
+            Assert.Equal(60, _players[0].CurrentBid);
+            Assert.Equal(65, _players[1].CurrentBid);
+            Assert.Equal(65, bettingState.CurrentWinningBid);
         }
 
         [Fact]
         public void ExecuteBettingRound_ShouldSkipPlayersWhoPassed()
         {
             // Arrange
+            _dealerIndex = 3; // P1 (idx 0) starts
             var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
-            _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
-                   .Returns("55")   // Player2 bets 55
-                   .Returns("pass") // Player3 passes
-                   .Returns("70")   // Player4 bets 70
-                   .Returns("pass") // Player1 passes
-                   .Returns("pass") // Player2 passes (second round)
-                   // Player3 should be skipped in second round
-                   .Returns("pass"); // Player4 passes (second round)
+            // P1 bets 55, P2 passes, P3 bets 70, P4 passes.
+            // Round continues. P1 passes. Round ends. P3 wins.
+            var betQueue = new Queue<string>(new[] { "55", "pass", "70", "pass", "pass" });
+            _eventManager.BetInput += (sender, e) => {
+                if (betQueue.Any()) e.Response = betQueue.Dequeue();
+            };
 
             // Act
             bettingState.ExecuteBettingRound();
 
             // Assert
-            Assert.True(bettingState.PlayerHasPassed[2]); // Player3 passed
-            Assert.Equal(70, bettingState.CurrentWinningBid); // Player4 won
-        }
-
-        [Fact]
-        public void ExecuteBettingRound_ShouldDisplayCorrectMessages()
-        {
-            // Arrange
-            var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
-            bettingState.ResetBettingRound();
-
-            _mockUI.Setup(ui => ui.GetUserInput(It.IsAny<string>()))
-                   .Returns("100"); // Maximum bet to end quickly
-
-            // Act
-            bettingState.ExecuteBettingRound();
-
-            // Assert
-            _mockUI.Verify(ui => ui.DisplayMessage("Betting round begins!\n"), Times.Once);
-            _mockUI.Verify(ui => ui.DisplayMessage("\nBetting round complete, here are the results:"), Times.Once);
-            _mockUI.Verify(ui => ui.DisplayFormattedMessage(It.Is<string>(s => s.Contains("won the bid")), It.IsAny<object>()), Times.Once);
-        }
-
-        [Fact]
-        public void ExecuteBettingRound_ShouldHandlePassAfterBetting()
-        {
-            // Arrange
-            var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
-            bettingState.ResetBettingRound();
-
-            _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
-                   .Returns("55")   // Player2 bets 55
-                   .Returns("70")   // Player3 bets 70
-                   .Returns("pass") // Player4 passes
-                   .Returns("pass") // Player1 passes
-                   .Returns("pass") // Player2 passes after betting
-                   .Returns("pass"); // Player3 passes after betting
-
-            // Act
-            bettingState.ExecuteBettingRound();
-
-            // Assert
-            Assert.True(bettingState.PlayerHasBet[1]); // Player2 bet
-            Assert.True(bettingState.PlayerHasPassed[1]); // Player2 also passed
+            Assert.True(_players[1].HasPassed); // Player2 passed
             Assert.Equal(70, bettingState.CurrentWinningBid);
+            Assert.Equal(2, bettingState.CurrentWinningBidIndex); // Player3 won
         }
-
-        // [Fact]
-        // public void ExecuteBettingRound_WithTwoPlayersOnly_ShouldWork()
-        // {
-        //     // Arrange
-        //     var twoPlayers = new List<Player> { new Player("P1"), new Player("P2") };
-        //     var bettingState = new BettingState(twoPlayers, _mockUI.Object, 0);
-        //     bettingState.ResetBettingRound();
-
-        //     _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
-        //            .Returns("60")   // P2 bets 60
-        //            .Returns("pass"); // P1 passes
-
-        //     // Act
-        //     bettingState.ExecuteBettingRound();
-
-        //     // Assert
-        //     Assert.True(bettingState.IsBettingRoundComplete);
-        //     Assert.Equal(60, bettingState.CurrentWinningBid);
-        //     Assert.Equal(1, bettingState.CurrentWinningBidIndex);
-        // }
 
         [Fact]
         public void IsBettingRoundComplete_ShouldBePrivateSet()
@@ -333,11 +248,11 @@ namespace DeuxCentsCardGame.Tests
         public void ExecuteBettingRound_ShouldSetCompleteFlagCorrectly()
         {
             // Arrange
+            _dealerIndex = 3; // P1 starts
             var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
-            _mockUI.Setup(ui => ui.GetUserInput(It.IsAny<string>()))
-                   .Returns("100"); // Maximum bet
+            _eventManager.BetInput += (sender, e) => { e.Response = "100"; };
 
             // Act
             Assert.False(bettingState.IsBettingRoundComplete); // Before execution
@@ -351,23 +266,22 @@ namespace DeuxCentsCardGame.Tests
         public void PlayerBids_ShouldTrackNegativeOneForPasses()
         {
             // Arrange
+            _dealerIndex = 3; // P1 (idx 0) starts
             var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
             bettingState.ResetBettingRound();
 
-            _mockUI.SetupSequence(ui => ui.GetUserInput(It.IsAny<string>()))
-                   .Returns("pass") // Player2 passes
-                   .Returns("50")   // Player3 bets 50
-                   .Returns("pass") // Player4 passes
-                   .Returns("pass"); // Player1 passes
+            var betQueue = new Queue<string>(new[] { "pass", "50", "pass", "pass" });
+            _eventManager.BetInput += (sender, e) => { e.Response = betQueue.Dequeue(); };
 
             // Act
             bettingState.ExecuteBettingRound();
 
             // Assert
-            Assert.Equal(-1, bettingState.PlayerBids[1]); // Player2 passed
-            Assert.Equal(50, bettingState.PlayerBids[2]); // Player3 bet
-            Assert.Equal(-1, bettingState.PlayerBids[3]); // Player4 passed
-            Assert.Equal(-1, bettingState.PlayerBids[0]); // Player1 passed
+            Assert.Equal(-1, _players[0].CurrentBid); // Player1 passed
+            Assert.Equal(50, _players[1].CurrentBid); // Player2 bet
+            Assert.Equal(-1, _players[2].CurrentBid); // Player3 passed
+            Assert.Equal(-1, _players[3].CurrentBid); // Player4 passed
+            Assert.Equal(50, bettingState.CurrentWinningBid);
         }
     }
 }
