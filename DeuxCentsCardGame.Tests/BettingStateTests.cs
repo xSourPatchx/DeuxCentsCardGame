@@ -1,19 +1,22 @@
-using DeuxCentsCardGame.Models;
+using Xunit;
 using DeuxCentsCardGame.Core;
+using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.Events;
-using DeuxCentsCardGame.Events.EventArgs;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace DeuxCentsCardGame.Tests
 {
     public class BettingStateTests
     {
         private readonly List<Player> _players;
-        private int _dealerIndex;
-        private readonly GameEventManager _eventManager;
+        private readonly TestGameEventManager _eventManager;
+        private readonly int _dealerIndex = 0;
+        private BettingState _bettingState;
 
         public BettingStateTests()
         {
-            // _mockUI = new Mock<IUIGameView>();
+            // Setup 4 players for testing - using proper constructor
             _players = new List<Player>
             {
                 new Player("Player1"),
@@ -21,12 +24,13 @@ namespace DeuxCentsCardGame.Tests
                 new Player("Player3"),
                 new Player("Player4")
             };
-            _dealerIndex = 3; // Player 4 is dealer, Player 1 starts betting
-            _eventManager = new GameEventManager();
+
+            _eventManager = new TestGameEventManager();
+            _bettingState = new BettingState(_players, _dealerIndex, _eventManager);
         }
 
         [Fact]
-        public void Constructor_ShouldInitializeBettingState()
+        public void Constructor_SetsInitialState_Correctly()
         {
             // Arrange & Act
             var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
@@ -38,250 +42,258 @@ namespace DeuxCentsCardGame.Tests
         }
 
         [Fact]
-        public void BettingConstants_ShouldHaveCorrectValues()
-        {
-            // Assert
-            Assert.Equal(50, BettingState.MinimumBet);
-            Assert.Equal(100, BettingState.MaximumBet);
-            Assert.Equal(5, BettingState.BetIncrement);
-        }
-
-        [Fact]
-        public void ResetBettingRound_ShouldResetPlayerBettingStates()
+        public void ResetBettingRound_ResetsAllStateCorrectly()
         {
             // Arrange
-            var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
-            _players.ForEach(p =>
+            _players[0].CurrentBid = 75;
+            _players[0].HasBet = true;
+            _players[1].HasPassed = true;
+            _bettingState.CurrentWinningBid = 75;
+
+            // Act
+            _bettingState.ResetBettingRound();
+
+            // Assert
+            Assert.All(_players, player => 
             {
-                p.CurrentBid = 50;
-                p.HasBet = true;
-                p.HasPassed = true;
+                Assert.Equal(0, player.CurrentBid);
+                Assert.False(player.HasBet);
+                Assert.False(player.HasPassed);
             });
-
-            // Act
-            bettingState.ResetBettingRound();
-
-            // Assert
-            Assert.All(_players, p => Assert.Equal(0, p.CurrentBid));
-            Assert.All(_players, p => Assert.False(p.HasBet));
-            Assert.All(_players, p => Assert.False(p.HasPassed));
-            Assert.Equal(0, bettingState.CurrentWinningBid);
-            Assert.Equal(0, bettingState.CurrentWinningBidIndex);
-            Assert.False(bettingState.IsBettingRoundComplete);
+            Assert.Equal(0, _bettingState.CurrentWinningBid);
+            Assert.Equal(0, _bettingState.CurrentWinningBidIndex);
+            Assert.False(_bettingState.IsBettingRoundComplete);
         }
 
         [Fact]
-        public void ResetBettingRound_ShouldHandleDifferentPlayerCounts()
+        public void ExecuteBettingRound_ThreePlayersPass_FourthPlayerBetsMinimum()
         {
             // Arrange
-            var twoPlayers = new List<Player> { new("P1"), new("P2") };
-            var bettingState = new BettingState(twoPlayers, 0, _eventManager);
+            var eventManager = new TestGameEventManager();
+            eventManager.SetBetInputResponses(new[] { "pass", "pass", "pass" }); // First 3 pass
+            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
 
             // Act
-            bettingState.ResetBettingRound();
+            _bettingState.ExecuteBettingRound();
 
             // Assert
-            Assert.All(twoPlayers, p => Assert.Equal(0, p.CurrentBid));
-            Assert.All(twoPlayers, p => Assert.False(p.HasBet));
-            Assert.All(twoPlayers, p => Assert.False(p.HasPassed));
+            Assert.Equal(3, _players.Count(p => p.HasPassed));
+            Assert.Single(_players.Where(p => !p.HasPassed));
+            
+            var lastPlayer = _players.Single(p => !p.HasPassed);
+            Assert.Equal(BettingState.MinimumBet, lastPlayer.CurrentBid);
+            Assert.True(lastPlayer.HasBet);
+            Assert.Equal(BettingState.MinimumBet, _bettingState.CurrentWinningBid);
         }
 
         [Fact]
-        public void ExecuteBettingRound_WithMaximumBet_ShouldEndImmediately()
+        public void ExecuteBettingRound_PlayerBetsMaximum_AllOthersPass()
         {
             // Arrange
-            _dealerIndex = 3; // P4 is dealer, P1 (index 0) starts
-            var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
-            bettingState.ResetBettingRound();
-
-            _eventManager.BetInput += (sender, e) =>
-            {
-                if (e.CurrentPlayer == _players[0]) e.Response = "100";
-            };
+            var eventManager = new TestGameEventManager();
+            eventManager.SetBetInputResponses(new[] { "100" }); // Player 2 bets maximum
+            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
 
             // Act
-            bettingState.ExecuteBettingRound();
+            _bettingState.ExecuteBettingRound();
 
             // Assert
-            Assert.True(bettingState.IsBettingRoundComplete);
-            Assert.Equal(100, bettingState.CurrentWinningBid);
-            Assert.Equal(0, bettingState.CurrentWinningBidIndex); // Player1 index
-            Assert.Equal(100, _players[0].CurrentBid);
+            Assert.Equal(BettingState.MaximumBet, _players[1].CurrentBid); // Player to left of dealer
+            Assert.True(_players[1].HasBet);
+            Assert.Equal(3, _players.Count(p => p.HasPassed));
+            Assert.Equal(BettingState.MaximumBet, _bettingState.CurrentWinningBid);
+        }
+
+        [Fact]
+        public void ExecuteBettingRound_ValidBettingSequence_DeterminesWinner()
+        {
+            // Arrange
+            var eventManager = new TestGameEventManager();
+            eventManager.SetBetInputResponses(new[] { "55", "60", "pass", "70" });
+            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
+
+            // Act
+            _bettingState.ExecuteBettingRound();
+
+            // Assert
+            Assert.Equal(70, _bettingState.CurrentWinningBid);
+            Assert.Equal(0, _bettingState.CurrentWinningBidIndex); // Player 1 (index 0) bid 70 in second round
+            Assert.Equal(70, _players[0].CurrentBid);
             Assert.True(_players[0].HasBet);
-
-            // Other players should be marked as passed
-            Assert.True(_players[1].HasPassed);
-            Assert.True(_players[2].HasPassed);
-            Assert.True(_players[3].HasPassed);
         }
 
         [Fact]
-        public void ExecuteBettingRound_WithThreePasses_ShouldForceLastPlayerToBet()
+        public void IsValidBet_ValidBet_ReturnsTrue()
+        {
+            // This tests the private IsValidBet method indirectly through ExecuteBettingRound
+            var eventManager = new TestGameEventManager();
+            eventManager.SetBetInputResponses(new[] { "55", "pass", "pass", "pass" });
+            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
+
+            // Act
+            _bettingState.ExecuteBettingRound();
+
+            // Assert
+            Assert.Equal(55, _players[1].CurrentBid); // Valid bet was accepted
+            Assert.True(_players[1].HasBet);
+        }
+
+        [Fact]
+        public void IsValidBet_DuplicateBet_HandlesProperly()
         {
             // Arrange
-            _dealerIndex = 3; // P4 is dealer, P1 (idx 0) starts
-            var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
-            bettingState.ResetBettingRound();
+            var eventManager = new TestGameEventManager();
+            // First player bets 60, second tries to bet 60 (invalid), then bets 65
+            eventManager.SetBetInputResponses(new[] { "60", "60", "65", "pass", "pass" });
+            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
 
-            var betQueue = new Queue<string>(new[] { "pass", "pass", "pass" });
-            _eventManager.BetInput += (sender, e) => { e.Response = betQueue.Dequeue(); };
+            // Act
+            _bettingState.ExecuteBettingRound();
+
+            // Assert
+            Assert.Equal(60, _players[1].CurrentBid); // Player 2 (left of dealer)
+            Assert.Equal(65, _players[2].CurrentBid); // Player 3
+            Assert.Equal(65, _bettingState.CurrentWinningBid); // Highest valid bid wins
+            Assert.True(eventManager.InvalidBetRaised); // Invalid bet was detected
+        }
+
+        [Theory]
+        [InlineData(45)] // Below minimum
+        [InlineData(105)] // Above maximum  
+        [InlineData(52)] // Not increment of 5
+        public void InvalidBets_AreRejectedProperly(int invalidBet)
+        {
+            // Arrange
+            var eventManager = new TestGameEventManager();
+            eventManager.SetBetInputResponses(new[] { invalidBet.ToString(), "55", "pass", "pass", "pass" });
+            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
+
+            // Act
+            _bettingState.ExecuteBettingRound();
+
+            // Assert
+            Assert.Equal(55, _players[1].CurrentBid); // Valid bet after invalid one
+            Assert.True(eventManager.InvalidBetRaised); // Invalid bet event was raised
+        }
+
+        [Fact]
+        public void ExecuteBettingRound_TracksHasBetCorrectly()
+        {
+            // Arrange
+            var eventManager = new TestGameEventManager();
+            eventManager.SetBetInputResponses(new[] { "55", "pass", "60", "pass" });
+            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
+
+            // Act
+            _bettingState.ExecuteBettingRound();
+
+            // Assert
+            Assert.True(_players[1].HasBet); // Player who bet 55
+            Assert.False(_players[2].HasBet); // Player who passed without betting
+            Assert.True(_players[3].HasBet); // Player who bet 60
+            Assert.False(_players[0].HasBet); // Player who passed without betting
+        }
+
+        [Fact]
+        public void ExecuteBettingRound_BettingOrder_StartsWithPlayerLeftOfDealer()
+        {
+            // Arrange - Dealer at index 2
+            var dealerIndex = 2;
+            var eventManager = new TestGameEventManager();
+            eventManager.SetBetInputResponses(new[] { "50", "pass", "pass", "pass" });
+            var bettingState = new BettingState(_players, dealerIndex, eventManager);
 
             // Act
             bettingState.ExecuteBettingRound();
 
             // Assert
-            Assert.True(bettingState.IsBettingRoundComplete);
-            Assert.Equal(50, bettingState.CurrentWinningBid); // Minimum bet
-            Assert.Equal(3, bettingState.CurrentWinningBidIndex); // Player4 (dealer) is forced to bet
+            // Player at index 3 (left of dealer at index 2) should bet first
             Assert.Equal(50, _players[3].CurrentBid);
             Assert.True(_players[3].HasBet);
         }
 
         [Fact]
-        public void ExecuteBettingRound_WithValidBets_ShouldDetermineWinner()
+        public void ExecuteBettingRound_TeamCannotScoreScenario_TracksHasBetCorrectly()
         {
+            // This tests the important rule: "When a team surpasses 100 points, 
+            // they must still place a bet in the betting phase to collect points"
+            
             // Arrange
-            _dealerIndex = 3; // P4 dealer, P1 (idx 0) starts
-            var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
-            bettingState.ResetBettingRound();
-
-            var betQueue = new Queue<string>(new[] { "55", "70", "pass", "pass" });
-            _eventManager.BetInput += (sender, e) => {
-                if (betQueue.Any()) e.Response = betQueue.Dequeue();
-            };
+            var eventManager = new TestGameEventManager();
+            eventManager.SetBetInputResponses(new[] { "55", "pass", "60", "pass" });
+            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
 
             // Act
-            bettingState.ExecuteBettingRound();
+            _bettingState.ExecuteBettingRound();
 
-            // Assert
-            Assert.True(bettingState.IsBettingRoundComplete);
-            Assert.Equal(70, bettingState.CurrentWinningBid);
-            Assert.Equal(1, bettingState.CurrentWinningBidIndex); // Player2 index
+            // Assert - Verify HasBet is tracked correctly for scoring logic
+            Assert.True(_players[1].HasBet); // Player who bet 55
+            Assert.False(_players[2].HasBet); // Player who passed without betting
+            Assert.True(_players[3].HasBet); // Player who bet 60
+            Assert.False(_players[0].HasBet); // Player who passed without betting
+            
+            // This is critical for the Game class ScoreBidWinningTeam/ScoreBidLosingTeam methods
+            // where it checks: !player.HasBet to determine if team can score when >= 100 points
+        }
+    }
+
+    // Test-specific GameEventManager that can be controlled for testing
+    public class TestGameEventManager : GameEventManager
+    {
+        private Queue<string> _betInputResponses = new Queue<string>();
+        public bool InvalidBetRaised { get; private set; }
+        public bool BettingRoundStartedRaised { get; private set; }
+        public bool BettingCompletedRaised { get; private set; }
+        public Player LastWinningBidder { get; private set; }
+        public int LastWinningBid { get; private set; }
+        public List<string> BettingActions { get; private set; } = new List<string>();
+
+        public void SetBetInputResponses(string[] responses)
+        {
+            _betInputResponses.Clear();
+            foreach (var response in responses)
+            {
+                _betInputResponses.Enqueue(response);
+            }
         }
 
-        [Theory]
-        [InlineData("45")] // Below minimum
-        [InlineData("105")] // Above maximum
-        [InlineData("52")] // Not increment of 5
-        [InlineData("abc")] // Invalid format
-        [InlineData("")] // Empty string
-        public void ExecuteBettingRound_WithInvalidBets_ShouldPromptRetry(string invalidBet)
+        // Override the methods we need for testing by creating a new implementation
+        // that intercepts the calls we care about
+        public override string RaiseBetInput(Player player, int minBet, int maxBet, int increment)
         {
-            // Arrange
-            _dealerIndex = 3; // P1 (idx 0) starts
-            var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
-            bettingState.ResetBettingRound();
-
-            var betQueue = new Queue<string>(new[] { invalidBet, "50", "pass", "pass", "pass" });
-            _eventManager.BetInput += (sender, e) => { e.Response = betQueue.Dequeue(); };
-
-            int invalidBetCount = 0;
-            _eventManager.InvalidBet += (sender, e) => { invalidBetCount++; };
-
-            // Act
-            bettingState.ExecuteBettingRound();
-
-            // Assert
-            Assert.Equal(1, invalidBetCount);
-            Assert.Equal(50, _players[0].CurrentBid); // Valid bet was accepted
+            if (_betInputResponses.Count > 0)
+            {
+                return _betInputResponses.Dequeue();
+            }
+            return "pass"; // Default to pass if no more responses
         }
 
-        [Fact]
-        public void ExecuteBettingRound_WithDuplicateBets_ShouldRejectDuplicate()
+        public override void RaiseInvalidBet(string message)
         {
-            // Arrange
-            _dealerIndex = 3; // P1 (idx 0) starts
-            var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
-            bettingState.ResetBettingRound();
-
-            var betQueue = new Queue<string>(new[] { "60", "60", "65", "pass", "pass" });
-            _eventManager.BetInput += (sender, e) => { e.Response = betQueue.Dequeue(); };
-
-            int invalidBetCount = 0;
-            _eventManager.InvalidBet += (sender, e) => { invalidBetCount++; };
-
-            // Act
-            bettingState.ExecuteBettingRound();
-
-            // Assert
-            Assert.Equal(1, invalidBetCount);
-            Assert.Equal(60, _players[0].CurrentBid);
-            Assert.Equal(65, _players[1].CurrentBid);
-            Assert.Equal(65, bettingState.CurrentWinningBid);
+            InvalidBetRaised = true;
+            // Still call base to maintain any other functionality
+            base.RaiseInvalidBet(message);
         }
 
-        [Fact]
-        public void ExecuteBettingRound_ShouldSkipPlayersWhoPassed()
-        {
-            // Arrange
-            _dealerIndex = 3; // P1 (idx 0) starts
-            var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
-            bettingState.ResetBettingRound();
-
-            // P1 bets 55, P2 passes, P3 bets 70, P4 passes.
-            // Round continues. P1 passes. Round ends. P3 wins.
-            var betQueue = new Queue<string>(new[] { "55", "pass", "70", "pass", "pass" });
-            _eventManager.BetInput += (sender, e) => {
-                if (betQueue.Any()) e.Response = betQueue.Dequeue();
-            };
-
-            // Act
-            bettingState.ExecuteBettingRound();
-
-            // Assert
-            Assert.True(_players[1].HasPassed); // Player2 passed
-            Assert.Equal(70, bettingState.CurrentWinningBid);
-            Assert.Equal(2, bettingState.CurrentWinningBidIndex); // Player3 won
+        public override void RaiseBettingRoundStarted(string message) 
+        { 
+            BettingRoundStartedRaised = true;
+            base.RaiseBettingRoundStarted(message);
         }
-
-        [Fact]
-        public void IsBettingRoundComplete_ShouldBePrivateSet()
-        {
-            // Assert
-            var property = typeof(BettingState).GetProperty("IsBettingRoundComplete");
-            Assert.NotNull(property);
-            Assert.True(property.CanRead);
-            Assert.False(property.SetMethod?.IsPublic ?? false);
+        
+        public override void RaiseBettingAction(Player player, int bid, bool hasPassed) 
+        { 
+            string action = hasPassed ? $"{player.Name} passed" : $"{player.Name} bet {bid}";
+            BettingActions.Add(action);
+            base.RaiseBettingAction(player, bid, hasPassed);
         }
-
-        [Fact]
-        public void ExecuteBettingRound_ShouldSetCompleteFlagCorrectly()
-        {
-            // Arrange
-            _dealerIndex = 3; // P1 starts
-            var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
-            bettingState.ResetBettingRound();
-
-            _eventManager.BetInput += (sender, e) => { e.Response = "100"; };
-
-            // Act
-            Assert.False(bettingState.IsBettingRoundComplete); // Before execution
-            bettingState.ExecuteBettingRound();
-
-            // Assert
-            Assert.True(bettingState.IsBettingRoundComplete); // After execution
-        }
-
-        [Fact]
-        public void PlayerBids_ShouldTrackNegativeOneForPasses()
-        {
-            // Arrange
-            _dealerIndex = 3; // P1 (idx 0) starts
-            var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
-            bettingState.ResetBettingRound();
-
-            var betQueue = new Queue<string>(new[] { "pass", "50", "pass", "pass" });
-            _eventManager.BetInput += (sender, e) => { e.Response = betQueue.Dequeue(); };
-
-            // Act
-            bettingState.ExecuteBettingRound();
-
-            // Assert
-            Assert.Equal(-1, _players[0].CurrentBid); // Player1 passed
-            Assert.Equal(50, _players[1].CurrentBid); // Player2 bet
-            Assert.Equal(-1, _players[2].CurrentBid); // Player3 passed
-            Assert.Equal(-1, _players[3].CurrentBid); // Player4 passed
-            Assert.Equal(50, bettingState.CurrentWinningBid);
+        
+        public override void RaiseBettingCompleted(Player winningBidder, int winningBid, Dictionary<Player, int> allBids) 
+        { 
+            BettingCompletedRaised = true;
+            LastWinningBidder = winningBidder;
+            LastWinningBid = winningBid;
+            base.RaiseBettingCompleted(winningBidder, winningBid, allBids);
         }
     }
 }

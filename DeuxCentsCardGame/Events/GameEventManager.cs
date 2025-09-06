@@ -6,14 +6,14 @@ namespace DeuxCentsCardGame.Events
     public class GameEventManager
     {
         // Round events
-        public event EventHandler<RoundEventArgs>? RoundStarted;
+        public event EventHandler<RoundStartedEventArgs>? RoundStarted;
         public event EventHandler<CardsDealtEventArgs>? CardsDealt;
 
         // Betting and trump selection events
         public event EventHandler<BettingRoundStartedEventArgs>? BettingRoundStarted;
         public event EventHandler<BetInputEventArgs>? BetInput;
         public event EventHandler<InvalidBetEventArgs>? InvalidBet;
-        public event EventHandler<BettingEventArgs>? BettingAction;
+        public event EventHandler<BettingActionEventArgs>? BettingAction;
         public event EventHandler<BettingCompletedEventArgs>? BettingCompleted;
         public event EventHandler<TrumpSelectedEventArgs>? TrumpSelected;
 
@@ -23,7 +23,7 @@ namespace DeuxCentsCardGame.Events
         public event EventHandler<TrickCompletedEventArgs>? TrickCompleted;
 
         // Scoring events
-        public event EventHandler<ScoreEventArgs>? ScoreUpdated;
+        public event EventHandler<ScoreUpdatedEventArgs>? ScoreUpdated;
         public event EventHandler<TeamScoringEventArgs>? TeamScoring;
         public event EventHandler<TrickPointsAwardedEventArgs>? TrickPointsAwarded;
 
@@ -32,7 +32,7 @@ namespace DeuxCentsCardGame.Events
         public event EventHandler<NextRoundEventArgs>? NextRoundPrompt;
 
         // Event raising methods
-        protected virtual void OnRoundStarted(RoundEventArgs e)
+        protected virtual void OnRoundStarted(RoundStartedEventArgs e)
         {
             RoundStarted?.Invoke(this, e);
         }
@@ -57,7 +57,7 @@ namespace DeuxCentsCardGame.Events
             InvalidBet?.Invoke(this, e);
         }
 
-        protected virtual void OnBettingAction(BettingEventArgs e)
+        protected virtual void OnBettingAction(BettingActionEventArgs e)
         {
             BettingAction?.Invoke(this, e);
         }
@@ -87,7 +87,7 @@ namespace DeuxCentsCardGame.Events
             TrickCompleted?.Invoke(this, e);
         }
 
-        protected virtual void OnScoreUpdated(ScoreEventArgs e)
+        protected virtual void OnScoreUpdated(ScoreUpdatedEventArgs e)
         {
             ScoreUpdated?.Invoke(this, e);
         }
@@ -115,7 +115,7 @@ namespace DeuxCentsCardGame.Events
         // Public methods to trigger events from game logic
         public void RaiseRoundStarted(int roundNumber, Player dealer)
         {
-            OnRoundStarted(new RoundEventArgs(roundNumber, dealer));
+            OnRoundStarted(new RoundStartedEventArgs(roundNumber, dealer));
         }
 
         public void RaiseCardsDealt(List<Player> players, int dealerIndex)
@@ -143,7 +143,7 @@ namespace DeuxCentsCardGame.Events
 
         public void RaiseBettingAction(Player player, int bet, bool hasPassed = false)
         {
-            OnBettingAction(new BettingEventArgs(player, bet, hasPassed));
+            OnBettingAction(new BettingActionEventArgs(player, bet, hasPassed));
         }
 
         public void RaiseBettingCompleted(Player winningBidder, int winningBid, Dictionary<Player, int> allBids)
@@ -173,7 +173,7 @@ namespace DeuxCentsCardGame.Events
 
         public void RaiseScoreUpdated(int teamOneRoundPoints, int teamTwoRoundPoints, int teamOneTotalPoints, int teamTwoTotalPoints, bool isBidWinnerTeamOne, int winningBid)
         {
-            OnScoreUpdated(new ScoreEventArgs(teamOneRoundPoints, teamTwoRoundPoints, teamOneTotalPoints, teamTwoTotalPoints, isBidWinnerTeamOne, winningBid));
+            OnScoreUpdated(new ScoreUpdatedEventArgs(teamOneRoundPoints, teamTwoRoundPoints, teamOneTotalPoints, teamTwoTotalPoints, isBidWinnerTeamOne, winningBid));
         }
 
         public void RaiseTeamScoring(string teamName, int roundPoints, int winningBid, bool madeBid, bool cannotScore, int awardedPoints)
@@ -189,6 +189,11 @@ namespace DeuxCentsCardGame.Events
         public void RaiseGameOver(int teamOneFinalScore, int teamTwoFinalScore)
         {
             OnGameOver(new GameOverEventArgs(teamOneFinalScore, teamTwoFinalScore));
+        }
+
+        public void RaiseNextRoundPrompt(string message = "Press any key to start the next round...")
+        {
+            OnNextRoundPrompt(new NextRoundEventArgs(message));
         }
     }
 }

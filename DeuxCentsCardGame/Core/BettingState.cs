@@ -1,5 +1,3 @@
-// me
-
 using DeuxCentsCardGame.Interfaces;
 using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.UI;

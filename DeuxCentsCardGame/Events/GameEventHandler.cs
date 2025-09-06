@@ -48,7 +48,7 @@ namespace DeuxCentsCardGame.Events
         }
 
         // Event handlers
-        private void OnRoundStarted(object? sender, RoundEventArgs e)
+        private void OnRoundStarted(object? sender, EventArgs.RoundStartedEventArgs e)
         {
             _ui.ClearScreen();
             _ui.DisplayFormattedMessage("\nRound {0} Started. Dealer: {1}\n", e.RoundNumber, e.Dealer.Name);
@@ -81,8 +81,7 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayMessage(e.Message);
         }
 
-
-        private void OnBettingAction(object? sender, BettingEventArgs e)
+        private void OnBettingAction(object? sender, BettingActionEventArgs e)
         {
             if (e.HasPassed)
             {
@@ -179,7 +178,7 @@ namespace DeuxCentsCardGame.Events
             }
         }
 
-        private void OnScoreUpdated(object? sender, ScoreEventArgs e)
+        private void OnScoreUpdated(object? sender, ScoreUpdatedEventArgs e)
         {
             _ui.DisplayMessage("\n--- Round Scoring ---");
             _ui.DisplayFormattedMessage("Team One round points: {0}", e.TeamOneRoundPoints);

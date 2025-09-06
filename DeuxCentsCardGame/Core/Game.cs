@@ -55,6 +55,8 @@ namespace DeuxCentsCardGame.Core
             _trumpSuit = null;
             _eventManager = new GameEventManager();
             _eventHandler = new GameEventHandler(_eventManager, _ui);
+
+            _bettingState = new BettingState(_players, DealerIndex, _eventManager);
         }
 
         public void StartGame()

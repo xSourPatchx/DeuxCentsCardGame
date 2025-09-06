@@ -1,5 +1,5 @@
 namespace DeuxCentsCardGame.Events.EventArgs
-{    public class ScoreEventArgs : System.EventArgs
+{    public class ScoreUpdatedEventArgs : System.EventArgs
     {
         public int TeamOneRoundPoints { get; }
         public int TeamTwoRoundPoints { get; }
@@ -8,7 +8,7 @@ namespace DeuxCentsCardGame.Events.EventArgs
         public bool IsBidWinnerTeamOne { get; }
         public int WinningBid { get; }
 
-        public ScoreEventArgs(int teamOneRoundPoints, int teamTwoRoundPoints, int teamOneTotalPoints, int teamTwoTotalPoints, bool isBidWinnerTeamOne, int winningBid)
+        public ScoreUpdatedEventArgs(int teamOneRoundPoints, int teamTwoRoundPoints, int teamOneTotalPoints, int teamTwoTotalPoints, bool isBidWinnerTeamOne, int winningBid)
         {
             TeamOneRoundPoints = teamOneRoundPoints;
             TeamTwoRoundPoints = teamTwoRoundPoints;

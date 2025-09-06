@@ -27,7 +27,7 @@ This is a trick-taking card game played with 4 players in teams of 2. Players 1 
 4. Special cases:
    - If the first three players pass, the 4th player must bet 50
    - After a player bets 100, all remaining players must pass
-5. **Important**: When a team surpasses 100 points, they must still place a bet in the betting phase to collect points, even if they do not win the bid
+5. **Important**: Teams with 100+ points can only score if at least one team member placed a bet during the betting round.
 
 ### Trump Selection and Play
 1. The player who won the bet chooses the trump suit
