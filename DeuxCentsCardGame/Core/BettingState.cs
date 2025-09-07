@@ -29,33 +29,45 @@ namespace DeuxCentsCardGame.Core
             _eventManager = eventManager;
         }
 
+        #region - start here
+
         public void ExecuteBettingRound()
         {
-            int startingIndex = (_dealerIndex + 1) % _players.Count;
+            StartBettingRound();
+            ProcessBettingRound();
+            CompleteBettingRound();
+        }
 
+        private void StartBettingRound()
+        {
+            // int startingIndex = (_dealerIndex + 1) % _players.Count;
             _eventManager.RaiseBettingRoundStarted("Betting round begins!\n");
+        }
+
+        private void ProcessBettingRound()
+        {
+            int startingIndex = (_dealerIndex + 1) % _players.Count;
 
             while (!IsBettingRoundComplete)
             {
                 IsBettingRoundComplete = HandleBettingRound(startingIndex);
             }
+        }
 
+        private void CompleteBettingRound()
+        {
             DetermineWinningBid();
-
-            var allBids = new Dictionary<Player, int>();
-
-            foreach (var player in _players)
-            {
-                allBids[player] = player.CurrentBid;
-            }
-
-            Player winningBidder = _players[CurrentWinningBidIndex];
 
             if (CurrentWinningBid > 0)
             {
+                Player winningBidder = _players[CurrentWinningBidIndex];
+                var allBids = _players.ToDictionary(player => player, player => player.CurrentBid);
+        
                 _eventManager.RaiseBettingCompleted(winningBidder, CurrentWinningBid, allBids);
             }
         }
+
+        #endregion - finish here
 
         public void ResetBettingRound()
         {   
