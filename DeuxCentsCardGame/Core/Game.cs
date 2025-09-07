@@ -258,36 +258,26 @@ namespace DeuxCentsCardGame.Core
         {
             bool bidWinnerIsTeamOne = IsPlayerOnTeamOne(_bettingState.CurrentWinningBidIndex);
 
-            ScoreBidWinningTeam(bidWinnerIsTeamOne);
-            ScoreBidLosingTeam(!bidWinnerIsTeamOne);
+            ScoreTeam(bidWinnerIsTeamOne, true);   // Bid winning team
+            ScoreTeam(!bidWinnerIsTeamOne, false); // Bid losing team
 
-            _eventManager.RaiseScoreUpdated(_teamOneRoundPoints, 
-                                            _teamTwoRoundPoints, 
-                                            _teamOneTotalPoints, 
-                                            _teamTwoTotalPoints, 
-                                            bidWinnerIsTeamOne, 
-                                            _bettingState.CurrentWinningBid);
+            _eventManager.RaiseScoreUpdated(_teamOneRoundPoints, _teamTwoRoundPoints, 
+                                            _teamOneTotalPoints, _teamTwoTotalPoints, 
+                                            bidWinnerIsTeamOne, _bettingState.CurrentWinningBid);
         }
 
-        private void ScoreBidWinningTeam(bool isTeamOne)
+        private void ScoreTeam(bool isTeamOne, bool isBidWinner)
         {
             int teamRoundPoints = isTeamOne ? _teamOneRoundPoints : _teamTwoRoundPoints;
             int teamTotalPoints = isTeamOne ? _teamOneTotalPoints : _teamTwoTotalPoints;
-            bool teamCannotScore = teamTotalPoints >= 100 && !_players[isTeamOne? TEAM_ONE_PLAYER_1 : TEAM_ONE_PLAYER_2].HasBet && !_players[isTeamOne? TEAM_ONE_PLAYER_2 : TEAM_ONE_PLAYER_1].HasBet;
-            int awardedPoints;
+            
+            var (playerOneIndex, playerTwoIndex) = GetPlayerIndices(isTeamOne);
 
-            if (teamCannotScore)
-            {
-                awardedPoints = 0;
-            }
-            else if (teamRoundPoints >= _bettingState.CurrentWinningBid)
-            {
-                awardedPoints = teamRoundPoints;
-            }
-            else
-            {
-                awardedPoints = -_bettingState.CurrentWinningBid;
-            }
+            bool teamCannotScore = teamTotalPoints >= 100 &&
+                                    !_players[playerOneIndex].HasBet &&
+                                    !_players[playerTwoIndex].HasBet;
+            
+            int awardedPoints = CalculateAwardedPoints(teamRoundPoints, teamCannotScore, isBidWinner);
 
             if (isTeamOne)
             {
@@ -299,34 +289,28 @@ namespace DeuxCentsCardGame.Core
             }     
         }
 
-        private void ScoreBidLosingTeam(bool isTeamOne)
+        private (int playerOne, int playerTwo) GetPlayerIndices(bool isTeamOne)
         {
-            int teamRoundPoints = isTeamOne ? _teamOneRoundPoints : _teamTwoRoundPoints;
-            int teamTotalPoints = isTeamOne ? _teamOneTotalPoints : _teamTwoTotalPoints;
-            bool teamCannotScore = teamTotalPoints >= 100 && !_players[isTeamOne? TEAM_ONE_PLAYER_1 : TEAM_ONE_PLAYER_2].HasBet && !_players[isTeamOne? TEAM_ONE_PLAYER_2 : TEAM_ONE_PLAYER_1].HasBet;
-            int awardedPoints;
+            return isTeamOne ? (TEAM_ONE_PLAYER_1, TEAM_ONE_PLAYER_2) : (TEAM_TWO_PLAYER_1, TEAM_TWO_PLAYER_2);
+        }
 
+        private int CalculateAwardedPoints(int teamRoundPoints, bool teamCannotScore, bool isBidWinner)
+        {
             if (teamCannotScore)
             {
-                awardedPoints = 0;
-            }
-            else if (teamRoundPoints >= _bettingState.CurrentWinningBid)
-            {
-                awardedPoints = teamRoundPoints;
-            }
-            else
-            {
-                awardedPoints = teamRoundPoints;
+                return 0;
             }
 
-            if (isTeamOne)
+            if (isBidWinner)
             {
-                _teamOneTotalPoints += awardedPoints;
+                return teamRoundPoints >= _bettingState.CurrentWinningBid
+                    ? teamRoundPoints 
+                    : -_bettingState.CurrentWinningBid;
             }
             else
             {
-                _teamTwoTotalPoints += awardedPoints;
-            }     
+                return teamRoundPoints;
+            }
         }
 
         private void EndGameCheck()
