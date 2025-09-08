@@ -12,7 +12,7 @@ namespace DeuxCentsCardGame.Tests
         private readonly List<Player> _players;
         private readonly TestGameEventManager _eventManager;
         private readonly int _dealerIndex = 0;
-        private BettingState _bettingState;
+        private BettingService _bettingState;
 
         public BettingStateTests()
         {
@@ -26,14 +26,14 @@ namespace DeuxCentsCardGame.Tests
             };
 
             _eventManager = new TestGameEventManager();
-            _bettingState = new BettingState(_players, _dealerIndex, _eventManager);
+            _bettingState = new BettingService(_players, _dealerIndex, _eventManager);
         }
 
         [Fact]
         public void Constructor_SetsInitialState_Correctly()
         {
             // Arrange & Act
-            var bettingState = new BettingState(_players, _dealerIndex, _eventManager);
+            var bettingState = new BettingService(_players, _dealerIndex, _eventManager);
 
             // Assert
             Assert.Equal(0, bettingState.CurrentWinningBid);
@@ -71,7 +71,7 @@ namespace DeuxCentsCardGame.Tests
             // Arrange
             var eventManager = new TestGameEventManager();
             eventManager.SetBetInputResponses(new[] { "pass", "pass", "pass" }); // First 3 pass
-            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
+            _bettingState = new BettingService(_players, _dealerIndex, eventManager);
 
             // Act
             _bettingState.ExecuteBettingRound();
@@ -81,9 +81,9 @@ namespace DeuxCentsCardGame.Tests
             Assert.Single(_players.Where(p => !p.HasPassed));
             
             var lastPlayer = _players.Single(p => !p.HasPassed);
-            Assert.Equal(BettingState.MinimumBet, lastPlayer.CurrentBid);
+            Assert.Equal(BettingService.MinimumBet, lastPlayer.CurrentBid);
             Assert.True(lastPlayer.HasBet);
-            Assert.Equal(BettingState.MinimumBet, _bettingState.CurrentWinningBid);
+            Assert.Equal(BettingService.MinimumBet, _bettingState.CurrentWinningBid);
         }
 
         [Fact]
@@ -92,16 +92,16 @@ namespace DeuxCentsCardGame.Tests
             // Arrange
             var eventManager = new TestGameEventManager();
             eventManager.SetBetInputResponses(new[] { "100" }); // Player 2 bets maximum
-            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
+            _bettingState = new BettingService(_players, _dealerIndex, eventManager);
 
             // Act
             _bettingState.ExecuteBettingRound();
 
             // Assert
-            Assert.Equal(BettingState.MaximumBet, _players[1].CurrentBid); // Player to left of dealer
+            Assert.Equal(BettingService.MaximumBet, _players[1].CurrentBid); // Player to left of dealer
             Assert.True(_players[1].HasBet);
             Assert.Equal(3, _players.Count(p => p.HasPassed));
-            Assert.Equal(BettingState.MaximumBet, _bettingState.CurrentWinningBid);
+            Assert.Equal(BettingService.MaximumBet, _bettingState.CurrentWinningBid);
         }
 
         [Fact]
@@ -110,7 +110,7 @@ namespace DeuxCentsCardGame.Tests
             // Arrange
             var eventManager = new TestGameEventManager();
             eventManager.SetBetInputResponses(new[] { "55", "60", "pass", "70" });
-            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
+            _bettingState = new BettingService(_players, _dealerIndex, eventManager);
 
             // Act
             _bettingState.ExecuteBettingRound();
@@ -128,7 +128,7 @@ namespace DeuxCentsCardGame.Tests
             // This tests the private IsValidBet method indirectly through ExecuteBettingRound
             var eventManager = new TestGameEventManager();
             eventManager.SetBetInputResponses(new[] { "55", "pass", "pass", "pass" });
-            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
+            _bettingState = new BettingService(_players, _dealerIndex, eventManager);
 
             // Act
             _bettingState.ExecuteBettingRound();
@@ -145,7 +145,7 @@ namespace DeuxCentsCardGame.Tests
             var eventManager = new TestGameEventManager();
             // First player bets 60, second tries to bet 60 (invalid), then bets 65
             eventManager.SetBetInputResponses(new[] { "60", "60", "65", "pass", "pass" });
-            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
+            _bettingState = new BettingService(_players, _dealerIndex, eventManager);
 
             // Act
             _bettingState.ExecuteBettingRound();
@@ -166,7 +166,7 @@ namespace DeuxCentsCardGame.Tests
             // Arrange
             var eventManager = new TestGameEventManager();
             eventManager.SetBetInputResponses(new[] { invalidBet.ToString(), "55", "pass", "pass", "pass" });
-            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
+            _bettingState = new BettingService(_players, _dealerIndex, eventManager);
 
             // Act
             _bettingState.ExecuteBettingRound();
@@ -182,7 +182,7 @@ namespace DeuxCentsCardGame.Tests
             // Arrange
             var eventManager = new TestGameEventManager();
             eventManager.SetBetInputResponses(new[] { "55", "pass", "60", "pass" });
-            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
+            _bettingState = new BettingService(_players, _dealerIndex, eventManager);
 
             // Act
             _bettingState.ExecuteBettingRound();
@@ -201,7 +201,7 @@ namespace DeuxCentsCardGame.Tests
             var dealerIndex = 2;
             var eventManager = new TestGameEventManager();
             eventManager.SetBetInputResponses(new[] { "50", "pass", "pass", "pass" });
-            var bettingState = new BettingState(_players, dealerIndex, eventManager);
+            var bettingState = new BettingService(_players, dealerIndex, eventManager);
 
             // Act
             bettingState.ExecuteBettingRound();
@@ -221,7 +221,7 @@ namespace DeuxCentsCardGame.Tests
             // Arrange
             var eventManager = new TestGameEventManager();
             eventManager.SetBetInputResponses(new[] { "55", "pass", "60", "pass" });
-            _bettingState = new BettingState(_players, _dealerIndex, eventManager);
+            _bettingState = new BettingService(_players, _dealerIndex, eventManager);
 
             // Act
             _bettingState.ExecuteBettingRound();

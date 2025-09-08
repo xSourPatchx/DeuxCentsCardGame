@@ -8,7 +8,7 @@ namespace DeuxCentsCardGame
         static void Main(string[] args)
         {
             UIGameView ui = new UIGameView();
-            Game game = new Game(ui);
+            GameController game = new GameController(ui);
             game.StartGame();
             Console.ReadKey();
         }

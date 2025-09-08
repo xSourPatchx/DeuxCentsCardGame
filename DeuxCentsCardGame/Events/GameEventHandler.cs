@@ -91,7 +91,7 @@ namespace DeuxCentsCardGame.Events
             {
                 _ui.DisplayFormattedMessage("{0} bet {1}\n", e.Player.Name, e.Bet);
 
-                if (e.Bet == BettingState.MaximumBet)
+                if (e.Bet == GameConfig.MaximumBet)
                 {
                     _ui.DisplayFormattedMessage("{0} bid the maximum bet, betting round ends.", e.Player.Name);                
                 }

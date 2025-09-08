@@ -24,26 +24,26 @@ namespace DeuxCentsCardGame.Tests
             _eventManager = new GameEventManager();
         }
         
-        private Game CreateGameInstance()
+        private GameController CreateGameInstance()
         {
-            var game = new Game(_mockUI.Object);
+            var game = new GameController(_mockUI.Object);
             // Initialize the betting state that would normally be created in NewRound()
             InitializeBettingState(game);
             return game;
         }
 
-        private void InitializeBettingState(Game game)
+        private void InitializeBettingState(GameController game)
         {
             // Get the players list
-            var playersField = typeof(Game).GetField("_players", BindingFlags.NonPublic | BindingFlags.Instance);
+            var playersField = typeof(GameController).GetField("_players", BindingFlags.NonPublic | BindingFlags.Instance);
             var players = playersField.GetValue(game);
             
             // Get the dealer index
-            var dealerIndexField = typeof(Game).GetField("DealerIndex", BindingFlags.Public | BindingFlags.Instance);
+            var dealerIndexField = typeof(GameController).GetField("DealerIndex", BindingFlags.Public | BindingFlags.Instance);
             var dealerIndex = (int)dealerIndexField.GetValue(game);
             
             // Create and set the betting state
-            var bettingState = new BettingState((List<Player>)players, dealerIndex, _eventManager);
+            var bettingState = new BettingService((List<Player>)players, dealerIndex, _eventManager);
             SetPrivateField(game, "_bettingState", bettingState);
         }
         
@@ -60,40 +60,40 @@ namespace DeuxCentsCardGame.Tests
             }
         }
         
-        private void SetBettingStateFields(Game game, int currentWinningBid, int currentWinningBidIndex, bool[] playerHasBet)
+        private void SetBettingStateFields(GameController game, int currentWinningBid, int currentWinningBidIndex, bool[] playerHasBet)
         {
-            var bettingStateField = typeof(Game).GetField("_bettingState", BindingFlags.NonPublic | BindingFlags.Instance);
+            var bettingStateField = typeof(GameController).GetField("_bettingState", BindingFlags.NonPublic | BindingFlags.Instance);
             var bettingState = bettingStateField.GetValue(game);
             
             // Set the public properties directly
-            var currentWinningBidProp = typeof(BettingState).GetProperty("CurrentWinningBid");
+            var currentWinningBidProp = typeof(BettingService).GetProperty("CurrentWinningBid");
             currentWinningBidProp.SetValue(bettingState, currentWinningBid);
             
-            var currentWinningBidIndexProp = typeof(BettingState).GetProperty("CurrentWinningBidIndex");
+            var currentWinningBidIndexProp = typeof(BettingService).GetProperty("CurrentWinningBidIndex");
             currentWinningBidIndexProp.SetValue(bettingState, currentWinningBidIndex);
             
-            var playerHasBetProp = typeof(BettingState).GetProperty("PlayerHasBet");
+            var playerHasBetProp = typeof(BettingService).GetProperty("PlayerHasBet");
             playerHasBetProp.SetValue(bettingState, playerHasBet.ToList());
         }
 
-        private (int teamOneTotalPoints, int teamTwoTotalPoints) GetTeamTotalPoints(Game game)
+        private (int teamOneTotalPoints, int teamTwoTotalPoints) GetTeamTotalPoints(GameController game)
         {
-            var teamOneTotalPoints = (int)typeof(Game)
+            var teamOneTotalPoints = (int)typeof(GameController)
                 .GetField("_teamOneTotalPoints", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(game);
                 
-            var teamTwoTotalPoints = (int)typeof(Game)
+            var teamTwoTotalPoints = (int)typeof(GameController)
                 .GetField("_teamTwoTotalPoints", BindingFlags.NonPublic | BindingFlags.Instance)
                 .GetValue(game);
                 
             return (teamOneTotalPoints, teamTwoTotalPoints);
         }
 
-        private void ScoreBothTeams(Game game, bool teamOneBid)
+        private void ScoreBothTeams(GameController game, bool teamOneBid)
         {
-            var scoreBidWinningTeamMethod = typeof(Game).GetMethod("ScoreBidWinningTeam", 
+            var scoreBidWinningTeamMethod = typeof(GameController).GetMethod("ScoreBidWinningTeam", 
                 BindingFlags.NonPublic | BindingFlags.Instance);
-            var scoreBidLosingTeamMethod = typeof(Game).GetMethod("ScoreBidLosingTeam", 
+            var scoreBidLosingTeamMethod = typeof(GameController).GetMethod("ScoreBidLosingTeam", 
                 BindingFlags.NonPublic | BindingFlags.Instance);
 
             if (teamOneBid)
