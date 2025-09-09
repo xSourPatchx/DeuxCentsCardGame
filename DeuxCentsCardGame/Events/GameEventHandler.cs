@@ -1,4 +1,4 @@
-using DeuxCentsCardGame.Core;
+using DeuxCentsCardGame.Config;
 using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.Interfaces;
 using DeuxCentsCardGame.UI;

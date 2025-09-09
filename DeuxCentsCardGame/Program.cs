@@ -1,5 +1,5 @@
 ﻿using DeuxCentsCardGame.UI;
-using DeuxCentsCardGame.Core;
+using DeuxCentsCardGame.Controllers;
 
 namespace DeuxCentsCardGame
 {

@@ -1,4 +1,4 @@
-namespace DeuxCentsCardGame.Core
+namespace DeuxCentsCardGame.Config
 {
     public class GameConfig
     {
@@ -19,6 +19,6 @@ namespace DeuxCentsCardGame.Core
         public const int MinimumPlayersToPass = TotalPlayers - 1;
         public const int PassedBidValue = -1; // not using this yet
 
-    
+
     }
 }

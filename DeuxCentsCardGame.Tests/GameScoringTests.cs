@@ -5,6 +5,7 @@ using DeuxCentsCardGame.Events;
 using System.Reflection;
 
 using Moq;
+using DeuxCentsCardGame.Controllers;
 
 namespace DeuxCentsCardGame.Tests
 {

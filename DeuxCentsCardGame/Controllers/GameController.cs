@@ -1,8 +1,10 @@
-using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Config;
 using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Services;
 
-namespace DeuxCentsCardGame.Core
+namespace DeuxCentsCardGame.Controllers
 {
     public class GameController : IGame
     {
@@ -237,7 +239,7 @@ namespace DeuxCentsCardGame.Core
             }
         }
 
-        private bool IsPlayerOnTeamOne(int playerIndex)
+        public bool IsPlayerOnTeamOne(int playerIndex)
         {
             return playerIndex % 2 == 0;
         }

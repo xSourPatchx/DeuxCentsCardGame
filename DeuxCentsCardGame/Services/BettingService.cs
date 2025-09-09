@@ -1,7 +1,8 @@
 using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Config;
 
-namespace DeuxCentsCardGame.Core
+namespace DeuxCentsCardGame.Services
 {
     public class BettingService
     {
