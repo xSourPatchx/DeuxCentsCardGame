@@ -1,8 +1,8 @@
 using DeuxCentsCardGame.Config;
 using DeuxCentsCardGame.Events;
 using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.Controllers
 {
@@ -11,24 +11,23 @@ namespace DeuxCentsCardGame.Controllers
         // Game state properties
         private Deck _deck;
         private readonly List<Player> _players;
-        private BettingService _bettingState;
         private bool _isGameEnded;
         private CardSuit? _trumpSuit;
 
         // dealer starts at player 4 (index 3)
         public int DealerIndex = GameConfig.TeamTwoPlayer2;
-
-        // scoring properties
-        private int _teamOneRoundPoints;
-        private int _teamTwoRoundPoints;
-        private int _teamOneTotalPoints;
-        private int _teamTwoTotalPoints;
         private int _currentRoundNumber = 1;
+
+        // Managers references
+        private readonly DealingManager _dealingManager;
+        private readonly BettingManager _bettingManager;
+        private readonly TrumpSelectionManager _trumpSelectionManager;
+        private readonly ScoringManager _scoringManager;
 
         // UI reference
         private readonly IUIGameView _ui;
 
-        // Event reference
+        // Event references
         private readonly GameEventManager _eventManager;
         private readonly GameEventHandler _eventHandler;
 
@@ -38,16 +37,21 @@ namespace DeuxCentsCardGame.Controllers
             _deck = new Deck();
             _players =
             [
-                new("Player 1"),
+                    new("Player 1"),
                     new("Player 2"),
                     new("Player 3"),
                     new("Player 4"),
-                ];
+            ];
 
             _trumpSuit = null;
             _eventManager = new GameEventManager();
             _eventHandler = new GameEventHandler(_eventManager, _ui);
-            _bettingState = new BettingService(_players, DealerIndex, _eventManager);
+
+            // Initialize managers
+            _dealingManager = new DealingManager(_eventManager);
+            _bettingManager = new BettingManager(_players, DealerIndex, _eventManager);
+            _trumpSelectionManager = new TrumpSelectionManager(_eventManager, _ui);
+            _scoringManager = new ScoringManager(_eventManager, _players);
         }
 
         public void StartGame()
@@ -66,7 +70,6 @@ namespace DeuxCentsCardGame.Controllers
             ResetRound();
             _deck.ShuffleDeck();
             DealCards();
-            _eventManager.RaiseCardsDealt(_players, DealerIndex);
             ExecuteBettingRound();
             SelectTrumpSuit();
             PlayRound();
@@ -79,50 +82,36 @@ namespace DeuxCentsCardGame.Controllers
         private void ResetRound()
         {
             _deck = new Deck();
-            _teamOneRoundPoints = 0;
-            _teamTwoRoundPoints = 0;
             _trumpSuit = null;
-            _bettingState = new BettingService(_players, DealerIndex, _eventManager);
+            _scoringManager.ResetRoundPoints();
+            _bettingManager.ResetBettingRound();
+            // _bettingState = new BettingManager(_players, DealerIndex, _eventManager);
         }
 
         private void RotateDealer()
         {
-            DealerIndex = (DealerIndex + 1) % _players.Count;
+            DealerIndex = _dealingManager.RotateDealerIndex(DealerIndex, _players.Count);
         }
 
         private void DealCards()
-        {
-            foreach (Player player in _players)
-            {
-                player.Hand.Clear();
-            }
-
-            for (int cardIndex = 0; cardIndex < _deck.Cards.Count; cardIndex++)
-            {
-                _players[cardIndex % _players.Count].AddCard(_deck.Cards[cardIndex]);
-            }
+        { 
+            _dealingManager.DealCards(_deck, _players);
+            _dealingManager.RaiseCardsDealtEvent(_players, DealerIndex);
         }
 
         public void ExecuteBettingRound()
         {
-            _bettingState.ResetBettingRound();
-            _bettingState.ExecuteBettingRound();
+            _bettingManager.ExecuteBettingRound();
         }
 
         private void SelectTrumpSuit()
         {
-            string[] validSuits = Enum.GetNames<CardSuit>().Select(suit => suit.ToLower()).ToArray();
-            string prompt = $"{_players[_bettingState.CurrentWinningBidIndex].Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")";
-            string trumpSuitString = _ui.GetOptionInput(prompt, validSuits);
-
-            _trumpSuit = Deck.StringToCardSuit(trumpSuitString);
-
-            _eventManager.RaiseTrumpSelected(_trumpSuit.Value, _players[_bettingState.CurrentWinningBidIndex]);
+            _trumpSuit = _trumpSelectionManager.SelectTrumpSuit(_players[_bettingManager.CurrentWinningBidIndex]);
         }
 
         private void PlayRound()
         {
-            int currentPlayerIndex = _bettingState.CurrentWinningBidIndex;
+            int currentPlayerIndex = _bettingManager.CurrentWinningBidIndex;
             PlayAllTricks(currentPlayerIndex);
         }
 
@@ -135,10 +124,7 @@ namespace DeuxCentsCardGame.Controllers
 
             for (int trickNumber = 0; trickNumber < totalTricks; trickNumber++)
             {
-                int trickPoints = 0;
                 CardSuit? leadingSuit = null;
-
-                // empty list to hold tricks
                 List<(Card card, Player player)> currentTrick = [];
 
                 PlayTrick(currentPlayerIndex, leadingSuit, currentTrick, trickNumber);
@@ -148,12 +134,11 @@ namespace DeuxCentsCardGame.Controllers
                 // set winning player as the current player for the next trick
                 currentPlayerIndex = _players.IndexOf(trickWinner);
 
-                // adding all trick points to trickPoints
-                trickPoints = currentTrick.Sum(trick => trick.card.CardPointValue);
+                int trickPoints = currentTrick.Sum(trick => trick.card.CardPointValue);
 
                 _eventManager.RaiseTrickCompleted(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
 
-                AwardTrickPoints(currentPlayerIndex, trickPoints);
+                _scoringManager.AwardTrickPoints(currentPlayerIndex, trickPoints);
             }
         }
 
@@ -161,7 +146,7 @@ namespace DeuxCentsCardGame.Controllers
         {
             for (int trickIndex = 0; trickIndex < _players.Count; trickIndex++)
             {
-                // ensuring player who won the bet goes first;
+                // Ensuring player who won the bet goes first;
                 int playerIndex = (currentPlayerIndex + trickIndex) % _players.Count;
                 Player currentPlayer = _players[playerIndex];
 
@@ -169,7 +154,6 @@ namespace DeuxCentsCardGame.Controllers
                 _eventManager.RaisePlayerTurn(currentPlayer, leadingSuit, _trumpSuit, trickNumber);
 
                 Card playedCard = GetValidCardFromPlayer(currentPlayer, leadingSuit);
-
                 currentPlayer.RemoveCard(playedCard);
 
                 if (trickIndex == 0)
@@ -224,97 +208,21 @@ namespace DeuxCentsCardGame.Controllers
             return (trickWinner.card, trickWinner.player);
         }
 
-        private void AwardTrickPoints(int trickWinnerIndex, int trickPoints)
-        {
-            string teamName = IsPlayerOnTeamOne(trickWinnerIndex) ? "Team One" : "Team Two";
-            _ui.DisplayFormattedMessage("{0} collected {1} points for {2}", _players[trickWinnerIndex].Name, trickPoints, teamName);
-
-            if (IsPlayerOnTeamOne(trickWinnerIndex))
-            {
-                _teamOneRoundPoints += trickPoints;
-            }
-            else
-            {
-                _teamTwoRoundPoints += trickPoints;
-            }
-        }
-
-        public bool IsPlayerOnTeamOne(int playerIndex)
-        {
-            return playerIndex % 2 == 0;
-        }
-
-        // tally points and end the round 
         private void ScoreRound()
         {
-            bool bidWinnerIsTeamOne = IsPlayerOnTeamOne(_bettingState.CurrentWinningBidIndex);
-
-            ScoreTeam(bidWinnerIsTeamOne, true);
-            ScoreTeam(!bidWinnerIsTeamOne, false);
-
-            _eventManager.RaiseScoreUpdated(_teamOneRoundPoints, _teamTwoRoundPoints,
-                                            _teamOneTotalPoints, _teamTwoTotalPoints,
-                                            bidWinnerIsTeamOne, _bettingState.CurrentWinningBid);
-        }
-
-        private void ScoreTeam(bool isTeamOne, bool isBidWinner)
-        {
-            int teamRoundPoints = isTeamOne ? _teamOneRoundPoints : _teamTwoRoundPoints;
-            int teamTotalPoints = isTeamOne ? _teamOneTotalPoints : _teamTwoTotalPoints;
-
-            var (player1Index, player2Index) = GetPlayerIndices(isTeamOne);
-
-            bool teamCannotScore = teamTotalPoints >= GameConfig.CannotScoreThreshold &&
-                                    !_players[player1Index].HasBet &&
-                                    !_players[player2Index].HasBet;
-
-            int awardedPoints = CalculateAwardedPoints(teamRoundPoints, teamCannotScore, isBidWinner);
-
-            if (isTeamOne)
-            {
-                _teamOneTotalPoints += awardedPoints;
-            }
-            else
-            {
-                _teamTwoTotalPoints += awardedPoints;
-            }
-        }
-
-        private (int player1, int player2) GetPlayerIndices(bool isTeamOne)
-        {
-            return isTeamOne ? (GameConfig.TeamOnePlayer1, GameConfig.TeamOnePlayer2)
-                                : (GameConfig.TeamTwoPlayer1, GameConfig.TeamTwoPlayer2);
-        }
-
-        private int CalculateAwardedPoints(int teamRoundPoints, bool teamCannotScore, bool isBidWinner)
-        {
-            if (teamCannotScore)
-            {
-                return 0;
-            }
-            else if (isBidWinner)
-            {
-                return teamRoundPoints >= _bettingState.CurrentWinningBid
-                                        ? teamRoundPoints
-                                        : -_bettingState.CurrentWinningBid;
-            }
-            else
-            {
-                return teamRoundPoints;
-            }
+            _scoringManager.ScoreRound(_bettingManager.CurrentWinningBidIndex, _bettingManager.CurrentWinningBid);
         }
 
         private void EndGameCheck()
         {
-            if (_teamOneTotalPoints >= GameConfig.WinningScore || _teamTwoTotalPoints >= GameConfig.WinningScore)
+            if (_scoringManager.IsGameOver())
             {
-                _eventManager.RaiseGameOver(_teamOneTotalPoints, _teamTwoTotalPoints);
+                _scoringManager.RaiseGameOverEvent();
                 _isGameEnded = true;
             }
             else
             {
                 _ui.WaitForUser("\nPress any key to start the next round...");
-                _eventManager.RaiseGameOver(_teamOneTotalPoints, _teamTwoTotalPoints);
             }
         }
     }

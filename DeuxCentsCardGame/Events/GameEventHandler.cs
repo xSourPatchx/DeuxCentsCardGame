@@ -149,13 +149,13 @@ namespace DeuxCentsCardGame.Events
                 _ui.DisplayFormattedMessage("{0}: {1}", player.Name, card);
             }
 
-            _ui.DisplayFormattedMessage("Winner: {0} with {1}", e.WinningPlayer.Name, e.WinningCard);
+            _ui.DisplayFormattedMessage("\nTrick winner: {0} with {1}", e.WinningPlayer.Name, e.WinningCard);
             _ui.DisplayFormattedMessage("Trick points: {0}", e.TrickPoints);
         }
         
         private void OnTrickPointsAwarded(object? sender, TrickPointsAwardedEventArgs e)
         {
-            _ui.DisplayFormattedMessage("{0} collected {1} points for {2}", e.Player.Name, e.TrickPoints, e.TeamName);
+            _ui.DisplayFormattedMessage("{0} collected {1} points for {2}\n", e.Player.Name, e.TrickPoints, e.TeamName);
         }
 
         private void OnTeamScoring(object? sender, TeamScoringEventArgs e)

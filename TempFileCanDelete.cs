@@ -1,10 +1,15 @@
 // Recommendation: Break this into smaller classes:
-// - DealingService
-// - TrumpSelectionService
-// - ScoringService
+// - DealingManager
+// - BettingManager
+// - TrumpSelectionManager
+// - ScoringManager
 
-// Other Folder called "Managers"
+// Continue to add the following
 // - TeamManager
+// - PlayerManager
+// - DeckManager
+
+// Then remove UI dependencies
 
 // 1. Scoring logic should be separate
 public class ScoringCalculator
@@ -49,5 +54,5 @@ public class GameController
 {
     // Game flow control
     // Round management  
-    // Coordination between services
+    // Coordination between Managers
 }

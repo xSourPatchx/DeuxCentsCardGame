@@ -1,10 +1,10 @@
-using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Events;
 using DeuxCentsCardGame.Config;
+using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Models;
 
-namespace DeuxCentsCardGame.Services
+namespace DeuxCentsCardGame.Managers
 {
-    public class BettingService
+    public class BettingManager
     {
         // Public betting state properties
         public int CurrentWinningBid { get; set; }
@@ -16,7 +16,7 @@ namespace DeuxCentsCardGame.Services
         private readonly int _dealerIndex;
         private readonly GameEventManager _eventManager;
 
-        public BettingService(List<Player> players, int dealerIndex, GameEventManager eventManager)
+        public BettingManager(List<Player> players, int dealerIndex, GameEventManager eventManager)
         {
             _players = players;
             _dealerIndex = dealerIndex;
