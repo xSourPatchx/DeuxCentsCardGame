@@ -1,6 +1,7 @@
 using DeuxCentsCardGame.Config;
 using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.UI;
 
 namespace DeuxCentsCardGame.Events
@@ -24,12 +25,15 @@ namespace DeuxCentsCardGame.Events
             _eventManager.RoundStarted += OnRoundStarted;
             _eventManager.CardsDealt += OnCardsDealt;
 
-            // Betting and trump selection events
+            // Betting events
             _eventManager.BettingRoundStarted += OnBettingRoundStarted;
             _eventManager.BetInput += OnBetInput;
             _eventManager.InvalidBet += OnInvalidBet;
             _eventManager.BettingAction += OnBettingAction;
             _eventManager.BettingCompleted += OnBettingCompleted;
+
+            // Trump selection events
+            _eventManager.TrumpSelectionInput += OnTrumpSelectionInput;
             _eventManager.TrumpSelected += OnTrumpSelected;
 
             // Card playing events
@@ -108,10 +112,18 @@ namespace DeuxCentsCardGame.Events
                 string bidText = bid.Value == -1 ? "Passed" : $"Bet {bid.Value}";
                 _ui.DisplayFormattedMessage("{0}: {1}", bid.Key.Name, bidText);
             }
-            _ui.DisplayFormattedMessage("\nThe winning bidder is {0} with {1}\n",e.WinningBidder.Name, e.WinningBid);
+            _ui.DisplayFormattedMessage("\nThe winning bidder is {0} with {1}\n", e.WinningBidder.Name, e.WinningBid);
 
             // Display winner's hand
             UIGameView.DisplayHand(e.WinningBidder);
+        }
+
+        private void OnTrumpSelectionInput(object? sender, TrumpSelectionInputEventArgs e)
+        {
+            string[] validSuits = Enum.GetNames<CardSuit>().Select(suit => suit.ToLower()).ToArray();
+            string prompt = $"{e.SelectingPlayer.Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")";
+
+            e.Response = _ui.GetOptionInput(prompt, validSuits);
         }
 
         private void OnTrumpSelected(object? sender, TrumpSelectedEventArgs e)
@@ -220,6 +232,7 @@ namespace DeuxCentsCardGame.Events
             _eventManager.InvalidBet -= OnInvalidBet;
             _eventManager.BettingAction -= OnBettingAction;
             _eventManager.BettingCompleted -= OnBettingCompleted;
+            _eventManager.TrumpSelectionInput -= OnTrumpSelectionInput;
             _eventManager.TrumpSelected -= OnTrumpSelected;
             _eventManager.PlayerTurn -= OnPlayerTurn;
             _eventManager.CardPlayed -= OnCardPlayed;

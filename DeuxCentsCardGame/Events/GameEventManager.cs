@@ -9,12 +9,15 @@ namespace DeuxCentsCardGame.Events
         public event EventHandler<RoundStartedEventArgs>? RoundStarted;
         public event EventHandler<CardsDealtEventArgs>? CardsDealt;
 
-        // Betting and trump selection events
+        // Betting events
         public event EventHandler<BettingRoundStartedEventArgs>? BettingRoundStarted;
         public event EventHandler<BetInputEventArgs>? BetInput;
         public event EventHandler<InvalidBetEventArgs>? InvalidBet;
         public event EventHandler<BettingActionEventArgs>? BettingAction;
         public event EventHandler<BettingCompletedEventArgs>? BettingCompleted;
+
+        // Trump selection events
+        public event EventHandler<TrumpSelectionInputEventArgs>? TrumpSelectionInput;
         public event EventHandler<TrumpSelectedEventArgs>? TrumpSelected;
 
         // Card playing events
@@ -65,6 +68,11 @@ namespace DeuxCentsCardGame.Events
         protected virtual void OnBettingCompleted(BettingCompletedEventArgs e)
         {
             BettingCompleted?.Invoke(this, e);
+        }
+
+        protected virtual void OnTrumpSelectionInput(TrumpSelectionInputEventArgs e)
+        {
+            TrumpSelectionInput?.Invoke(this, e);
         }
 
         protected virtual void OnTrumpSelected(TrumpSelectedEventArgs e)
@@ -149,6 +157,13 @@ namespace DeuxCentsCardGame.Events
         public void RaiseBettingCompleted(Player winningBidder, int winningBid, Dictionary<Player, int> allBids)
         {
             OnBettingCompleted(new BettingCompletedEventArgs(winningBidder, winningBid, allBids));
+        }
+
+        public string RaiseTrumpSelectionInput(Player selectingPlayer)
+        {
+            var args = new TrumpSelectionInputEventArgs(selectingPlayer);
+            OnTrumpSelectionInput(args);
+            return args.Response;
         }
 
         public void RaiseTrumpSelected(CardSuit trumpSuit, Player selectedBy)

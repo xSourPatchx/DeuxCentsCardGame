@@ -10,19 +10,20 @@ namespace DeuxCentsCardGame.Controllers
     {
         // Game state properties
         private Deck _deck;
-        private readonly List<Player> _players;
         private bool _isGameEnded;
         private CardSuit? _trumpSuit;
 
-        // dealer starts at player 4 (index 3)
-        public int DealerIndex = GameConfig.TeamTwoPlayer2;
         private int _currentRoundNumber = 1;
 
         // Managers references
+        private readonly PlayerManager _playerManager;
         private readonly DealingManager _dealingManager;
         private readonly BettingManager _bettingManager;
         private readonly TrumpSelectionManager _trumpSelectionManager;
         private readonly ScoringManager _scoringManager;
+
+        // Dealer starts at player 4 (index 3)
+        public int DealerIndex = GameConfig.TeamTwoPlayer2;
 
         // UI reference
         private readonly IUIGameView _ui;
@@ -35,23 +36,18 @@ namespace DeuxCentsCardGame.Controllers
         {
             _ui = ui;
             _deck = new Deck();
-            _players =
-            [
-                    new("Player 1"),
-                    new("Player 2"),
-                    new("Player 3"),
-                    new("Player 4"),
-            ];
 
-            _trumpSuit = null;
             _eventManager = new GameEventManager();
             _eventHandler = new GameEventHandler(_eventManager, _ui);
 
             // Initialize managers
+            _playerManager = new PlayerManager(_eventManager);
             _dealingManager = new DealingManager(_eventManager);
-            _bettingManager = new BettingManager(_players, DealerIndex, _eventManager);
+            _bettingManager = new BettingManager(_playerManager.Players.ToList(), DealerIndex, _eventManager);
             _trumpSelectionManager = new TrumpSelectionManager(_eventManager, _ui);
-            _scoringManager = new ScoringManager(_eventManager, _players);
+            _scoringManager = new ScoringManager(_eventManager, _playerManager.Players.ToList());
+
+            _trumpSuit = null;
         }
 
         public void StartGame()
@@ -66,7 +62,7 @@ namespace DeuxCentsCardGame.Controllers
 
         public void NewRound()
         {
-            _eventManager.RaiseRoundStarted(_currentRoundNumber, _players[DealerIndex]);
+            _eventManager.RaiseRoundStarted(_currentRoundNumber, _playerManager.GetPlayer(DealerIndex));
             ResetRound();
             _deck.ShuffleDeck();
             DealCards();
@@ -90,13 +86,13 @@ namespace DeuxCentsCardGame.Controllers
 
         private void RotateDealer()
         {
-            DealerIndex = _dealingManager.RotateDealerIndex(DealerIndex, _players.Count);
+            DealerIndex = _dealingManager.RotateDealerIndex(DealerIndex, _playerManager.Players.Count);
         }
 
         private void DealCards()
         { 
-            _dealingManager.DealCards(_deck, _players);
-            _dealingManager.RaiseCardsDealtEvent(_players, DealerIndex);
+            _dealingManager.DealCards(_deck, _playerManager.Players.ToList());
+            _dealingManager.RaiseCardsDealtEvent(_playerManager.Players.ToList(), DealerIndex);
         }
 
         public void ExecuteBettingRound()
@@ -106,7 +102,7 @@ namespace DeuxCentsCardGame.Controllers
 
         private void SelectTrumpSuit()
         {
-            _trumpSuit = _trumpSelectionManager.SelectTrumpSuit(_players[_bettingManager.CurrentWinningBidIndex]);
+            _trumpSuit = _trumpSelectionManager.SelectTrumpSuit(_playerManager.GetPlayer(_bettingManager.CurrentWinningBidIndex));
         }
 
         private void PlayRound()
@@ -117,7 +113,8 @@ namespace DeuxCentsCardGame.Controllers
 
         private void PlayAllTricks(int startingPlayerIndex)
         {
-            int totalTricks = _players[startingPlayerIndex].Hand.Count;
+            var startingPlayer = _playerManager.GetPlayer(startingPlayerIndex);
+            int totalTricks = startingPlayer.Hand.Count;
             int currentPlayerIndex = startingPlayerIndex;
             Card trickWinningCard;
             Player trickWinner;
@@ -131,8 +128,8 @@ namespace DeuxCentsCardGame.Controllers
 
                 (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick, _trumpSuit);
 
-                // set winning player as the current player for the next trick
-                currentPlayerIndex = _players.IndexOf(trickWinner);
+                // Set winning player as the current player for the next trick
+                currentPlayerIndex = _playerManager.Players.ToList().IndexOf(trickWinner);
 
                 int trickPoints = currentTrick.Sum(trick => trick.card.CardPointValue);
 
@@ -144,11 +141,13 @@ namespace DeuxCentsCardGame.Controllers
 
         private void PlayTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick, int trickNumber)
         {
-            for (int trickIndex = 0; trickIndex < _players.Count; trickIndex++)
+            var players = _playerManager.Players.ToList();
+
+            for (int trickIndex = 0; trickIndex < players.Count; trickIndex++)
             {
-                // Ensuring player who won the bet goes first;
-                int playerIndex = (currentPlayerIndex + trickIndex) % _players.Count;
-                Player currentPlayer = _players[playerIndex];
+                // Ensuring player who won the bet goes first
+                int playerIndex = (currentPlayerIndex + trickIndex) % players.Count;
+                Player currentPlayer = _playerManager.GetPlayer(playerIndex);
 
                 // Raise event for player's turn and display their hand
                 _eventManager.RaisePlayerTurn(currentPlayer, leadingSuit, _trumpSuit, trickNumber);
