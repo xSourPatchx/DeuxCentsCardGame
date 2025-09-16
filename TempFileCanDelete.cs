@@ -1,3 +1,2 @@
-// Currently removing UI dependencies
-// Finished TrumpSelectionInputEventArgs
-// next work on CardSelectionInputEventArgs 
+// next work DeckManager, have the shuffle logic there 
+// instead of the Deck class

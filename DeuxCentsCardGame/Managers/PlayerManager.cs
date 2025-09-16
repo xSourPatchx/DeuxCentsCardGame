@@ -40,5 +40,13 @@ namespace DeuxCentsCardGame.Managers
             }
         }
 
+        public void ClearAllPlayerHands()
+        { 
+            foreach (var player in _players)
+            {
+                player.Hand.Clear();
+            }
+        }
+
     }
 }

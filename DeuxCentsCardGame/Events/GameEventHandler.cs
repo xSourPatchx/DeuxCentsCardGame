@@ -9,12 +9,12 @@ namespace DeuxCentsCardGame.Events
     public class GameEventHandler
     {
         private readonly GameEventManager _eventManager;
-        private readonly IUIGameView _ui;
+        private readonly UIGameView _ui;
 
         public GameEventHandler(GameEventManager eventManager, IUIGameView ui)
         {
             _eventManager = eventManager;
-            _ui = ui;
+            _ui = (UIGameView)ui;
 
             SubscribeToEvents();
         }
@@ -38,7 +38,9 @@ namespace DeuxCentsCardGame.Events
 
             // Card playing events
             _eventManager.PlayerTurn += OnPlayerTurn;
+            _eventManager.CardSelectionInput += OnCardSelectionInput;
             _eventManager.CardPlayed += OnCardPlayed;
+            _eventManager.InvalidCard += OnInvalidCard;
             _eventManager.TrickCompleted += OnTrickCompleted;
 
             // Scoring events
@@ -63,8 +65,8 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayMessage("Dealing cards...\n");
             _ui.DisplayFormattedMessage("\nCards dealt to all {0} players. Dealer index: {1}", e.Players.Count, e.DealerIndex);
 
-            // display all players hands
-            UIGameView.DisplayAllHands(e.Players, e.DealerIndex + 1);
+            // Display all players hands using instance method
+            _ui.DisplayAllHands(e.Players, e.DealerIndex + 1);
         }
 
         private void OnBettingRoundStarted(object? sender, BettingRoundStartedEventArgs e)
@@ -114,8 +116,8 @@ namespace DeuxCentsCardGame.Events
             }
             _ui.DisplayFormattedMessage("\nThe winning bidder is {0} with {1}\n", e.WinningBidder.Name, e.WinningBid);
 
-            // Display winner's hand
-            UIGameView.DisplayHand(e.WinningBidder);
+            // Display winner's hand using instance method
+            _ui.DisplayHand(e.WinningBidder);
         }
 
         private void OnTrumpSelectionInput(object? sender, TrumpSelectionInputEventArgs e)
@@ -133,7 +135,7 @@ namespace DeuxCentsCardGame.Events
 
         private void OnPlayerTurn(object? sender, PlayerTurnEventArgs e)
         {
-            UIGameView.DisplayHand(e.Player);
+            _ui.DisplayHand(e.Player);
             string leadingSuitInfo = e.LeadingSuit.HasValue ? $" (Leading suit is {e.LeadingSuit})" : "Not yet set.";
             string trumpSuitInfo = e.TrumpSuit.HasValue ? $" (Trump suit is {e.TrumpSuit})" : "Not yet set.";
 
@@ -145,9 +147,26 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayFormattedMessage("Trump suit: {0}", trumpSuitInfo);
         }
 
+        private void OnCardSelectionInput(object? sender, CardSelectionInputEventArgs e)
+        {
+            string leadingSuitString = e.LeadingSuit.HasValue ? Deck.CardSuitToString(e.LeadingSuit.Value) : "none";
+            string trumpSuitString = e.TrumpSuit.HasValue ? Deck.CardSuitToString(e.TrumpSuit.Value) : "none";
+
+            string prompt = $"{e.CurrentPlayer.Name}, choose a card to play (enter index 0-{e.Hand.Count - 1}" +
+                (e.LeadingSuit.HasValue ? $", leading suit is {leadingSuitString}" : "") +
+                $" and trump suit is {trumpSuitString}):";
+
+            e.Response = _ui.GetIntInput(prompt, 0, e.Hand.Count - 1);
+        }
+
         private void OnCardPlayed(object? sender, CardPlayedEventArgs e)
         {
             _ui.DisplayFormattedMessage("{0} played {1} in trick {2}\n", e.Player.Name, e.Card, e.TrickNumber + 1);
+        }
+
+        private void OnInvalidCard(object? sender, InvalidCardEventArgs e)
+        {
+            _ui.DisplayMessage(e.Message);
         }
 
         private void OnTrickCompleted(object? sender, TrickCompletedEventArgs e)
@@ -235,7 +254,9 @@ namespace DeuxCentsCardGame.Events
             _eventManager.TrumpSelectionInput -= OnTrumpSelectionInput;
             _eventManager.TrumpSelected -= OnTrumpSelected;
             _eventManager.PlayerTurn -= OnPlayerTurn;
+            _eventManager.CardSelectionInput -= OnCardSelectionInput;
             _eventManager.CardPlayed -= OnCardPlayed;
+            _eventManager.InvalidCard -= OnInvalidCard;
             _eventManager.TrickCompleted -= OnTrickCompleted;
             _eventManager.ScoreUpdated -= OnScoreUpdated;
             _eventManager.TeamScoring -= OnTeamScoring;

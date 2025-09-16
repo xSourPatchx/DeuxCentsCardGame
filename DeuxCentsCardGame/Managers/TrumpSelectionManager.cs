@@ -9,7 +9,7 @@ namespace DeuxCentsCardGame.Managers
         private readonly GameEventManager _eventManager;
         // private readonly IUIGameView _ui;
 
-        public TrumpSelectionManager(GameEventManager eventManager, IUIGameView ui)
+        public TrumpSelectionManager(GameEventManager eventManager)
         {
             _eventManager = eventManager;
             // _ui = ui;
@@ -26,7 +26,6 @@ namespace DeuxCentsCardGame.Managers
             _eventManager.RaiseTrumpSelected(trumpSuit, winningBidder);
 
             return trumpSuit;
-        }
-        
+        }   
     }
 }

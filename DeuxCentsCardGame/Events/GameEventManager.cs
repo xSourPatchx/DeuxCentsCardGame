@@ -22,7 +22,9 @@ namespace DeuxCentsCardGame.Events
 
         // Card playing events
         public event EventHandler<PlayerTurnEventArgs>? PlayerTurn;
+        public event EventHandler<CardSelectionInputEventArgs>? CardSelectionInput;
         public event EventHandler<CardPlayedEventArgs>? CardPlayed;
+        public event EventHandler<InvalidCardEventArgs>? InvalidCard;
         public event EventHandler<TrickCompletedEventArgs>? TrickCompleted;
 
         // Scoring events
@@ -35,6 +37,7 @@ namespace DeuxCentsCardGame.Events
         public event EventHandler<NextRoundEventArgs>? NextRoundPrompt;
 
         // Event raising methods
+        // Round events
         protected virtual void OnRoundStarted(RoundStartedEventArgs e)
         {
             RoundStarted?.Invoke(this, e);
@@ -45,6 +48,7 @@ namespace DeuxCentsCardGame.Events
             CardsDealt?.Invoke(this, e);
         }
 
+        // Betting events
         protected virtual void OnBettingRoundStarted(BettingRoundStartedEventArgs e)
         {
             BettingRoundStarted?.Invoke(this, e);
@@ -70,6 +74,7 @@ namespace DeuxCentsCardGame.Events
             BettingCompleted?.Invoke(this, e);
         }
 
+        // Trump selection events
         protected virtual void OnTrumpSelectionInput(TrumpSelectionInputEventArgs e)
         {
             TrumpSelectionInput?.Invoke(this, e);
@@ -80,9 +85,15 @@ namespace DeuxCentsCardGame.Events
             TrumpSelected?.Invoke(this, e);
         }
 
+        // Card playing events
         protected virtual void OnPlayerTurn(PlayerTurnEventArgs e)
         {
             PlayerTurn?.Invoke(this, e);
+        }
+
+        protected virtual void OnCardSelectionInput(CardSelectionInputEventArgs e)
+        {
+            CardSelectionInput?.Invoke(this, e);
         }
 
         protected virtual void OnCardPlayed(CardPlayedEventArgs e)
@@ -90,11 +101,17 @@ namespace DeuxCentsCardGame.Events
             CardPlayed?.Invoke(this, e);
         }
 
+        protected virtual void OnInvalidCard(InvalidCardEventArgs e)
+        {
+            InvalidCard?.Invoke(this, e);
+        }
+
         protected virtual void OnTrickCompleted(TrickCompletedEventArgs e)
         {
             TrickCompleted?.Invoke(this, e);
         }
 
+        // Scoring events
         protected virtual void OnScoreUpdated(ScoreUpdatedEventArgs e)
         {
             ScoreUpdated?.Invoke(this, e);
@@ -110,6 +127,7 @@ namespace DeuxCentsCardGame.Events
             TrickPointsAwarded?.Invoke(this, e);
         }
 
+        // Game end events
         protected virtual void OnGameOver(GameOverEventArgs e)
         {
             GameOver?.Invoke(this, e);
@@ -121,6 +139,7 @@ namespace DeuxCentsCardGame.Events
         }
 
         // Public methods to trigger events from game logic
+        // Round events
         public void RaiseRoundStarted(int roundNumber, Player dealer)
         {
             OnRoundStarted(new RoundStartedEventArgs(roundNumber, dealer));
@@ -131,6 +150,7 @@ namespace DeuxCentsCardGame.Events
             OnCardsDealt(new CardsDealtEventArgs(players, dealerIndex));
         }
 
+        // Betting events
         public void RaiseBettingRoundStarted(string message)
         {
             OnBettingRoundStarted(new BettingRoundStartedEventArgs(message));
@@ -159,6 +179,7 @@ namespace DeuxCentsCardGame.Events
             OnBettingCompleted(new BettingCompletedEventArgs(winningBidder, winningBid, allBids));
         }
 
+        // Trump selection events
         public string RaiseTrumpSelectionInput(Player selectingPlayer)
         {
             var args = new TrumpSelectionInputEventArgs(selectingPlayer);
@@ -171,9 +192,17 @@ namespace DeuxCentsCardGame.Events
             OnTrumpSelected(new TrumpSelectedEventArgs(trumpSuit, selectedBy));
         }
 
+        // Card playing events
         public void RaisePlayerTurn(Player player, CardSuit? leadingSuit, CardSuit? trumpSuit, int trickNumber)
         {
             OnPlayerTurn(new PlayerTurnEventArgs(player, leadingSuit, trumpSuit, trickNumber));
+        }
+
+        public int RaiseCardSelectionInput(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit, List<Card> hand)
+        {
+            var args = new CardSelectionInputEventArgs(currentPlayer, leadingSuit, trumpSuit, hand);
+            OnCardSelectionInput(args);
+            return args.Response;
         }
 
         public void RaiseCardPlayed(Player player, Card card, int trickNumber, CardSuit? leadingSuit, CardSuit? trumpSuit)
@@ -181,11 +210,17 @@ namespace DeuxCentsCardGame.Events
             OnCardPlayed(new CardPlayedEventArgs(player, card, trickNumber, leadingSuit, trumpSuit));
         }
 
+        public void RaiseInvalidCard(string message)
+        {
+            OnInvalidCard(new InvalidCardEventArgs(message));
+        }
+
         public void RaiseTrickCompleted(int trickNumber, Player winningPlayer, Card winningCard, List<(Card card, Player player)> playedCards, int trickPoints)
         {
             OnTrickCompleted(new TrickCompletedEventArgs(trickNumber, winningPlayer, winningCard, playedCards, trickPoints));
         }
 
+        // Scoring events
         public void RaiseScoreUpdated(int teamOneRoundPoints, int teamTwoRoundPoints, int teamOneTotalPoints, int teamTwoTotalPoints, bool isBidWinnerTeamOne, int winningBid)
         {
             OnScoreUpdated(new ScoreUpdatedEventArgs(teamOneRoundPoints, teamTwoRoundPoints, teamOneTotalPoints, teamTwoTotalPoints, isBidWinnerTeamOne, winningBid));
@@ -201,6 +236,7 @@ namespace DeuxCentsCardGame.Events
             OnTrickPointsAwarded(new TrickPointsAwardedEventArgs(player, trickPoints, teamName));
         }
 
+        // Game end events
         public void RaiseGameOver(int teamOneFinalScore, int teamTwoFinalScore)
         {
             OnGameOver(new GameOverEventArgs(teamOneFinalScore, teamTwoFinalScore));

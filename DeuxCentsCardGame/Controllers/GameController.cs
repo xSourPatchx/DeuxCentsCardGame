@@ -26,7 +26,7 @@ namespace DeuxCentsCardGame.Controllers
         public int DealerIndex = GameConfig.TeamTwoPlayer2;
 
         // UI reference
-        private readonly IUIGameView _ui;
+        // private readonly IUIGameView _ui;
 
         // Event references
         private readonly GameEventManager _eventManager;
@@ -34,17 +34,17 @@ namespace DeuxCentsCardGame.Controllers
 
         public GameController(IUIGameView ui)
         {
-            _ui = ui;
+            // _ui = ui;
             _deck = new Deck();
 
             _eventManager = new GameEventManager();
-            _eventHandler = new GameEventHandler(_eventManager, _ui);
+            _eventHandler = new GameEventHandler(_eventManager, ui);
 
             // Initialize managers
             _playerManager = new PlayerManager(_eventManager);
             _dealingManager = new DealingManager(_eventManager);
             _bettingManager = new BettingManager(_playerManager.Players.ToList(), DealerIndex, _eventManager);
-            _trumpSelectionManager = new TrumpSelectionManager(_eventManager, _ui);
+            _trumpSelectionManager = new TrumpSelectionManager(_eventManager);
             _scoringManager = new ScoringManager(_eventManager, _playerManager.Players.ToList());
 
             _trumpSuit = null;
@@ -168,16 +168,16 @@ namespace DeuxCentsCardGame.Controllers
 
         private Card GetValidCardFromPlayer(Player currentPlayer, CardSuit? leadingSuit)
         {
-            string leadingSuitString = leadingSuit.HasValue ? Deck.CardSuitToString(leadingSuit.Value) : "none";
-            string trumpSuitString = _trumpSuit.HasValue ? Deck.CardSuitToString(_trumpSuit.Value) : "none";
+            // string leadingSuitString = leadingSuit.HasValue ? Deck.CardSuitToString(leadingSuit.Value) : "none";
+            // string trumpSuitString = _trumpSuit.HasValue ? Deck.CardSuitToString(_trumpSuit.Value) : "none";
 
-            string prompt = $"{currentPlayer.Name}, choose a card to play (enter index 0-{currentPlayer.Hand.Count - 1}" +
-                (leadingSuit.HasValue ? $", leading suit is {leadingSuitString}" : "") +
-                $" and trump suit is {trumpSuitString}):";
+            // string prompt = $"{currentPlayer.Name}, choose a card to play (enter index 0-{currentPlayer.Hand.Count - 1}" +
+            //     (leadingSuit.HasValue ? $", leading suit is {leadingSuitString}" : "") +
+            //     $" and trump suit is {trumpSuitString}):";
 
             while (true)
             {
-                int cardIndex = _ui.GetIntInput(prompt, 0, currentPlayer.Hand.Count - 1);
+                int cardIndex = _eventManager.RaiseCardSelectionInput(currentPlayer, leadingSuit, _trumpSuit, currentPlayer.Hand);
                 Card selectedCard = currentPlayer.Hand[cardIndex];
 
                 if (selectedCard.IsPlayableCard(leadingSuit, currentPlayer.Hand))
@@ -186,7 +186,8 @@ namespace DeuxCentsCardGame.Controllers
                 }
                 else
                 {
-                    _ui.DisplayFormattedMessage("You must play the suit of {0} since it's in your deck, try again.\n", leadingSuitString);
+                    string leadingSuitString = leadingSuit.HasValue ? Deck.CardSuitToString(leadingSuit.Value) : "none";
+                    _eventManager.RaiseInvalidCard($"You must play the suit of {leadingSuitString} since it's in your deck, try again.");
                 }
             }
         }
@@ -221,7 +222,7 @@ namespace DeuxCentsCardGame.Controllers
             }
             else
             {
-                _ui.WaitForUser("\nPress any key to start the next round...");
+                _eventManager.RaiseNextRoundPrompt();
             }
         }
     }

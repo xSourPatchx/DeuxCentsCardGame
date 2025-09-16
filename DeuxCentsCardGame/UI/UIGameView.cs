@@ -80,16 +80,16 @@ namespace DeuxCentsCardGame.UI
             _console.ReadKey();
         }
 
-        public static void DisplayHand(IPlayer player)
+        public void DisplayHand(IPlayer player)
         {
-            Console.WriteLine($"{player.Name}'s hand:");
+            _console.WriteLine($"{player.Name}'s hand:");
             for (int playerIndex = 0; playerIndex < player.Hand.Count; playerIndex++)
             {
-                Console.WriteLine($"{playerIndex}: {player.Hand[playerIndex]}");
+                _console.WriteLine($"{playerIndex}: {player.Hand[playerIndex]}");
             }
         }
 
-        private static void DisplayAllPlayersHand(IPlayer playerOne, IPlayer playerTwo, IPlayer playerThree, IPlayer playerFour)
+        private void DisplayAllPlayersHand(IPlayer playerOne, IPlayer playerTwo, IPlayer playerThree, IPlayer playerFour)
         {
             DisplayHand(playerOne);
             DisplayHand(playerTwo);
@@ -97,27 +97,27 @@ namespace DeuxCentsCardGame.UI
             DisplayHand(playerFour);
         }
 
-        private static void DisplayPlayerHandQuadrant(IPlayer player, int left, int top)
+        private void DisplayPlayerHandQuadrant(IPlayer player, int left, int top)
         {
-            Console.SetCursorPosition(left, top);
-            Console.WriteLine($"{player.Name}'s hand:");
+            _console.SetCursorPosition(left, top);
+            _console.WriteLine($"{player.Name}'s hand:");
             for (int cardIndex = 0; cardIndex < player.Hand.Count; cardIndex++)
             {
-                Console.SetCursorPosition(left, top + cardIndex + 1);
-                Console.WriteLine($"{cardIndex} : {player.Hand[cardIndex]}");
+                _console.SetCursorPosition(left, top + cardIndex + 1);
+                _console.WriteLine($"{cardIndex} : {player.Hand[cardIndex]}");
             }
         }
 
-        private static void DisplayAllPlayersHandQuadrant(IPlayer playerOne, IPlayer playerTwo, IPlayer playerThree, IPlayer playerFour)
+        private void DisplayAllPlayersHandQuadrant(IPlayer playerOne, IPlayer playerTwo, IPlayer playerThree, IPlayer playerFour)
         {
             DisplayPlayerHandQuadrant(playerOne, 0, 4);
-            DisplayPlayerHandQuadrant(playerTwo, Console.WindowWidth / 2, 4);
-            DisplayPlayerHandQuadrant(playerThree, 0, (Console.WindowHeight / 2) + 1);
-            DisplayPlayerHandQuadrant(playerFour, Console.WindowWidth / 2, (Console.WindowHeight / 2) + 1);
-            Console.WriteLine("\n#########################\n");
+            DisplayPlayerHandQuadrant(playerTwo, _console.WindowWidth / 2, 4);
+            DisplayPlayerHandQuadrant(playerThree, 0, (_console.WindowHeight / 2) + 1);
+            DisplayPlayerHandQuadrant(playerFour, _console.WindowWidth / 2, (_console.WindowHeight / 2) + 1);
+            _console.WriteLine("\n#########################\n");
         }
 
-        public static void DisplayAllHands(List<Player> players, int dealerIndex)
+        public void DisplayAllHands(List<Player> players, int dealerIndex)
         {
             DisplayAllPlayersHandQuadrant(players[(dealerIndex) % players.Count],
                                                  players[(dealerIndex + 1) % players.Count],
