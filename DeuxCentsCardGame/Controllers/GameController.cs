@@ -9,14 +9,13 @@ namespace DeuxCentsCardGame.Controllers
     public class GameController : IGame
     {
         // Game state properties
-        private Deck _deck;
         private bool _isGameEnded;
         private CardSuit? _trumpSuit;
-
         private int _currentRoundNumber = 1;
 
         // Managers references
         private readonly PlayerManager _playerManager;
+        private readonly DeckManager _deckManager;
         private readonly DealingManager _dealingManager;
         private readonly BettingManager _bettingManager;
         private readonly TrumpSelectionManager _trumpSelectionManager;
@@ -25,23 +24,19 @@ namespace DeuxCentsCardGame.Controllers
         // Dealer starts at player 4 (index 3)
         public int DealerIndex = GameConfig.TeamTwoPlayer2;
 
-        // UI reference
-        // private readonly IUIGameView _ui;
-
         // Event references
         private readonly GameEventManager _eventManager;
         private readonly GameEventHandler _eventHandler;
 
         public GameController(IUIGameView ui)
         {
-            // _ui = ui;
-            _deck = new Deck();
-
+            // Initialize events
             _eventManager = new GameEventManager();
             _eventHandler = new GameEventHandler(_eventManager, ui);
 
             // Initialize managers
             _playerManager = new PlayerManager(_eventManager);
+            _deckManager = new DeckManager(_eventManager);
             _dealingManager = new DealingManager(_eventManager);
             _bettingManager = new BettingManager(_playerManager.Players.ToList(), DealerIndex, _eventManager);
             _trumpSelectionManager = new TrumpSelectionManager(_eventManager);
@@ -64,7 +59,7 @@ namespace DeuxCentsCardGame.Controllers
         {
             _eventManager.RaiseRoundStarted(_currentRoundNumber, _playerManager.GetPlayer(DealerIndex));
             ResetRound();
-            _deck.ShuffleDeck();
+            _deckManager.ShuffleDeck();
             DealCards();
             ExecuteBettingRound();
             SelectTrumpSuit();
@@ -77,11 +72,10 @@ namespace DeuxCentsCardGame.Controllers
 
         private void ResetRound()
         {
-            _deck = new Deck();
+            _deckManager.ResetDeck();
             _trumpSuit = null;
             _scoringManager.ResetRoundPoints();
             _bettingManager.ResetBettingRound();
-            // _bettingState = new BettingManager(_players, DealerIndex, _eventManager);
         }
 
         private void RotateDealer()
@@ -91,7 +85,7 @@ namespace DeuxCentsCardGame.Controllers
 
         private void DealCards()
         { 
-            _dealingManager.DealCards(_deck, _playerManager.Players.ToList());
+            _dealingManager.DealCards(_deckManager.CurrentDeck, _playerManager.Players.ToList());
             _dealingManager.RaiseCardsDealtEvent(_playerManager.Players.ToList(), DealerIndex);
         }
 
@@ -168,13 +162,6 @@ namespace DeuxCentsCardGame.Controllers
 
         private Card GetValidCardFromPlayer(Player currentPlayer, CardSuit? leadingSuit)
         {
-            // string leadingSuitString = leadingSuit.HasValue ? Deck.CardSuitToString(leadingSuit.Value) : "none";
-            // string trumpSuitString = _trumpSuit.HasValue ? Deck.CardSuitToString(_trumpSuit.Value) : "none";
-
-            // string prompt = $"{currentPlayer.Name}, choose a card to play (enter index 0-{currentPlayer.Hand.Count - 1}" +
-            //     (leadingSuit.HasValue ? $", leading suit is {leadingSuitString}" : "") +
-            //     $" and trump suit is {trumpSuitString}):";
-
             while (true)
             {
                 int cardIndex = _eventManager.RaiseCardSelectionInput(currentPlayer, leadingSuit, _trumpSuit, currentPlayer.Hand);

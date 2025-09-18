@@ -5,6 +5,6 @@ namespace DeuxCentsCardGame.Interfaces
     public interface IDeck
     {
         List<Card> Cards { get; }
-        void ShuffleDeck();
+        // void ShuffleDeck();
     }
 }

@@ -5,9 +5,8 @@ namespace DeuxCentsCardGame.Managers
 {
     public class PlayerManager
     {
-        private readonly List<Player> _players;
         private readonly GameEventManager _eventManager;
-
+        private readonly List<Player> _players;
         public IReadOnlyList<Player> Players => _players.AsReadOnly();
 
         public PlayerManager(GameEventManager eventManager)

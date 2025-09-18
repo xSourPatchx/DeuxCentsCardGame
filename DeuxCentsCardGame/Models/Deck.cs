@@ -47,18 +47,6 @@ namespace DeuxCentsCardGame.Models
                 }
             }
         }
-    
-        public void ShuffleDeck()
-        {
-            Console.WriteLine("Shuffling cards...\n");
-            for (int cardIndex = 0; cardIndex < Cards.Count; cardIndex++)
-            {
-                int randomCardIndex = Random.Shared.Next(cardIndex, Cards.Count);
-                Card temp = Cards[randomCardIndex];
-                Cards[randomCardIndex] = Cards[cardIndex];
-                Cards[cardIndex] = temp;
-            }   
-        }
 
         public static CardSuit[] GetCardSuits()
         {
