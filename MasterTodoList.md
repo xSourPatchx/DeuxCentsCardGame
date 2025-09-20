@@ -12,6 +12,7 @@
    - [x] Fix `ProcessPlayerBets` return type to return just `bool`, currently returns `(bool bettingRoundEnded, int bet)` but the `bet` value is unused.
    - [x] Improve Data Structures, instead of parallel arrays `_hasBet`, have more cohesive structure by creating `PlayerBettingInfo` class with `HasBet`, `BetAmount` and `HasPassed` properties.
    - [ ] In BettingActionEventArgs class, should use bool HasBet property to show who placed bets
+   - [ ] If player lost the bet, display player has placed a bet, betting amount not necessary
    - [ ] Fix Unit test
    - [ ] Simplify Complex Methods and break down large methods into smaller, focused ones: 
        - [x] `ProcessBettingRound`: Extract validation logic.
@@ -44,7 +45,7 @@
    - [ ] Implement a state machine pattern for game flow (e.g., `GameState` enum with transitions)
    - [ ] Create separate classes for different game states (`StartState`, `DealState`, `PlayState`, `EndState`, `BettingState`, `PlayingState`, etc.) to control flow
    - [x] Use events for game state changes (e.g., `OnCardPlayed`, `OnGameOver`, `OnRoundStarted`, `OnTrickCompleted`) for a decoupled design
-   - [ ] Add events for Round ended, Hand/cards updated, Invalid moves attempted, Game state changes.
+   - [ ] Add events for Round ended, Hand/cards updated, Deck is shuffled, Invalid moves attempted, Game state changes.
    - [ ] Support saving and loading Game State by serializing the current game state to JSON to persist or debug state easily
 
 ### Architecture Improvements

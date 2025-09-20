@@ -1,10 +1,11 @@
 using DeuxCentsCardGame.Config;
 using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Managers
 {
-    public class BettingManager
+    public class BettingManager : IBettingManager
     {
         // Public betting state properties
         public int CurrentWinningBid { get; set; }

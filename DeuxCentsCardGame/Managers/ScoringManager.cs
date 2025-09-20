@@ -1,10 +1,11 @@
 using DeuxCentsCardGame.Config;
 using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Managers
 {
-    public class ScoringManager
+    public class ScoringManager : IScoringManager
     {
         private readonly GameEventManager _eventManager;
         private readonly List<Player> _players;

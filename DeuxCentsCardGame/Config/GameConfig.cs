@@ -2,6 +2,7 @@ namespace DeuxCentsCardGame.Config
 {
     public class GameConfig
     {
+        // Game configuration
         public const int TeamOnePlayer1 = 0;
         public const int TeamOnePlayer2 = 2;
         public const int TeamTwoPlayer1 = 1;

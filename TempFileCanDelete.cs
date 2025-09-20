@@ -1,3 +1,3 @@
-// next work DeckManager, have the shuffle logic there 
-// instead of the Deck class
-// can add DeckShuffled event
+// Modified IUIGameView, added IPlayerManager, IDeckManager, IBettingManager, IScoringManager, ITrumpSelectionManager & IDealingManager
+// next
+// Add ITeamManager

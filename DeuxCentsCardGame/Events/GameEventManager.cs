@@ -36,7 +36,7 @@ namespace DeuxCentsCardGame.Events
         public event EventHandler<GameOverEventArgs>? GameOver;
         public event EventHandler<NextRoundEventArgs>? NextRoundPrompt;
 
-        // Event raising methods
+        // Event raising methods //
         // Round events
         protected virtual void OnRoundStarted(RoundStartedEventArgs e)
         {
@@ -138,7 +138,7 @@ namespace DeuxCentsCardGame.Events
             NextRoundPrompt?.Invoke(this, e);
         }
 
-        // Public methods to trigger events from game logic
+        // Public methods to trigger events from game logic //
         // Round events
         public void RaiseRoundStarted(int roundNumber, Player dealer)
         {

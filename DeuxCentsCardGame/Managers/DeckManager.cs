@@ -1,9 +1,10 @@
 using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Managers
 {
-    public class DeckManager
+    public class DeckManager : IDeckManager
     { 
         private readonly GameEventManager _eventManager;
         private Deck _currentDeck;

@@ -4,7 +4,7 @@ using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Managers
 {
-    public class TrumpSelectionManager
+    public class TrumpSelectionManager : ITrumpSelectionManager
     {
         private readonly GameEventManager _eventManager;
         // private readonly IUIGameView _ui;
@@ -12,14 +12,10 @@ namespace DeuxCentsCardGame.Managers
         public TrumpSelectionManager(GameEventManager eventManager)
         {
             _eventManager = eventManager;
-            // _ui = ui;
         }
 
         public CardSuit SelectTrumpSuit(Player winningBidder)
         {
-            // string[] validSuits = Enum.GetNames<CardSuit>().Select(suit => suit.ToLower()).ToArray();
-            // string prompt = $"{winningBidder.Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")";
-
             string trumpSuitInput = _eventManager.RaiseTrumpSelectionInput(winningBidder);
             CardSuit trumpSuit = Deck.StringToCardSuit(trumpSuitInput);
 
