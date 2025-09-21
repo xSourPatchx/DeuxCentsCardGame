@@ -11,6 +11,7 @@
    - [x] Remove all `Thread.Sleep()` calls from your UI class - these will cause Unity to freeze. Replace with Unity-appropriate timing mechanisms later.
    - [x] Fix `ProcessPlayerBets` return type to return just `bool`, currently returns `(bool bettingRoundEnded, int bet)` but the `bet` value is unused.
    - [x] Improve Data Structures, instead of parallel arrays `_hasBet`, have more cohesive structure by creating `PlayerBettingInfo` class with `HasBet`, `BetAmount` and `HasPassed` properties.
+   - [ ] Ditch the quadrant display bullshit
    - [ ] In BettingActionEventArgs class, should use bool HasBet property to show who placed bets
    - [ ] If player lost the bet, display player has placed a bet, betting amount not necessary
    - [ ] Fix Unit test
