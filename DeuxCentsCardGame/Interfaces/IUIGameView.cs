@@ -7,6 +7,6 @@ namespace DeuxCentsCardGame.Interfaces
         void DisplayFormattedMessage(string format, params object[] args);
         void WaitForUser(string message = "Press any key to continue...");
         void DisplayHand(IPlayer player);
-        // void DisplayAllHands(List<IPlayer> players, int dealerIndex);
+        void DisplayAllHands(List<IPlayer> players, int dealerIndex);
     }
 }

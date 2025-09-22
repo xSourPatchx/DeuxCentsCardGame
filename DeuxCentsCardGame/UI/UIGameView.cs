@@ -82,47 +82,37 @@ namespace DeuxCentsCardGame.UI
 
         public void DisplayHand(IPlayer player)
         {
-            _console.WriteLine($"{player.Name}'s hand:");
-            for (int playerIndex = 0; playerIndex < player.Hand.Count; playerIndex++)
-            {
-                _console.WriteLine($"{playerIndex}: {player.Hand[playerIndex]}");
-            }
-        }
+            _console.WriteLine($"\n{player.Name}'s hand:");
+            _console.WriteLine(new string('#', 40));
 
-        private void DisplayAllPlayersHand(IPlayer playerOne, IPlayer playerTwo, IPlayer playerThree, IPlayer playerFour)
-        {
-            DisplayHand(playerOne);
-            DisplayHand(playerTwo);
-            DisplayHand(playerThree);
-            DisplayHand(playerFour);
-        }
-
-        private void DisplayPlayerHandQuadrant(IPlayer player, int left, int top)
-        {
-            _console.SetCursorPosition(left, top);
-            _console.WriteLine($"{player.Name}'s hand:");
             for (int cardIndex = 0; cardIndex < player.Hand.Count; cardIndex++)
             {
-                _console.SetCursorPosition(left, top + cardIndex + 1);
-                _console.WriteLine($"{cardIndex} : {player.Hand[cardIndex]}");
+                _console.WriteLine($"{cardIndex}: {player.Hand[cardIndex]}");
             }
+            _console.WriteLine(new string('#', 40));
         }
 
-        private void DisplayAllPlayersHandQuadrant(IPlayer playerOne, IPlayer playerTwo, IPlayer playerThree, IPlayer playerFour)
+        public void DisplayAllHands(List<IPlayer> players, int dealerIndex)
         {
-            DisplayPlayerHandQuadrant(playerOne, 0, 4);
-            DisplayPlayerHandQuadrant(playerTwo, _console.WindowWidth / 2, 4);
-            DisplayPlayerHandQuadrant(playerThree, 0, (_console.WindowHeight / 2) + 1);
-            DisplayPlayerHandQuadrant(playerFour, _console.WindowWidth / 2, (_console.WindowHeight / 2) + 1);
-            _console.WriteLine("\n#########################\n");
-        }
+            _console.WriteLine("\n" + new string('-', 60));
+            _console.WriteLine("Al Player Hands");
+            _console.WriteLine(new string('-', 60));
 
-        public void DisplayAllHands(List<Player> players, int dealerIndex)
-        {
-            DisplayAllPlayersHandQuadrant(players[(dealerIndex) % players.Count],
-                                                 players[(dealerIndex + 1) % players.Count],
-                                                 players[(dealerIndex + 2) % players.Count],
-                                                 players[(dealerIndex + 3) % players.Count]);
+            for (int i = 0; i < players.Count; i++)
+            {
+                int playerIndex = (dealerIndex + i) % players.Count;
+                IPlayer player = players[playerIndex];
+                
+                string dealerIndicator = playerIndex == dealerIndex ? " (Dealer)" : "";
+                _console.WriteLine($"\n{player.Name}{dealerIndicator}:");
+                
+                for (int cardIndex = 0; cardIndex < player.Hand.Count; cardIndex++)
+                {
+                    _console.WriteLine($"  {cardIndex}: {player.Hand[cardIndex]}");
+                }
+            }
+
+            _console.WriteLine("\n" + new string('-', 60));
         }
 
         public static void DisplayBettingResults()

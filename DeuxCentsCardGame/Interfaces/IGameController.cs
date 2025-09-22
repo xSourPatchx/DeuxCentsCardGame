@@ -1,6 +1,6 @@
 ﻿namespace DeuxCentsCardGame.Interfaces
 {
-    public interface IGame
+    public interface IGameController
     {
         public void StartGame();
         public void NewRound();

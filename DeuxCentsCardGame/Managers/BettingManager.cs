@@ -13,6 +13,7 @@ namespace DeuxCentsCardGame.Managers
         public bool IsBettingRoundComplete { get; private set; }
 
         // Private betting state fields
+        private readonly IGameConfig _config;
         private readonly List<Player> _players;
         private readonly int _dealerIndex;
         private readonly GameEventManager _eventManager;
@@ -20,8 +21,9 @@ namespace DeuxCentsCardGame.Managers
         public BettingManager(List<Player> players, int dealerIndex, GameEventManager eventManager)
         {
             _players = players;
-            _dealerIndex = dealerIndex;
             _eventManager = eventManager;
+            _dealerIndex = dealerIndex;
+            _config = GameConfig.CreateDefault();
         }
 
         public void ExecuteBettingRound()
@@ -87,7 +89,7 @@ namespace DeuxCentsCardGame.Managers
                     return true; // End betting round
 
                 // Check if three or more players have passed
-                if (_players.Count(pass => pass.HasPassed) >= GameConfig.MinimumPlayersToPass)
+                if (_players.Count(pass => pass.HasPassed) >= _config.MinimumPlayersToPass)
                 {
                     return HandleThreePassesScenario();   
                 }
@@ -102,9 +104,9 @@ namespace DeuxCentsCardGame.Managers
             {
                 string betInput = _eventManager.RaiseBetInput(
                                 _players[currentPlayerIndex], 
-                                GameConfig.MinimumBet, 
-                                GameConfig.MaximumBet, 
-                                GameConfig.BetIncrement
+                                _config.MinimumBet, 
+                                _config.MaximumBet, 
+                                _config.BetIncrement
                 );
 
                 if (betInput == "pass")
@@ -138,9 +140,9 @@ namespace DeuxCentsCardGame.Managers
 
         private bool IsValidBet(int bet)
         {
-            return bet >= GameConfig.MinimumBet &&
-                   bet <= GameConfig.MaximumBet &&
-                   bet % GameConfig.BetIncrement == 0 &&
+            return bet >= _config.MinimumBet &&
+                   bet <= _config.MaximumBet &&
+                   bet % _config.BetIncrement == 0 &&
                    !_players.Any(player => player.CurrentBid == bet);
         }
 
@@ -152,7 +154,7 @@ namespace DeuxCentsCardGame.Managers
 
             _eventManager.RaiseBettingAction(player, bet, false);
 
-            if (bet == GameConfig.MaximumBet)
+            if (bet == _config.MaximumBet)
             {
                 return HandleMaximumBetScenario(currentPlayerIndex); // End round immediately
             }
@@ -195,10 +197,10 @@ namespace DeuxCentsCardGame.Managers
                 {
                     // Force the last player to bet 50
                     activePlayers[0].HasBet = true;
-                    activePlayers[0].CurrentBid = GameConfig.MinimumBet;
+                    activePlayers[0].CurrentBid = _config.MinimumBet;
                     activePlayers[0].HasPassed = true; // Mark as passed to end the round
                     
-                    _eventManager.RaiseBettingAction(activePlayers[0], GameConfig.MinimumBet, false);
+                    _eventManager.RaiseBettingAction(activePlayers[0], _config.MinimumBet, false);
                 }
             }
             

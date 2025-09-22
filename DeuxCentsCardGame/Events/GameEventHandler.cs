@@ -8,11 +8,13 @@ namespace DeuxCentsCardGame.Events
 {
     public class GameEventHandler
     {
+        private readonly IGameConfig _config;
         private readonly GameEventManager _eventManager;
         private readonly UIGameView _ui;
 
         public GameEventHandler(GameEventManager eventManager, IUIGameView ui)
         {
+            _config = GameConfig.CreateDefault();
             _eventManager = eventManager;
             _ui = (UIGameView)ui;
 
@@ -97,7 +99,7 @@ namespace DeuxCentsCardGame.Events
             {
                 _ui.DisplayFormattedMessage("{0} bet {1}\n", e.Player.Name, e.Bet);
 
-                if (e.Bet == GameConfig.MaximumBet)
+                if (e.Bet == _config.MaximumBet)
                 {
                     _ui.DisplayFormattedMessage("{0} bid the maximum bet, betting round ends.", e.Player.Name);                
                 }

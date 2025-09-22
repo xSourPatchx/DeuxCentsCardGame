@@ -9,16 +9,21 @@ namespace DeuxCentsCardGame.Managers
     {
         private readonly GameEventManager _eventManager;
         private readonly List<Player> _players;
+        private readonly ITeamManager _teamManager;
+        private readonly IGameConfig _gameConfig;
 
         public int TeamOneRoundPoints { get; private set; }
         public int TeamTwoRoundPoints { get; private set; }
         public int TeamOneTotalPoints { get; private set; }
         public int TeamTwoTotalPoints { get; private set; }
 
-        public ScoringManager(GameEventManager eventManager, List<Player> players)
+        public ScoringManager(GameEventManager eventManager, List<Player> players, 
+                            ITeamManager teamManager, IGameConfig gameConfig)
         {
-            _eventManager = eventManager;
-            _players = players;
+            _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
+            _players = players ?? throw new ArgumentNullException(nameof(players));
+            _teamManager = teamManager ?? throw new ArgumentNullException(nameof(teamManager));
+            _gameConfig = gameConfig ?? throw new ArgumentNullException(nameof(gameConfig));
         }
 
         public void ResetRoundPoints()
@@ -29,8 +34,8 @@ namespace DeuxCentsCardGame.Managers
     
         public void AwardTrickPoints(int trickWinnerIndex, int trickPoints)
         {
-            bool isTeamOne = TeamManager.IsPlayerOnTeamOne(trickWinnerIndex);
-            string teamName = TeamManager.GetTeamName(trickWinnerIndex);
+            bool isTeamOne = _teamManager.IsPlayerOnTeamOne(trickWinnerIndex);
+            string teamName = _teamManager.GetTeamName(trickWinnerIndex);
 
             if (isTeamOne)
             {
@@ -46,34 +51,34 @@ namespace DeuxCentsCardGame.Managers
 
         public void ScoreRound(int winningBidIndex, int winningBid)
         {
-            bool bidWinnerIsTeamOne = TeamManager.IsPlayerOnTeamOne(winningBidIndex);
+            bool bidWinnerIsTeamOne = _teamManager.IsPlayerOnTeamOne(winningBidIndex);
 
-            ScoreTeam(TeamManager.Team.TeamOne, bidWinnerIsTeamOne, winningBid);
-            ScoreTeam(TeamManager.Team.TeamTwo, !bidWinnerIsTeamOne, winningBid);
+            ScoreTeam(Team.TeamOne, bidWinnerIsTeamOne, winningBid);
+            ScoreTeam(Team.TeamTwo, !bidWinnerIsTeamOne, winningBid);
 
             _eventManager.RaiseScoreUpdated(TeamOneRoundPoints, TeamTwoRoundPoints,
                                             TeamOneTotalPoints, TeamTwoTotalPoints,
                                             bidWinnerIsTeamOne, winningBid);
         }
 
-        private void ScoreTeam(TeamManager.Team team, bool isBidWinner, int winningBid)
+        private void ScoreTeam(Team team, bool isBidWinner, int winningBid)
         {
-            int teamRoundPoints = team == TeamManager.Team.TeamOne ? TeamOneRoundPoints : TeamTwoRoundPoints;
-            int teamTotalPoints = team == TeamManager.Team.TeamOne ? TeamOneTotalPoints : TeamTwoTotalPoints;
+            int teamRoundPoints = team == Team.TeamOne ? TeamOneRoundPoints : TeamTwoRoundPoints;
+            int teamTotalPoints = team == Team.TeamOne ? TeamOneTotalPoints : TeamTwoTotalPoints;
 
-            var (player1Index, player2Index) = TeamManager.GetTeamPlayerIndices(team);
+            var (player1Index, player2Index) = _teamManager.GetTeamPlayerIndices(team);
 
-            bool teamCannotScore = teamTotalPoints >= GameConfig.CannotScoreThreshold &&
+            bool teamCannotScore = teamTotalPoints >= _gameConfig.CannotScoreThreshold &&
                                     !_players[player1Index].HasBet &&
                                     !_players[player2Index].HasBet;
 
             int awardedPoints = CalculateAwardedPoints(teamRoundPoints, teamCannotScore, isBidWinner, winningBid);
 
-            string teamName = TeamManager.GetTeamName(team);
+            string teamName = _teamManager.GetTeamName(team);
             bool madeBid = isBidWinner && teamRoundPoints >= winningBid;
             _eventManager.RaiseTeamScoring(teamName, teamRoundPoints, winningBid, madeBid, teamCannotScore, awardedPoints);
 
-            if (team == TeamManager.Team.TeamOne)
+            if (team == Team.TeamOne)
             {
                 TeamOneTotalPoints += awardedPoints;
             }
@@ -82,12 +87,6 @@ namespace DeuxCentsCardGame.Managers
                 TeamTwoTotalPoints += awardedPoints;
             }
         }
-
-        // private (int player1, int player2) GetPlayerIndices(bool isTeamOne)
-        // {
-        //     return isTeamOne ? (GameConfig.TeamOnePlayer1, GameConfig.TeamOnePlayer2)
-        //                         : (GameConfig.TeamTwoPlayer1, GameConfig.TeamTwoPlayer2);
-        // }
 
         private int CalculateAwardedPoints(int teamRoundPoints, bool teamCannotScore, bool isBidWinner, int winningBid)
         {
@@ -107,15 +106,10 @@ namespace DeuxCentsCardGame.Managers
             }
         }
 
-        // public bool IsPlayerOnTeamOne(int playerIndex)
-        // {
-        //     return playerIndex % 2 == 0;
-        // }
-
         public bool IsGameOver()
         {
-            return TeamOneTotalPoints >= GameConfig.WinningScore || 
-                    TeamTwoTotalPoints >= GameConfig.WinningScore;
+            return TeamOneTotalPoints >= _gameConfig.WinningScore || 
+                    TeamTwoTotalPoints >= _gameConfig.WinningScore;
         }
 
         public void RaiseGameOverEvent()

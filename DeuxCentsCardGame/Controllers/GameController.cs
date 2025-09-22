@@ -1,4 +1,3 @@
-using DeuxCentsCardGame.Config;
 using DeuxCentsCardGame.Events;
 using DeuxCentsCardGame.Interfaces;
 using DeuxCentsCardGame.Managers;
@@ -6,14 +5,13 @@ using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Controllers
 {
-    public class GameController : IGame
+    public class GameController : IGameController
     {
-        // Game state properties
         private bool _isGameEnded;
         private CardSuit? _trumpSuit;
         private int _currentRoundNumber = 1;
 
-        // Managers references
+        // Managers dependencies injected
         private readonly PlayerManager _playerManager;
         private readonly DeckManager _deckManager;
         private readonly DealingManager _dealingManager;
@@ -22,25 +20,36 @@ namespace DeuxCentsCardGame.Controllers
         private readonly ScoringManager _scoringManager;
 
         // Dealer starts at player 4 (index 3)
-        public int DealerIndex = GameConfig.TeamTwoPlayer2;
+        public int DealerIndex = 3;
+
 
         // Event references
         private readonly GameEventManager _eventManager;
         private readonly GameEventHandler _eventHandler;
 
-        public GameController(IUIGameView ui)
+        public GameController
+        (
+            PlayerManager playerManager,
+            DeckManager deckManager,
+            DealingManager dealingManager,
+            BettingManager bettingManager,
+            TrumpSelectionManager trumpSelectionManager,
+            ScoringManager scoringManager,
+            GameEventManager eventManager,
+            GameEventHandler eventHandler
+        )
         {
-            // Initialize events
-            _eventManager = new GameEventManager();
-            _eventHandler = new GameEventHandler(_eventManager, ui);
-
             // Initialize managers
-            _playerManager = new PlayerManager(_eventManager);
-            _deckManager = new DeckManager(_eventManager);
-            _dealingManager = new DealingManager(_eventManager);
-            _bettingManager = new BettingManager(_playerManager.Players.ToList(), DealerIndex, _eventManager);
-            _trumpSelectionManager = new TrumpSelectionManager(_eventManager);
-            _scoringManager = new ScoringManager(_eventManager, _playerManager.Players.ToList());
+            _playerManager = playerManager ?? throw new ArgumentNullException(nameof(playerManager));
+            _deckManager = deckManager ?? throw new ArgumentNullException(nameof(deckManager));
+            _dealingManager = dealingManager ?? throw new ArgumentNullException(nameof(dealingManager));
+            _bettingManager = bettingManager ?? throw new ArgumentNullException(nameof(bettingManager));
+            _trumpSelectionManager = trumpSelectionManager ?? throw new ArgumentNullException(nameof(trumpSelectionManager));
+            _scoringManager = scoringManager ?? throw new ArgumentNullException(nameof(scoringManager));
+
+            // Initialize events
+            _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
+            _eventHandler = eventHandler ?? throw new ArgumentNullException(nameof(eventHandler));
 
             _trumpSuit = null;
         }

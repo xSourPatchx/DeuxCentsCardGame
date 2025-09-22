@@ -20,5 +20,11 @@ namespace DeuxCentsCardGame.Config
         public int BetIncrement { get; set; } = 5;
         public int MinimumPlayersToPass { get; set; } = 3;
         public int PassedBidValue { get; set; } = -1; // not using this yet
+
+        public static IGameConfig CreateDefault()
+        {
+            return new GameConfig();
+        }
+
     }
 }
