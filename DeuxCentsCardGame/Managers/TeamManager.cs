@@ -3,8 +3,6 @@ using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Managers
 {
-    public enum Team { TeamOne, TeamTwo }
-
     public class TeamManager : ITeamManager
     {
         private readonly IGameConfig _gameConfig;

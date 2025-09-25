@@ -12,9 +12,9 @@ namespace DeuxCentsCardGame.Events
         private readonly GameEventManager _eventManager;
         private readonly UIGameView _ui;
 
-        public GameEventHandler(GameEventManager eventManager, IUIGameView ui)
+        public GameEventHandler(GameEventManager eventManager, IUIGameView ui, IGameConfig gameConfig)
         {
-            _config = GameConfig.CreateDefault();
+            _config = gameConfig ?? GameConfig.CreateDefault();
             _eventManager = eventManager;
             _ui = (UIGameView)ui;
 
@@ -68,7 +68,8 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayFormattedMessage("\nCards dealt to all {0} players. Dealer index: {1}", e.Players.Count, e.DealerIndex);
 
             // Display all players hands using instance method
-            _ui.DisplayAllHands(e.Players, e.DealerIndex + 1);
+            List<IPlayer> playersAsInterface = e.Players.Cast<IPlayer>().ToList();
+            _ui.DisplayAllHands(playersAsInterface, e.DealerIndex + 1);
         }
 
         private void OnBettingRoundStarted(object? sender, BettingRoundStartedEventArgs e)

@@ -95,7 +95,7 @@ namespace DeuxCentsCardGame.UI
         public void DisplayAllHands(List<IPlayer> players, int dealerIndex)
         {
             _console.WriteLine("\n" + new string('-', 60));
-            _console.WriteLine("Al Player Hands");
+            _console.WriteLine("All player hands");
             _console.WriteLine(new string('-', 60));
 
             for (int i = 0; i < players.Count; i++)
