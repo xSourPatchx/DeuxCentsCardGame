@@ -1,5 +1,5 @@
-﻿using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Interfaces;
+﻿using DeuxCentsCardGame.Interfaces.UI;
+using DeuxCentsCardGame.Interfaces.Models;
 
 namespace DeuxCentsCardGame.UI
 {

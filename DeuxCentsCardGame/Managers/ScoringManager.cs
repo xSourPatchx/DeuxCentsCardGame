@@ -1,9 +1,7 @@
-// using DeuxCentsCardGame.Config;
 using DeuxCentsCardGame.Events;
-using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Interfaces.GameConfig;
+using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
-// using DeuxCentsCardGame.Managers;
-
 
 namespace DeuxCentsCardGame.Managers
 {

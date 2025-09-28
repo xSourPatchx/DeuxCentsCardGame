@@ -1,4 +1,5 @@
-using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Interfaces.GameConfig;
+using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Managers

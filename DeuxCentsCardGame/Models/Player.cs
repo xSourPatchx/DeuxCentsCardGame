@@ -1,4 +1,4 @@
-﻿using DeuxCentsCardGame.Interfaces;
+﻿using DeuxCentsCardGame.Interfaces.Models;
 
 namespace DeuxCentsCardGame.Models
 {

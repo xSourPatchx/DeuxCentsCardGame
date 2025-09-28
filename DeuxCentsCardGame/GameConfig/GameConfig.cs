@@ -1,6 +1,6 @@
-using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Interfaces.GameConfig;
 
-namespace DeuxCentsCardGame.Config
+namespace DeuxCentsCardGame.GameConfig
 {
     public class GameConfig : IGameConfig
     {
@@ -25,6 +25,5 @@ namespace DeuxCentsCardGame.Config
         {
             return new GameConfig();
         }
-
     }
 }

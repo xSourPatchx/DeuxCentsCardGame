@@ -1,4 +1,4 @@
-using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Interfaces.UI;
 
 namespace DeuxCentsCardGame.UI
 {

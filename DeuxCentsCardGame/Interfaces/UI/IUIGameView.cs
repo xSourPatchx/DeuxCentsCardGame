@@ -1,4 +1,6 @@
-namespace DeuxCentsCardGame.Interfaces
+using DeuxCentsCardGame.Interfaces.Models;
+
+namespace DeuxCentsCardGame.Interfaces.UI
 {
     public interface IUIGameView
     {

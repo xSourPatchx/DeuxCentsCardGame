@@ -1,4 +1,4 @@
-namespace DeuxCentsCardGame.Interfaces
+namespace DeuxCentsCardGame.Interfaces.Managers
 {
     public interface IBettingManager
     { 

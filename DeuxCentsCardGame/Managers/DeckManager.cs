@@ -1,5 +1,6 @@
 using DeuxCentsCardGame.Events;
-using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Interfaces.Managers;
+using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Managers
@@ -7,7 +8,7 @@ namespace DeuxCentsCardGame.Managers
     public class DeckManager : IDeckManager
     { 
         private readonly GameEventManager _eventManager;
-        private readonly IRandomProvider _randomProvider;
+        private readonly IRandomService _randomProvider;
         private Deck _currentDeck;
 
         public Deck CurrentDeck 
@@ -15,7 +16,7 @@ namespace DeuxCentsCardGame.Managers
             get { return _currentDeck; } 
         }
 
-        public DeckManager(GameEventManager eventManager, IRandomProvider randomProvider)
+        public DeckManager(GameEventManager eventManager, IRandomService randomProvider)
         {
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
             _randomProvider = randomProvider ?? throw new ArgumentNullException(nameof(randomProvider));

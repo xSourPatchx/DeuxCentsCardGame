@@ -1,6 +1,7 @@
-using DeuxCentsCardGame.Config;
 using DeuxCentsCardGame.Events.EventArgs;
-using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Interfaces.GameConfig;
+using DeuxCentsCardGame.Interfaces.Models;
+using DeuxCentsCardGame.Interfaces.UI;
 using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.UI;
 
@@ -8,15 +9,15 @@ namespace DeuxCentsCardGame.Events
 {
     public class GameEventHandler
     {
-        private readonly IGameConfig _config;
+        private readonly IGameConfig _gameConfig;
         private readonly GameEventManager _eventManager;
         private readonly UIGameView _ui;
 
         public GameEventHandler(GameEventManager eventManager, IUIGameView ui, IGameConfig gameConfig)
         {
-            _config = gameConfig ?? GameConfig.CreateDefault();
             _eventManager = eventManager;
             _ui = (UIGameView)ui;
+            _gameConfig = gameConfig;
 
             SubscribeToEvents();
         }
@@ -100,7 +101,7 @@ namespace DeuxCentsCardGame.Events
             {
                 _ui.DisplayFormattedMessage("{0} bet {1}\n", e.Player.Name, e.Bet);
 
-                if (e.Bet == _config.MaximumBet)
+                if (e.Bet == _gameConfig.MaximumBet)
                 {
                     _ui.DisplayFormattedMessage("{0} bid the maximum bet, betting round ends.", e.Player.Name);                
                 }

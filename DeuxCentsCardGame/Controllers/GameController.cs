@@ -1,5 +1,5 @@
 using DeuxCentsCardGame.Events;
-using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
 

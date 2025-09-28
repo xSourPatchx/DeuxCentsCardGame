@@ -3,7 +3,7 @@ using DeuxCentsCardGame.Events;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.UI;
 using DeuxCentsCardGame.Services;
-using DeuxCentsCardGame.Config;
+using DeuxCentsCardGame.GameConfig;
 
 namespace DeuxCentsCardGame
 {
@@ -16,7 +16,7 @@ namespace DeuxCentsCardGame
             var gameConfig = GameConfig.CreateDefault();
 
             // Services
-            var randomProvider = new RandomProvider();
+            var randomService = new RandomService();
 
             // UI
             var console = new ConsoleWrapper();
@@ -28,7 +28,7 @@ namespace DeuxCentsCardGame
 
             // Managers
             var playerManager = new PlayerManager(eventManager);
-            var deckManager = new DeckManager(eventManager, randomProvider);
+            var deckManager = new DeckManager(eventManager, randomServices);
             var dealingManager = new DealingManager(eventManager);
             var teamManager = new TeamManager(gameConfig);
             var bettingManager = new BettingManager(playerManager.Players.ToList(), 3, eventManager);

@@ -1,4 +1,4 @@
-namespace DeuxCentsCardGame.Interfaces
+namespace DeuxCentsCardGame.Interfaces.GameConfig
 {
     public interface IGameConfig
     {

@@ -1,6 +1,6 @@
 using DeuxCentsCardGame.Models;
 
-namespace DeuxCentsCardGame.Interfaces
+namespace DeuxCentsCardGame.Interfaces.Managers
 {
     public enum Team { TeamOne, TeamTwo }
 

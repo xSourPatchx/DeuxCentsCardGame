@@ -1,6 +1,6 @@
 ﻿using DeuxCentsCardGame.Models;
 
-namespace DeuxCentsCardGame.Interfaces
+namespace DeuxCentsCardGame.Interfaces.Models
 {
     public interface IDeck
     {

@@ -1,9 +1,9 @@
-using DeuxCentsCardGame.Interfaces;
+using DeuxCentsCardGame.Interfaces.Services;
 
 
 namespace DeuxCentsCardGame.Services
 {
-    public class RandomProvider : IRandomProvider
+    public class RandomService : IRandomService
     {
         private readonly Random _random = new Random();
 
