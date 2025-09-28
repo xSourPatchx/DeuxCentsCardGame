@@ -169,9 +169,9 @@ namespace DeuxCentsCardGame.Events
             OnInvalidBet(new InvalidBetEventArgs(message));
         }
 
-        public void RaiseBettingAction(Player player, int bet, bool hasPassed = false)
+        public void RaiseBettingAction(Player player, int bet, bool hasPassed = false, bool hasBet = false)
         {
-            OnBettingAction(new BettingActionEventArgs(player, bet, hasPassed));
+            OnBettingAction(new BettingActionEventArgs(player, bet, hasPassed, hasBet));
         }
 
         public void RaiseBettingCompleted(Player winningBidder, int winningBid, Dictionary<Player, int> allBids)

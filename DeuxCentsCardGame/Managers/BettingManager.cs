@@ -136,7 +136,7 @@ namespace DeuxCentsCardGame.Managers
                 player.CurrentBid = -1;
             }
 
-            _eventManager.RaiseBettingAction(player, player.CurrentBid, true);
+            _eventManager.RaiseBettingAction(player, player.CurrentBid, true, player.HasBet);
         }
 
         private bool IsValidBet(int bet)
@@ -153,7 +153,7 @@ namespace DeuxCentsCardGame.Managers
             player.CurrentBid = bet;
             player.HasBet = true;
 
-            _eventManager.RaiseBettingAction(player, bet, false);
+            _eventManager.RaiseBettingAction(player, bet, false, true);
 
             if (bet == _gameConfig.MaximumBet)
             {
@@ -179,7 +179,7 @@ namespace DeuxCentsCardGame.Managers
                         otherPlayer.CurrentBid = -1;
                     }
 
-                    _eventManager.RaiseBettingAction(otherPlayer, otherPlayer.CurrentBid, true);
+                    _eventManager.RaiseBettingAction(otherPlayer, otherPlayer.CurrentBid, true, otherPlayer.HasBet);
                 }
             }
 

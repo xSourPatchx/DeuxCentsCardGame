@@ -115,7 +115,23 @@ namespace DeuxCentsCardGame.Events
 
             foreach (var bid in e.AllBids)
             {
-                string bidText = bid.Value == -1 ? "Passed" : $"Bet {bid.Value}";
+                string bidText;
+                if (bid.Key == e.WinningBidder)
+                {
+                    // Show actual bet amount for the winner
+                    bidText = $"Bet {bid.Value}";
+                }
+                else if (bid.Key.HasBet)
+                {
+                    // Show "Bet placed" for non-winning players who placed bets
+                    bidText = "Bet placed";
+                }
+                else
+                {
+                    // Show "Passed" for players who didn't place any bets
+                    bidText = "Passed";
+                }
+
                 _ui.DisplayFormattedMessage("{0}: {1}", bid.Key.Name, bidText);
             }
             _ui.DisplayFormattedMessage("\nThe winning bidder is {0} with {1}\n", e.WinningBidder.Name, e.WinningBid);
