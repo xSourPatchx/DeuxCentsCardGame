@@ -8,7 +8,7 @@ namespace DeuxCentsCardGame.Managers
     public class DeckManager : IDeckManager
     { 
         private readonly GameEventManager _eventManager;
-        private readonly IRandomService _randomProvider;
+        private readonly IRandomService _randomService;
         private Deck _currentDeck;
 
         public Deck CurrentDeck 
@@ -16,10 +16,10 @@ namespace DeuxCentsCardGame.Managers
             get { return _currentDeck; } 
         }
 
-        public DeckManager(GameEventManager eventManager, IRandomService randomProvider)
+        public DeckManager(GameEventManager eventManager, IRandomService randomService)
         {
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
-            _randomProvider = randomProvider ?? throw new ArgumentNullException(nameof(randomProvider));
+            _randomService = randomService ?? throw new ArgumentNullException(nameof(randomService));
             _currentDeck = new Deck();
         }
 
@@ -35,7 +35,7 @@ namespace DeuxCentsCardGame.Managers
             
             for (int cardIndex = 0; cardIndex < cards.Count; cardIndex++)
             {
-                int randomCardIndex = _randomProvider.Next(cardIndex, cards.Count);
+                int randomCardIndex = _randomService.Next(cardIndex, cards.Count);
                 Card temp = cards[randomCardIndex];
                 cards[randomCardIndex] = cards[cardIndex];
                 cards[cardIndex] = temp;

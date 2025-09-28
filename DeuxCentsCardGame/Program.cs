@@ -13,7 +13,7 @@ namespace DeuxCentsCardGame
         {
             // Build dependency graph //
             // Config
-            var gameConfig = GameConfig.CreateDefault();
+            var gameConfig = GameConfig.GameConfig.CreateDefault();
 
             // Services
             var randomService = new RandomService();
@@ -28,10 +28,10 @@ namespace DeuxCentsCardGame
 
             // Managers
             var playerManager = new PlayerManager(eventManager);
-            var deckManager = new DeckManager(eventManager, randomServices);
+            var deckManager = new DeckManager(eventManager, randomService);
             var dealingManager = new DealingManager(eventManager);
             var teamManager = new TeamManager(gameConfig);
-            var bettingManager = new BettingManager(playerManager.Players.ToList(), 3, eventManager);
+            var bettingManager = new BettingManager(playerManager.Players.ToList(), 3, eventManager, gameConfig);
             var trumpSelectionManager = new TrumpSelectionManager(eventManager);
             var scoringManager = new ScoringManager(eventManager, playerManager.Players.ToList(), teamManager, gameConfig);
 
