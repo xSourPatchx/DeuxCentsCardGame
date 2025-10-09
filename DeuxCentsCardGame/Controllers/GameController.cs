@@ -11,7 +11,7 @@ namespace DeuxCentsCardGame.Controllers
         private CardSuit? _trumpSuit;
         private int _currentRoundNumber = 1;
 
-        // Managers dependencies injected
+        // Manager dependencies injected
         private readonly PlayerManager _playerManager;
         private readonly DeckManager _deckManager;
         private readonly DealingManager _dealingManager;
