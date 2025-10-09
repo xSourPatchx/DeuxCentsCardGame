@@ -1,4 +1,3 @@
-using DeuxCentsCardGame.GameConfig;
 using DeuxCentsCardGame.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;

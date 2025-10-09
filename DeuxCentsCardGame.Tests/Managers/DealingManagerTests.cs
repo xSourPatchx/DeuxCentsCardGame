@@ -1,0 +1,129 @@
+using Moq;
+using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Managers;
+using DeuxCentsCardGame.Models;
+
+namespace DeuxCentsCardGame.Tests.Managers
+{
+    public class DealingManagerTests
+    {
+        private readonly Mock<GameEventManager> _mockEventManager;
+        private readonly DealingManager _dealingManager;
+
+        public DealingManagerTests()
+        {
+            _mockEventManager = new Mock<GameEventManager>();
+            _dealingManager = new DealingManager(_mockEventManager.Object);
+        }
+
+        [Fact]
+        public void DealCards_ClearsPlayerHandsBeforeDealing()
+        {
+            // Arrange
+            var deck = new Deck();
+            var players = new List<Player>
+            {
+                new Player("Player1"),
+                new Player("Player2")
+            };
+
+            // Add some cards to hands first            
+            players[0].AddCard(new Card(CardSuit.Hearts, CardFace.Ace, 10, 10));
+            players[1].AddCard(new Card(CardSuit.Spades, CardFace.King, 9, 0));
+
+            // Act
+            _dealingManager.DealCards(deck, players);
+
+            // Assert
+            Assert.Equal(deck.Cards.Count / players.Count, players[0].Hand.Count);
+            Assert.Equal(deck.Cards.Count / players.Count, players[1].Hand.Count);
+        }
+        [Fact]
+        public void DealCards_DistributesAllCardsEvenly()
+        {
+            // Arrange
+            var deck = new Deck(); // 52 cards
+            var players = new List<Player>
+            {
+                new Player("Player1"),
+                new Player("Player2"),
+                new Player("Player3"),
+                new Player("Player4")
+            };
+
+            // Act
+            _dealingManager.DealCards(deck, players);
+
+            // Assert - Each player should have 13 cards (52 / 4)
+            Assert.All(players, player => Assert.Equal(13, player.Hand.Count));
+        }
+
+        [Fact]
+        public void DealCards_DistributesCardsInRoundRobinFashion()
+        {
+            // Arrange
+            var deck = new Deck();
+            var players = new List<Player>
+            {
+                new Player("Player1"),
+                new Player("Player2")
+            };
+
+            // Act
+            _dealingManager.DealCards(deck, players);
+
+            // Assert - Cards should be distributed alternately
+            // Player1 gets even indices (0, 2, 4...), Player2 gets odd indices (1, 3, 5...)
+            Assert.Equal(deck.Cards[0], players[0].Hand[0]);
+            Assert.Equal(deck.Cards[1], players[1].Hand[0]);
+            Assert.Equal(deck.Cards[2], players[0].Hand[1]);
+            Assert.Equal(deck.Cards[3], players[1].Hand[1]);
+        }
+
+        [Fact]
+        public void RotateDealerIndex_IncrementsCorrectly()
+        {
+            // Arrange
+            int currentDealerIndex = 2;
+            int totalPlayers = 4;
+
+            // Act
+            int newDealerIndex = _dealingManager.RotateDealerIndex(currentDealerIndex, totalPlayers);
+
+            // Assert
+            Assert.Equal(3, newDealerIndex);
+        }
+
+        [Fact]
+        public void RotateDealerIndex_WrapsAround()
+        {
+            // Arrange
+            int currentDealerIndex = 3;
+            int totalPlayers = 4;
+
+            // Act
+            int newDealerIndex = _dealingManager.RotateDealerIndex(currentDealerIndex, totalPlayers);
+
+            // Assert
+            Assert.Equal(0, newDealerIndex);
+        }
+
+        [Fact]
+        public void RaiseCardsDealtEvent_CallsEventManager()
+        {
+            // Arrange
+            var players = new List<Player>
+            {
+                new Player("Player1"),
+                new Player("Player2")
+            };
+            int dealerIndex = 1;
+
+            // Act
+            _dealingManager.RaiseCardsDealtEvent(players, dealerIndex);
+
+            // Assert
+            _mockEventManager.Verify(x => x.RaiseCardsDealt(players, dealerIndex), Times.Once);
+        }
+    }
+}
