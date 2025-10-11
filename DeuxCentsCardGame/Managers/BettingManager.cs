@@ -1,4 +1,4 @@
-using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
@@ -16,9 +16,9 @@ namespace DeuxCentsCardGame.Managers
         private readonly IGameConfig _gameConfig;
         private readonly List<Player> _players;
         private readonly int _dealerIndex;
-        private readonly GameEventManager _eventManager;
+        private readonly IGameEventManager _eventManager;
 
-        public BettingManager(List<Player> players, int dealerIndex, GameEventManager eventManager, IGameConfig gameConfig)
+        public BettingManager(List<Player> players, int dealerIndex, IGameEventManager eventManager, IGameConfig gameConfig)
         {
             _players = players;
             _eventManager = eventManager;
@@ -200,7 +200,7 @@ namespace DeuxCentsCardGame.Managers
                     activePlayers[0].CurrentBid = _gameConfig.MinimumBet;
                     activePlayers[0].HasPassed = true; // Mark as passed to end the round
                     
-                    _eventManager.RaiseBettingAction(activePlayers[0], _gameConfig.MinimumBet, false);
+                    _eventManager.RaiseBettingAction(activePlayers[0], _gameConfig.MinimumBet, false, activePlayers[0].HasBet);
                 }
             }
             

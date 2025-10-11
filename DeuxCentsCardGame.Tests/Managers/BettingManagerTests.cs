@@ -1,6 +1,6 @@
 using Moq;
-using DeuxCentsCardGame.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
 
@@ -8,14 +8,14 @@ namespace DeuxCentsCardGame.Tests.Managers
 {
     public class BettingManagerTests
     {
-        private readonly Mock<GameEventManager> _mockEventManager;
+        private readonly Mock<IGameEventManager> _mockEventManager;
         private readonly Mock<IGameConfig> _mockGameConfig;
         private readonly List<Player> _players;
         private readonly BettingManager _bettingManager;
 
         public BettingManagerTests()
         {
-            _mockEventManager = new Mock<GameEventManager>();
+            _mockEventManager = new Mock<IGameEventManager>();
             _mockGameConfig = new Mock<IGameConfig>();
             
             _players = new List<Player>
@@ -28,7 +28,7 @@ namespace DeuxCentsCardGame.Tests.Managers
 
             _mockGameConfig.Setup(x => x.MinimumBet).Returns(50);
             _mockGameConfig.Setup(x => x.MaximumBet).Returns(100);
-            _mockGameConfig.Setup(x => x.BetIncrement).Returns(5); // Fixed: Changed from 10 to 5
+            _mockGameConfig.Setup(x => x.BetIncrement).Returns(5);
             _mockGameConfig.Setup(x => x.MinimumPlayersToPass).Returns(3);
 
             _bettingManager = new BettingManager(_players, 0, _mockEventManager.Object, _mockGameConfig.Object);
@@ -63,6 +63,7 @@ namespace DeuxCentsCardGame.Tests.Managers
 
             // Assert
             _mockEventManager.Verify(x => x.RaiseBettingRoundStarted(It.IsAny<string>()), Times.Once);
+            Assert.True(_bettingManager.IsBettingRoundComplete);
         }
 
         [Fact]
@@ -93,6 +94,7 @@ namespace DeuxCentsCardGame.Tests.Managers
             // Assert
             Assert.True(_bettingManager.IsBettingRoundComplete);
             Assert.Equal(100, _bettingManager.CurrentWinningBid);
+            _mockEventManager.Verify(x => x.RaiseBettingAction(It.IsAny<Player>(), It.IsAny<int>(), true, It.IsAny<bool>()), Times.AtLeast(3));
         }
 
         [Fact]
@@ -108,6 +110,28 @@ namespace DeuxCentsCardGame.Tests.Managers
 
             // Assert
             Assert.Equal(50, _bettingManager.CurrentWinningBid);
+            Assert.True(_bettingManager.IsBettingRoundComplete);
+        }
+
+        [Fact]
+        public void ExecuteBettingRound_FirstThreePasses_LastPlayerForcedToBet50()
+        {
+            // Arrange
+            int callCount = 0;
+            _mockEventManager.Setup(x => x.RaiseBetInput(It.IsAny<Player>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns(() =>
+                {
+                    callCount++;
+                    // First three players pass, fourth should be forced to bet 50
+                    return callCount <= 3 ? "pass" : "pass"; // The fourth will be handled by the forced bet logic
+                });
+
+            // Act
+            _bettingManager.ExecuteBettingRound();
+
+            // Assert
+            Assert.Equal(50, _bettingManager.CurrentWinningBid);
+            Assert.True(_bettingManager.IsBettingRoundComplete);
         }
     }
 }

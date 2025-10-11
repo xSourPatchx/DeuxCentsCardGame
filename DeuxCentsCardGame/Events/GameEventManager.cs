@@ -1,9 +1,10 @@
 using DeuxCentsCardGame.Events.EventArgs;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Events
 {
-    public class GameEventManager
+    public class GameEventManager : IGameEventManager
     {
         // Round events
         public event EventHandler<RoundStartedEventArgs>? RoundStarted;
