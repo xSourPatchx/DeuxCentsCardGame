@@ -1,5 +1,4 @@
 using Moq;
-using Xunit;
 using DeuxCentsCardGame.Events;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Managers;
@@ -30,7 +29,7 @@ namespace DeuxCentsCardGame.Tests.Managers
 
             // Assert
             Assert.NotSame(originalDeck, _deckManager.CurrentDeck);
-            Assert.Equal(52, _deckManager.CurrentDeck.Cards.Count);
+            Assert.Equal(40, _deckManager.CurrentDeck.Cards.Count);
         }
 
         [Fact]

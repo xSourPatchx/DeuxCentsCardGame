@@ -28,7 +28,7 @@ namespace DeuxCentsCardGame.Tests.Managers
 
             _mockGameConfig.Setup(x => x.MinimumBet).Returns(50);
             _mockGameConfig.Setup(x => x.MaximumBet).Returns(100);
-            _mockGameConfig.Setup(x => x.BetIncrement).Returns(10);
+            _mockGameConfig.Setup(x => x.BetIncrement).Returns(5); // Fixed: Changed from 10 to 5
             _mockGameConfig.Setup(x => x.MinimumPlayersToPass).Returns(3);
 
             _bettingManager = new BettingManager(_players, 0, _mockEventManager.Object, _mockGameConfig.Object);
@@ -56,21 +56,20 @@ namespace DeuxCentsCardGame.Tests.Managers
         {
             // Arrange
             _mockEventManager.Setup(x => x.RaiseBetInput(It.IsAny<Player>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns("60"); // Valid bet
+                .Returns("60"); // Valid bet (multiple of 5)
 
             // Act
             _bettingManager.ExecuteBettingRound();
 
             // Assert
             _mockEventManager.Verify(x => x.RaiseBettingRoundStarted(It.IsAny<string>()), Times.Once);
-            // The bet should be processed without "invalid bet" messages
         }
 
         [Fact]
         public void ExecuteBettingRound_WithInvalidBet_ShowsError()
         {
             // Arrange
-            var invalidBets = new Queue<string>(new[] { "45", "60" }); // 45 is invalid (not multiple of 10)
+            var invalidBets = new Queue<string>(new[] { "47", "60" }); // 47 is invalid (not multiple of 5)
             _mockEventManager.Setup(x => x.RaiseBetInput(It.IsAny<Player>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns(invalidBets.Dequeue);
 
@@ -79,6 +78,36 @@ namespace DeuxCentsCardGame.Tests.Managers
 
             // Assert
             _mockEventManager.Verify(x => x.RaiseInvalidBet(It.IsAny<string>()), Times.AtLeastOnce);
+        }
+
+        [Fact]
+        public void ExecuteBettingRound_WithMaxBet_EndsImmediately()
+        {
+            // Arrange
+            _mockEventManager.Setup(x => x.RaiseBetInput(It.IsAny<Player>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns("100");
+
+            // Act
+            _bettingManager.ExecuteBettingRound();
+
+            // Assert
+            Assert.True(_bettingManager.IsBettingRoundComplete);
+            Assert.Equal(100, _bettingManager.CurrentWinningBid);
+        }
+
+        [Fact]
+        public void ExecuteBettingRound_ThreePassesForcesLastPlayerToBet50()
+        {
+            // Arrange
+            var responses = new Queue<string>(new[] { "pass", "pass", "pass" });
+            _mockEventManager.Setup(x => x.RaiseBetInput(It.IsAny<Player>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
+                .Returns(() => responses.Count > 0 ? responses.Dequeue() : "pass");
+
+            // Act
+            _bettingManager.ExecuteBettingRound();
+
+            // Assert
+            Assert.Equal(50, _bettingManager.CurrentWinningBid);
         }
     }
 }

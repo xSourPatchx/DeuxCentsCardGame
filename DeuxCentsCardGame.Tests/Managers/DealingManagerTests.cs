@@ -20,11 +20,13 @@ namespace DeuxCentsCardGame.Tests.Managers
         public void DealCards_ClearsPlayerHandsBeforeDealing()
         {
             // Arrange
-            var deck = new Deck();
+            var deck = new Deck(); // Assuming Deck constructor creates 40-card deck
             var players = new List<Player>
             {
                 new Player("Player1"),
-                new Player("Player2")
+                new Player("Player2"),
+                new Player("Player3"),
+                new Player("Player4")
             };
 
             // Add some cards to hands first            
@@ -34,15 +36,18 @@ namespace DeuxCentsCardGame.Tests.Managers
             // Act
             _dealingManager.DealCards(deck, players);
 
-            // Assert
-            Assert.Equal(deck.Cards.Count / players.Count, players[0].Hand.Count);
-            Assert.Equal(deck.Cards.Count / players.Count, players[1].Hand.Count);
+            // Assert - 40 cards / 4 players = 10 cards each
+            Assert.Equal(10, players[0].Hand.Count);
+            Assert.Equal(10, players[1].Hand.Count);
+            Assert.Equal(10, players[2].Hand.Count);
+            Assert.Equal(10, players[3].Hand.Count);
         }
+
         [Fact]
         public void DealCards_DistributesAllCardsEvenly()
         {
             // Arrange
-            var deck = new Deck(); // 52 cards
+            var deck = new Deck(); // 40 cards for modified deck
             var players = new List<Player>
             {
                 new Player("Player1"),
@@ -54,8 +59,8 @@ namespace DeuxCentsCardGame.Tests.Managers
             // Act
             _dealingManager.DealCards(deck, players);
 
-            // Assert - Each player should have 13 cards (52 / 4)
-            Assert.All(players, player => Assert.Equal(13, player.Hand.Count));
+            // Assert - Each player should have 10 cards (40 / 4)
+            Assert.All(players, player => Assert.Equal(10, player.Hand.Count));
         }
 
         [Fact]
@@ -66,18 +71,21 @@ namespace DeuxCentsCardGame.Tests.Managers
             var players = new List<Player>
             {
                 new Player("Player1"),
-                new Player("Player2")
+                new Player("Player2"),
+                new Player("Player3"),
+                new Player("Player4")
             };
 
             // Act
             _dealingManager.DealCards(deck, players);
 
             // Assert - Cards should be distributed alternately
-            // Player1 gets even indices (0, 2, 4...), Player2 gets odd indices (1, 3, 5...)
             Assert.Equal(deck.Cards[0], players[0].Hand[0]);
             Assert.Equal(deck.Cards[1], players[1].Hand[0]);
-            Assert.Equal(deck.Cards[2], players[0].Hand[1]);
-            Assert.Equal(deck.Cards[3], players[1].Hand[1]);
+            Assert.Equal(deck.Cards[2], players[2].Hand[0]);
+            Assert.Equal(deck.Cards[3], players[3].Hand[0]);
+            Assert.Equal(deck.Cards[4], players[0].Hand[1]);
+            Assert.Equal(deck.Cards[5], players[1].Hand[1]);
         }
 
         [Fact]

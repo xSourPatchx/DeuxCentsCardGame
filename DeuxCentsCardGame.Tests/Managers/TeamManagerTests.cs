@@ -1,8 +1,8 @@
+using Moq;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
-using Moq;
 
 namespace DeuxCentsCardGame.Tests.Managers
 {
