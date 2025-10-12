@@ -1,4 +1,4 @@
-using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 
@@ -6,11 +6,11 @@ namespace DeuxCentsCardGame.Managers
 {
     public class PlayerManager : IPlayerManager
     {
-        private readonly GameEventManager _eventManager;
+        private readonly IGameEventManager _eventManager;
         private readonly List<Player> _players;
         public IReadOnlyList<Player> Players => _players.AsReadOnly();
 
-        public PlayerManager(GameEventManager eventManager)
+        public PlayerManager(IGameEventManager eventManager)
         {
             _eventManager = eventManager;
             _players = InitializePlayers();

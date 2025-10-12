@@ -1,4 +1,4 @@
-using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 
@@ -6,9 +6,9 @@ namespace DeuxCentsCardGame.Managers
 {
     public class DealingManager : IDealingManager
     {
-        private readonly GameEventManager _eventManager;
+        private readonly IGameEventManager _eventManager;
 
-        public DealingManager(GameEventManager eventManager)
+        public DealingManager(IGameEventManager eventManager)
         {
             _eventManager = eventManager;
         }

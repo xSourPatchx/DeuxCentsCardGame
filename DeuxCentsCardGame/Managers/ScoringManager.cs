@@ -1,4 +1,4 @@
-using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
@@ -7,7 +7,7 @@ namespace DeuxCentsCardGame.Managers
 {
     public class ScoringManager : IScoringManager
     {
-        private readonly GameEventManager _eventManager;
+        private readonly IGameEventManager _eventManager;
         private readonly List<Player> _players;
         private readonly ITeamManager _teamManager;
         private readonly IGameConfig _gameConfig;
@@ -17,7 +17,7 @@ namespace DeuxCentsCardGame.Managers
         public int TeamOneTotalPoints { get; private set; }
         public int TeamTwoTotalPoints { get; private set; }
 
-        public ScoringManager(GameEventManager eventManager, List<Player> players, 
+        public ScoringManager(IGameEventManager eventManager, List<Player> players, 
                             ITeamManager teamManager, IGameConfig gameConfig)
         {
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));

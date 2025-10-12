@@ -1,4 +1,5 @@
 using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 
@@ -6,10 +7,10 @@ namespace DeuxCentsCardGame.Managers
 {
     public class TrumpSelectionManager : ITrumpSelectionManager
     {
-        private readonly GameEventManager _eventManager;
+        private readonly IGameEventManager _eventManager;
         // private readonly IUIGameView _ui;
 
-        public TrumpSelectionManager(GameEventManager eventManager)
+        public TrumpSelectionManager(IGameEventManager eventManager)
         {
             _eventManager = eventManager;
         }
