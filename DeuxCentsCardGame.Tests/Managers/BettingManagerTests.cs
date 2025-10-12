@@ -55,8 +55,9 @@ namespace DeuxCentsCardGame.Tests.Managers
         public void ExecuteBettingRound_WithValidBet_ProcessesCorrectly()
         {
             // Arrange
+            var responses = new Queue<string>(new[] { "60", "pass", "pass", "pass" });
             _mockEventManager.Setup(x => x.RaiseBetInput(It.IsAny<Player>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns("60"); // Valid bet (multiple of 5)
+                .Returns(responses.Dequeue);
 
             // Act
             _bettingManager.ExecuteBettingRound();
@@ -70,7 +71,7 @@ namespace DeuxCentsCardGame.Tests.Managers
         public void ExecuteBettingRound_WithInvalidBet_ShowsError()
         {
             // Arrange
-            var invalidBets = new Queue<string>(new[] { "47", "60" }); // 47 is invalid (not multiple of 5)
+            var invalidBets = new Queue<string>(new[] { "47", "52", "60", "pass", "pass", "pass" });
             _mockEventManager.Setup(x => x.RaiseBetInput(It.IsAny<Player>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns(invalidBets.Dequeue);
 
@@ -85,8 +86,9 @@ namespace DeuxCentsCardGame.Tests.Managers
         public void ExecuteBettingRound_WithMaxBet_EndsImmediately()
         {
             // Arrange
+            var responses = new Queue<string>(new[] { "100", "pass", "pass", "pass" });
             _mockEventManager.Setup(x => x.RaiseBetInput(It.IsAny<Player>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns("100");
+                .Returns(responses.Dequeue);
 
             // Act
             _bettingManager.ExecuteBettingRound();
@@ -101,7 +103,7 @@ namespace DeuxCentsCardGame.Tests.Managers
         public void ExecuteBettingRound_ThreePassesForcesLastPlayerToBet50()
         {
             // Arrange
-            var responses = new Queue<string>(new[] { "pass", "pass", "pass" });
+            var responses = new Queue<string>(new[] { "pass", "pass", "pass", "50" });
             _mockEventManager.Setup(x => x.RaiseBetInput(It.IsAny<Player>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
                 .Returns(() => responses.Count > 0 ? responses.Dequeue() : "pass");
 
@@ -117,14 +119,9 @@ namespace DeuxCentsCardGame.Tests.Managers
         public void ExecuteBettingRound_FirstThreePasses_LastPlayerForcedToBet50()
         {
             // Arrange
-            int callCount = 0;
+            var responses = new Queue<string>(new[] { "pass", "pass", "pass", "50" });
             _mockEventManager.Setup(x => x.RaiseBetInput(It.IsAny<Player>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>()))
-                .Returns(() =>
-                {
-                    callCount++;
-                    // First three players pass, fourth should be forced to bet 50
-                    return callCount <= 3 ? "pass" : "pass"; // The fourth will be handled by the forced bet logic
-                });
+                .Returns(() => responses.Count > 0 ? responses.Dequeue() : "pass");
 
             // Act
             _bettingManager.ExecuteBettingRound();

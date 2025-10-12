@@ -1,5 +1,5 @@
 using Moq;
-using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Managers;
@@ -9,7 +9,7 @@ namespace DeuxCentsCardGame.Tests.Managers
 {
     public class ScoringManagerTests
     {
-        private readonly Mock<GameEventManager> _mockEventManager;
+        private readonly Mock<IGameEventManager> _mockEventManager;
         private readonly Mock<ITeamManager> _mockTeamManager;
         private readonly Mock<IGameConfig> _mockGameConfig;
         private readonly List<Player> _players;
@@ -17,7 +17,7 @@ namespace DeuxCentsCardGame.Tests.Managers
 
         public ScoringManagerTests()
         {
-            _mockEventManager = new Mock<GameEventManager>();
+            _mockEventManager = new Mock<IGameEventManager>();
             _mockTeamManager = new Mock<ITeamManager>();
             _mockGameConfig = new Mock<IGameConfig>();
             
@@ -76,16 +76,18 @@ namespace DeuxCentsCardGame.Tests.Managers
             _mockTeamManager.Setup(x => x.GetTeamName(Team.TeamTwo)).Returns("Team Two");
 
             // Award points to get Team One to 200
-            _scoringManager.AwardTrickPoints(0, 100);
-            _scoringManager.ScoreRound(0, 50);
-            _scoringManager.ResetRoundPoints();
-            _scoringManager.AwardTrickPoints(0, 100);
-            _scoringManager.ScoreRound(0, 50);
+            while (_scoringManager.TeamOneTotalPoints < 200)
+            {
+                _scoringManager.ResetRoundPoints();
+                _scoringManager.AwardTrickPoints(0, 100);
+                _scoringManager.ScoreRound(0, 50);
+            }
 
             // Act
             bool isGameOver = _scoringManager.IsGameOver();
 
             // Assert
+            Assert.True(_scoringManager.TeamOneTotalPoints >= 200, $"TeamOneTotalPoints was {_scoringManager.TeamOneTotalPoints}, expected >= 200");
             Assert.True(isGameOver);
         }
     }

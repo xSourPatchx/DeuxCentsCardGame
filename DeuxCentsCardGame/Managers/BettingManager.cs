@@ -198,9 +198,15 @@ namespace DeuxCentsCardGame.Managers
                     // Force the last player to bet 50
                     activePlayers[0].HasBet = true;
                     activePlayers[0].CurrentBid = _gameConfig.MinimumBet;
-                    activePlayers[0].HasPassed = true; // Mark as passed to end the round
-                    
-                    _eventManager.RaiseBettingAction(activePlayers[0], _gameConfig.MinimumBet, false, activePlayers[0].HasBet);
+
+                    _eventManager.RaiseBettingAction(activePlayers[0], _gameConfig.MinimumBet, false, true);
+                }
+                // not sure if this is needed, but just in case
+                else if (!activePlayers[0].HasBet)
+                {
+                    activePlayers[0].HasPassed = true;
+                    activePlayers[0].CurrentBid = -1;
+                    _eventManager.RaiseBettingAction(activePlayers[0], -1, true, false);
                 }
             }
             

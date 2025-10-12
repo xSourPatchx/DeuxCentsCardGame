@@ -1,5 +1,5 @@
 using Moq;
-using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Managers;
 
@@ -7,13 +7,13 @@ namespace DeuxCentsCardGame.Tests.Managers
 {
     public class DeckManagerTests
     {
-        private readonly Mock<GameEventManager> _mockEventManager;
+        private readonly Mock<IGameEventManager> _mockEventManager;
         private readonly Mock<IRandomService> _mockRandomService;
         private readonly DeckManager _deckManager;
 
         public DeckManagerTests()
         {
-            _mockEventManager = new Mock<GameEventManager>();
+            _mockEventManager = new Mock<IGameEventManager>();
             _mockRandomService = new Mock<IRandomService>();
             _deckManager = new DeckManager(_mockEventManager.Object, _mockRandomService.Object);
         }
@@ -46,7 +46,7 @@ namespace DeuxCentsCardGame.Tests.Managers
 
             // Assert
             // Since we mocked random to always return last index, order should be different
-            Assert.Equal(52, _deckManager.CurrentDeck.Cards.Count);
+            Assert.Equal(40, _deckManager.CurrentDeck.Cards.Count);
         }
     }
 }

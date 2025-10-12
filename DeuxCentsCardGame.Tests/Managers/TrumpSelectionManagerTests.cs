@@ -1,5 +1,5 @@
 using Moq;
-using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
 
@@ -7,12 +7,12 @@ namespace DeuxCentsCardGame.Tests.Managers
 {
     public class TrumpSelectionManagerTests
     {
-        private readonly Mock<GameEventManager> _mockEventManager;
+        private readonly Mock<IGameEventManager> _mockEventManager;
         private readonly TrumpSelectionManager _trumpSelectionManager;
 
         public TrumpSelectionManagerTests()
         {
-            _mockEventManager = new Mock<GameEventManager>();
+            _mockEventManager = new Mock<IGameEventManager>();
             _trumpSelectionManager = new TrumpSelectionManager(_mockEventManager.Object);
         }
 
