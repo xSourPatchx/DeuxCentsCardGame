@@ -4,5 +4,6 @@
     {
         public void StartGame();
         public void NewRound();
+        void ExecuteBettingRound();
     }
 }
