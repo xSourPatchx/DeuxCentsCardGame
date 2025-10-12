@@ -1,4 +1,5 @@
 using DeuxCentsCardGame.Events.EventArgs;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Models;
 using DeuxCentsCardGame.Interfaces.UI;
@@ -7,7 +8,7 @@ using DeuxCentsCardGame.UI;
 
 namespace DeuxCentsCardGame.Events
 {
-    public class GameEventHandler
+    public class GameEventHandler : IGameEventHandler
     {
         private readonly IGameConfig _gameConfig;
         private readonly GameEventManager _eventManager;
@@ -57,13 +58,13 @@ namespace DeuxCentsCardGame.Events
         }
 
         // Event handlers
-        private void OnRoundStarted(object? sender, EventArgs.RoundStartedEventArgs e)
+        public void OnRoundStarted(object? sender, RoundStartedEventArgs e)
         {
             _ui.ClearScreen();
             _ui.DisplayFormattedMessage("\nRound {0} Started. Dealer: {1}\n", e.RoundNumber, e.Dealer.Name);
         }
 
-        private void OnCardsDealt(object? sender, CardsDealtEventArgs e)
+        public void OnCardsDealt(object? sender, CardsDealtEventArgs e)
         {
             _ui.DisplayMessage("Dealing cards...\n");
             _ui.DisplayFormattedMessage("\nCards dealt to all {0} players. Dealer index: {1}", e.Players.Count, e.DealerIndex);
@@ -73,12 +74,12 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayAllHands(playersAsInterface, e.DealerIndex + 1);
         }
 
-        private void OnBettingRoundStarted(object? sender, BettingRoundStartedEventArgs e)
+        public void OnBettingRoundStarted(object? sender, BettingRoundStartedEventArgs e)
         {
             _ui.DisplayMessage(e.Message);
         }
 
-        private void OnBetInput(object? sender, BetInputEventArgs e)
+        public void OnBetInput(object? sender, BetInputEventArgs e)
         {
             string prompt = $"{e.CurrentPlayer.Name}, enter a bet (between {e.MinimumBet}-{e.MaximumBet}, intervals of {e.BetIncrement}) or 'pass': ";
             string betInput = _ui.GetUserInput(prompt).ToLower();
@@ -86,12 +87,12 @@ namespace DeuxCentsCardGame.Events
             e.Response = betInput;
         }
 
-        private void OnInvalidBet(object? sender, InvalidBetEventArgs e)
+        public void OnInvalidBet(object? sender, InvalidBetEventArgs e)
         {
             _ui.DisplayMessage(e.Message);
         }
 
-        private void OnBettingAction(object? sender, BettingActionEventArgs e)
+        public void OnBettingAction(object? sender, BettingActionEventArgs e)
         {
             if (e.HasPassed)
             {
@@ -108,7 +109,7 @@ namespace DeuxCentsCardGame.Events
             }
         }
 
-        private void OnBettingCompleted(object? sender, BettingCompletedEventArgs e)
+        public void OnBettingCompleted(object? sender, BettingCompletedEventArgs e)
         {
             _ui.DisplayMessage("\nBetting round complete.");
             _ui.DisplayMessage("Results:");
@@ -140,7 +141,7 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayHand(e.WinningBidder);
         }
 
-        private void OnTrumpSelectionInput(object? sender, TrumpSelectionInputEventArgs e)
+        public void OnTrumpSelectionInput(object? sender, TrumpSelectionInputEventArgs e)
         {
             string[] validSuits = Enum.GetNames<CardSuit>().Select(suit => suit.ToLower()).ToArray();
             string prompt = $"{e.SelectingPlayer.Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")";
@@ -148,12 +149,12 @@ namespace DeuxCentsCardGame.Events
             e.Response = _ui.GetOptionInput(prompt, validSuits);
         }
 
-        private void OnTrumpSelected(object? sender, TrumpSelectedEventArgs e)
+        public void OnTrumpSelected(object? sender, TrumpSelectedEventArgs e)
         {
             _ui.DisplayFormattedMessage("\nTrump suit is {0} by {1}", e.TrumpSuit, e.SelectedBy.Name);
         }
 
-        private void OnPlayerTurn(object? sender, PlayerTurnEventArgs e)
+        public void OnPlayerTurn(object? sender, PlayerTurnEventArgs e)
         {
             _ui.DisplayHand(e.Player);
             string leadingSuitInfo = e.LeadingSuit.HasValue ? $" (Leading suit is {e.LeadingSuit})" : "Not yet set.";
@@ -167,7 +168,7 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayFormattedMessage("Trump suit: {0}", trumpSuitInfo);
         }
 
-        private void OnCardSelectionInput(object? sender, CardSelectionInputEventArgs e)
+        public void OnCardSelectionInput(object? sender, CardSelectionInputEventArgs e)
         {
             string leadingSuitString = e.LeadingSuit.HasValue ? Deck.CardSuitToString(e.LeadingSuit.Value) : "none";
             string trumpSuitString = e.TrumpSuit.HasValue ? Deck.CardSuitToString(e.TrumpSuit.Value) : "none";
@@ -179,17 +180,17 @@ namespace DeuxCentsCardGame.Events
             e.Response = _ui.GetIntInput(prompt, 0, e.Hand.Count - 1);
         }
 
-        private void OnCardPlayed(object? sender, CardPlayedEventArgs e)
+        public void OnCardPlayed(object? sender, CardPlayedEventArgs e)
         {
             _ui.DisplayFormattedMessage("{0} played {1} in trick {2}\n", e.Player.Name, e.Card, e.TrickNumber + 1);
         }
 
-        private void OnInvalidCard(object? sender, InvalidCardEventArgs e)
+        public void OnInvalidCard(object? sender, InvalidCardEventArgs e)
         {
             _ui.DisplayMessage(e.Message);
         }
 
-        private void OnTrickCompleted(object? sender, TrickCompletedEventArgs e)
+        public void OnTrickCompleted(object? sender, TrickCompletedEventArgs e)
         {
             _ui.DisplayFormattedMessage("\nTrick #{0} complete.", e.TrickNumber + 1);
 
@@ -204,12 +205,12 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayFormattedMessage("Trick points: {0}", e.TrickPoints);
         }
         
-        private void OnTrickPointsAwarded(object? sender, TrickPointsAwardedEventArgs e)
+        public void OnTrickPointsAwarded(object? sender, TrickPointsAwardedEventArgs e)
         {
             _ui.DisplayFormattedMessage("{0} collected {1} points for {2}\n", e.Player.Name, e.TrickPoints, e.TeamName);
         }
 
-        private void OnTeamScoring(object? sender, TeamScoringEventArgs e)
+        public void OnTeamScoring(object? sender, TeamScoringEventArgs e)
         {
             if (e.CannotScore)
             {
@@ -229,7 +230,7 @@ namespace DeuxCentsCardGame.Events
             }
         }
 
-        private void OnScoreUpdated(object? sender, ScoreUpdatedEventArgs e)
+        public void OnScoreUpdated(object? sender, ScoreUpdatedEventArgs e)
         {
             _ui.DisplayMessage("\n--- Round Scoring ---");
             _ui.DisplayFormattedMessage("Team One round points: {0}", e.TeamOneRoundPoints);
@@ -241,7 +242,7 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayFormattedMessage("Team Two: {0} points", e.TeamTwoTotalPoints);
         }
 
-        private void OnGameOver(object? sender, GameOverEventArgs e)
+        public void OnGameOver(object? sender, GameOverEventArgs e)
         {
             string winner = e.IsTeamOneWinner ? "Team One" : "Team Two";
 
@@ -256,7 +257,7 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayMessage(new string('-', 50));
         }
 
-        private void OnNextRoundPrompt(object? sender, NextRoundEventArgs e)
+        public void OnNextRoundPrompt(object? sender, NextRoundEventArgs e)
         {
             _ui.WaitForUser("\nPress any key to start the next round...");
         }

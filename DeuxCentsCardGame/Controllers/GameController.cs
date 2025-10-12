@@ -1,6 +1,6 @@
-using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Controllers;
-using DeuxCentsCardGame.Managers;
+using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Controllers
@@ -11,32 +11,31 @@ namespace DeuxCentsCardGame.Controllers
         private CardSuit? _trumpSuit;
         private int _currentRoundNumber = 1;
 
-        // Manager dependencies injected
-        private readonly PlayerManager _playerManager;
-        private readonly DeckManager _deckManager;
-        private readonly DealingManager _dealingManager;
-        private readonly BettingManager _bettingManager;
-        private readonly TrumpSelectionManager _trumpSelectionManager;
-        private readonly ScoringManager _scoringManager;
+        // Manager dependencies injected as interfaces
+        private readonly IPlayerManager _playerManager;
+        private readonly IDeckManager _deckManager;
+        private readonly IDealingManager _dealingManager;
+        private readonly IBettingManager _bettingManager;
+        private readonly ITrumpSelectionManager _trumpSelectionManager;
+        private readonly IScoringManager _scoringManager;
 
         // Dealer starts at player 4 (index 3)
         public int DealerIndex = 3;
 
-
         // Event references
-        private readonly GameEventManager _eventManager;
-        private readonly GameEventHandler _eventHandler;
+        private readonly IGameEventManager _eventManager;
+        private readonly IGameEventHandler _eventHandler;
 
         public GameController
         (
-            PlayerManager playerManager,
-            DeckManager deckManager,
-            DealingManager dealingManager,
-            BettingManager bettingManager,
-            TrumpSelectionManager trumpSelectionManager,
-            ScoringManager scoringManager,
-            GameEventManager eventManager,
-            GameEventHandler eventHandler
+            IPlayerManager playerManager,
+            IDeckManager deckManager,
+            IDealingManager dealingManager,
+            IBettingManager bettingManager,
+            ITrumpSelectionManager trumpSelectionManager,
+            IScoringManager scoringManager,
+            IGameEventManager eventManager,
+            IGameEventHandler eventHandler
         )
         {
             // Initialize managers
