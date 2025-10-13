@@ -15,8 +15,8 @@ namespace DeuxCentsCardGame.Managers
         // Private betting state fields
         private readonly IGameConfig _gameConfig;
         private readonly List<Player> _players;
-        private readonly int _dealerIndex;
         private readonly IGameEventManager _eventManager;
+        private int _dealerIndex;
 
         public BettingManager(List<Player> players, int dealerIndex, IGameEventManager eventManager, IGameConfig gameConfig)
         {
@@ -62,7 +62,7 @@ namespace DeuxCentsCardGame.Managers
         }
 
         public void ResetBettingRound()
-        {   
+        {
             foreach (var player in _players)
             {
                 player.ResetBettingState();
@@ -71,6 +71,11 @@ namespace DeuxCentsCardGame.Managers
             CurrentWinningBid = 0;
             CurrentWinningBidIndex = 0;
             IsBettingRoundComplete = false;
+        }
+        
+        public void UpdateDealerIndex(int newDealerIndex)
+        {
+            _dealerIndex = newDealerIndex;
         }
 
         private bool HandleBettingRound(int startingIndex)

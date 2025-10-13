@@ -7,5 +7,6 @@ namespace DeuxCentsCardGame.Interfaces.Managers
         bool IsBettingRoundComplete { get; }
         void ExecuteBettingRound();
         void ResetBettingRound();
+        void UpdateDealerIndex(int newDealerIndex);
     }
 }

@@ -14,10 +14,10 @@
    - [x] Ditch the quadrant display bullshit
    - [x] In BettingActionEventArgs class, should use bool HasBet property to show who placed bets
    - [x] If player lost the bet, display player has placed a bet, betting amount not necessary
-   - [ ] Fix Unit test
+   - [x] Fix Unit test
    - [ ] Simplify Complex Methods and break down large methods into smaller, focused ones: 
        - [x] `ProcessBettingRound`: Extract validation logic.
-       - [ ] `PlayAllTricks`: Add `PlaySingleTrick()` to simplify.
+       - [x] `PlayAllTricks`: Add `PlaySingleTrick()` to simplify.
        - [ ] `UpdateTeamPoints`: Extract team logic into helper methods.
    - [ ] Eliminate Static Dependencies in `UIConsoleGameView` interface which will cause issues in Unity.
    - [ ] Consider adding GetValidCards Helper Method, could be useful for Unity implementation where you might want to highlight valid cards in the UI.

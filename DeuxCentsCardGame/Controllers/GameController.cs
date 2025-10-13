@@ -99,6 +99,7 @@ namespace DeuxCentsCardGame.Controllers
 
         public void ExecuteBettingRound()
         {
+            _bettingManager.UpdateDealerIndex(DealerIndex);
             _bettingManager.ExecuteBettingRound();
         }
 
@@ -118,46 +119,51 @@ namespace DeuxCentsCardGame.Controllers
             var startingPlayer = _playerManager.GetPlayer(startingPlayerIndex);
             int totalTricks = startingPlayer.Hand.Count;
             int currentPlayerIndex = startingPlayerIndex;
-            Card trickWinningCard;
-            Player trickWinner;
 
             for (int trickNumber = 0; trickNumber < totalTricks; trickNumber++)
             {
-                CardSuit? leadingSuit = null;
-                List<(Card card, Player player)> currentTrick = [];
-
-                PlayTrick(currentPlayerIndex, leadingSuit, currentTrick, trickNumber);
-
-                (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick, _trumpSuit);
+                PlaySingleTrick(currentPlayerIndex, trickNumber, out Player trickWinner, out Card trickWinningCard);
 
                 // Set winning player as the current player for the next trick
                 currentPlayerIndex = _playerManager.Players.ToList().IndexOf(trickWinner);
-
-                int trickPoints = currentTrick.Sum(trick => trick.card.CardPointValue);
-
-                _eventManager.RaiseTrickCompleted(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
-
-                _scoringManager.AwardTrickPoints(currentPlayerIndex, trickPoints);
             }
         }
 
-        private void PlayTrick(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick, int trickNumber)
+        private void PlaySingleTrick(int currentPlayerIndex, int trickNumber, out Player trickWinner, out Card trickWinningCard)
+        {
+            CardSuit? leadingSuit = null;
+            List<(Card card, Player player)> currentTrick = [];
+
+            PlayTrickCards(currentPlayerIndex, leadingSuit, currentTrick, trickNumber);
+
+            (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick, _trumpSuit);
+            
+            int trickPoints = CalculateTrickPoints(currentTrick);
+            AwardTrickPointsAndNotify(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
+        }
+
+        private void PlayTrickCards(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick, int trickNumber)
         {
             var players = _playerManager.Players.ToList();
 
             for (int trickIndex = 0; trickIndex < players.Count; trickIndex++)
             {
-                // Ensuring player who won the bet goes first
                 int playerIndex = (currentPlayerIndex + trickIndex) % players.Count;
                 Player currentPlayer = _playerManager.GetPlayer(playerIndex);
 
-                // Raise event for player's turn and display their hand
-                _eventManager.RaisePlayerTurn(currentPlayer, leadingSuit, _trumpSuit, trickNumber);
+                leadingSuit = PlayPlayerTurn(currentPlayer, leadingSuit, trickNumber, currentTrick);
+            }
+        }
 
-                Card playedCard = GetValidCardFromPlayer(currentPlayer, leadingSuit);
-                currentPlayer.RemoveCard(playedCard);
+        private CardSuit? PlayPlayerTurn(Player currentPlayer, CardSuit? leadingSuit, int trickNumber, List<(Card card, Player player)> currentTrick)
+        {
+            _eventManager.RaisePlayerTurn(currentPlayer, leadingSuit, _trumpSuit, trickNumber);
 
-                if (trickIndex == 0)
+            Card playedCard = GetValidCardFromPlayer(currentPlayer, leadingSuit);
+            currentPlayer.RemoveCard(playedCard);
+
+            // Set leading suit if this is the first card in the trick
+            if (currentTrick.Count == 0)
                 {
                     leadingSuit = playedCard.CardSuit;
                 }
@@ -165,7 +171,8 @@ namespace DeuxCentsCardGame.Controllers
                 currentTrick.Add((playedCard, currentPlayer));
 
                 _eventManager.RaiseCardPlayed(currentPlayer, playedCard, trickNumber, leadingSuit, _trumpSuit);
-            }
+                
+                return leadingSuit;
         }
 
         private Card GetValidCardFromPlayer(Player currentPlayer, CardSuit? leadingSuit)
@@ -201,6 +208,18 @@ namespace DeuxCentsCardGame.Controllers
             }
 
             return (trickWinner.card, trickWinner.player);
+        }
+
+        private int CalculateTrickPoints(List<(Card card, Player player)> trick)
+        {
+            return trick.Sum(trick => trick.card.CardPointValue);
+        }
+
+        private void AwardTrickPointsAndNotify(int trickNumber, Player trickWinner, Card trickWinningCard, List<(Card card, Player player)> currentTrick, int trickPoints)
+        {
+            _scoringManager.AwardTrickPoints(_playerManager.Players.ToList().IndexOf(trickWinner), trickPoints);
+            
+            _eventManager.RaiseTrickCompleted(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
         }
 
         private void ScoreRound()
