@@ -94,16 +94,15 @@ namespace DeuxCentsCardGame.Managers
             {
                 return 0;
             }
-            else if (isBidWinner)
+
+            if (isBidWinner)
             {
                 return teamRoundPoints >= winningBid
                                         ? teamRoundPoints
                                         : -winningBid;
             }
-            else
-            {
-                return teamRoundPoints;
-            }
+            
+            return teamRoundPoints;
         }
 
         public bool IsGameOver()

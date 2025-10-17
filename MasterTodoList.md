@@ -19,7 +19,7 @@
        - [x] `ProcessBettingRound`: Extract validation logic.
        - [x] `PlayAllTricks`: Add `PlaySingleTrick()` to simplify.
        - [ ] `UpdateTeamPoints`: Extract team logic into helper methods.
-   - [ ] Eliminate Static Dependencies in `UIConsoleGameView` interface which will cause issues in Unity.
+   - [x] Eliminate Static Dependencies in `UIConsoleGameView` interface which will cause issues in Unity.
    - [ ] Consider adding GetValidCards Helper Method, could be useful for Unity implementation where you might want to highlight valid cards in the UI.
    - [ ] Add supporting helper classes to separated concerns, such as BettingAction, BetValidationResult and BettingActionType. Have in seperate .cs class file, view helperclassesexample.cs.
    - [ ] Do the same as above point, but in the Game.cs class.

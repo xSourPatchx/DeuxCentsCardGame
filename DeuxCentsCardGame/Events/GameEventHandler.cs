@@ -1,3 +1,4 @@
+using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
@@ -246,7 +247,7 @@ namespace DeuxCentsCardGame.Events
         {
             string winner = e.IsTeamOneWinner ? "Team One" : "Team Two";
 
-            _ui.DisplayMessage("\n" + new string('-', 50));
+            _ui.DisplayMessage("\n" + new string('-', GameConstants.GAME_OVER_SEPARATOR_LENGTH));
             _ui.DisplayMessage("GAME OVER");
 
             _ui.DisplayMessage($"Final Scores:");
@@ -254,7 +255,7 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayFormattedMessage("Team Two: {0} points", e.TeamTwoFinalScore);
             
             _ui.DisplayFormattedMessage("\n {0} WINS!!", winner);
-            _ui.DisplayMessage(new string('-', 50));
+            _ui.DisplayMessage(new string('-', GameConstants.GAME_OVER_SEPARATOR_LENGTH));
         }
 
         public void OnNextRoundPrompt(object? sender, NextRoundEventArgs e)

@@ -1,4 +1,5 @@
-﻿using DeuxCentsCardGame.Interfaces.UI;
+﻿using DeuxCentsCardGame.Constants;
+using DeuxCentsCardGame.Interfaces.UI;
 using DeuxCentsCardGame.Interfaces.Models;
 
 namespace DeuxCentsCardGame.UI
@@ -7,11 +8,9 @@ namespace DeuxCentsCardGame.UI
     {
         private readonly IConsoleWrapper _console;
 
-        public UIGameView() : this(new ConsoleWrapper()) { }
-
         public UIGameView(IConsoleWrapper console)
         {
-            _console = console;
+            _console = console ?? throw new ArgumentNullException(nameof(console));
         }
 
         public void ClearScreen()
@@ -83,20 +82,20 @@ namespace DeuxCentsCardGame.UI
         public void DisplayHand(IPlayer player)
         {
             _console.WriteLine($"\n{player.Name}'s hand:");
-            _console.WriteLine(new string('#', 40));
+            _console.WriteLine(new string('#', GameConstants.HAND_DISPLAY_SEPARATOR_LENGTH));
 
             for (int cardIndex = 0; cardIndex < player.Hand.Count; cardIndex++)
             {
                 _console.WriteLine($"{cardIndex}: {player.Hand[cardIndex]}");
             }
-            _console.WriteLine(new string('#', 40));
+            _console.WriteLine(new string('#', GameConstants.HAND_DISPLAY_SEPARATOR_LENGTH));
         }
 
         public void DisplayAllHands(List<IPlayer> players, int dealerIndex)
         {
-            _console.WriteLine("\n" + new string('-', 60));
+            _console.WriteLine("\n" + new string('-', GameConstants.ALL_HANDS_SEPARATOR_LENGTH));
             _console.WriteLine("All player hands");
-            _console.WriteLine(new string('-', 60));
+            _console.WriteLine(new string('-', GameConstants.ALL_HANDS_SEPARATOR_LENGTH));
 
             for (int i = 0; i < players.Count; i++)
             {
@@ -112,7 +111,7 @@ namespace DeuxCentsCardGame.UI
                 }
             }
 
-            _console.WriteLine("\n" + new string('-', 60));
+            _console.WriteLine("\n" + new string('-', GameConstants.ALL_HANDS_SEPARATOR_LENGTH));
         }
 
         public static void DisplayBettingResults()

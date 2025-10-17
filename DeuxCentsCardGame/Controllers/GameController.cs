@@ -1,3 +1,4 @@
+using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Managers;
@@ -20,7 +21,7 @@ namespace DeuxCentsCardGame.Controllers
         private readonly IScoringManager _scoringManager;
 
         // Dealer starts at player 4 (index 3)
-        public int DealerIndex = 3;
+        public int DealerIndex = GameConstants.INITIAL_DEALER_INDEX;
 
         // Event references
         private readonly IGameEventManager _eventManager;

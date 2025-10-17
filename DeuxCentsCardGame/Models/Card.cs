@@ -1,3 +1,4 @@
+using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Interfaces.Models;
 
 namespace DeuxCentsCardGame.Models
@@ -7,9 +8,12 @@ namespace DeuxCentsCardGame.Models
 
     public class Card : ICard
     {
-        private const int MinimumCardFaceValue = 1;
-        private const int MaximumCardFaceValue = 10;
-        private static readonly int[] ValidPointValues = { 0, 5, 10 };
+        private static readonly int[] ValidPointValues =
+        {
+            GameConstants.CARD_POINT_VALUE_ZERO,
+            GameConstants.CARD_POINT_VALUE_FIVE,
+            GameConstants.CARD_POINT_VALUE_TEN
+        };
 
         // card fields
         public CardSuit CardSuit { get; init; }
@@ -35,9 +39,9 @@ namespace DeuxCentsCardGame.Models
             if (!Enum.IsDefined(typeof(CardFace), face))
                 throw new ArgumentException($"Invalid card face: {face}", nameof(face));
             
-            if (faceValue is < MinimumCardFaceValue or > MaximumCardFaceValue)
+            if (faceValue < GameConstants.MINIMUM_CARD_FACE_VALUE || faceValue > GameConstants.MAXIMUM_CARD_FACE_VALUE)
                 throw new ArgumentOutOfRangeException(nameof(faceValue), 
-                $"Invalid card face value, must be between {MinimumCardFaceValue}-{MaximumCardFaceValue}. faceValue : {faceValue}");
+                $"Invalid card face value, must be between {GameConstants.MINIMUM_CARD_FACE_VALUE}-{GameConstants.MAXIMUM_CARD_FACE_VALUE}. faceValue : {faceValue}");
                 
             if (Array.IndexOf(ValidPointValues, pointValue) == -1)
                 throw new ArgumentOutOfRangeException(nameof(pointValue), 
@@ -50,9 +54,9 @@ namespace DeuxCentsCardGame.Models
         {
             var expectedPointValue = face switch
             {
-                CardFace.Five => 5,
-                CardFace.Ten or CardFace.Ace => 10,
-                _ => 0
+                CardFace.Five => GameConstants.CARD_POINT_VALUE_FIVE,
+                CardFace.Ten or CardFace.Ace => GameConstants.CARD_POINT_VALUE_TEN,
+                _ => GameConstants.CARD_POINT_VALUE_ZERO
             };
 
             if (pointValue != expectedPointValue)

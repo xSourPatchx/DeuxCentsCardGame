@@ -1,25 +1,26 @@
+using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 
 namespace DeuxCentsCardGame.GameConfig
 {
     public class GameConfig : IGameConfig
     {
-        // Game configuration
-        public int TeamOnePlayer1 { get; set; } = 0;
-        public int TeamOnePlayer2 { get; set; } = 2;
-        public int TeamTwoPlayer1 { get; set; } = 1;
-        public int TeamTwoPlayer2 { get; set; } = 3;
-        public int TotalPlayers { get; set; } = 4;
-        public int PlayersPerTeam { get; set; } = 2;
-        public int WinningScore { get; set; } = 200;
-        public int CannotScoreThreshold { get; set; } = 100;
+        // Game configuration - using constants as defaults
+        public int TeamOnePlayer1 { get; set; } = GameConstants.TEAM_ONE_PLAYER_1;
+        public int TeamOnePlayer2 { get; set; } = GameConstants.TEAM_ONE_PLAYER_2;
+        public int TeamTwoPlayer1 { get; set; } = GameConstants.TEAM_TWO_PLAYER_1;
+        public int TeamTwoPlayer2 { get; set; } = GameConstants.TEAM_TWO_PLAYER_2;
+        public int TotalPlayers { get; set; } = GameConstants.TOTAL_PLAYERS;
+        public int PlayersPerTeam { get; set; } = GameConstants.PLAYERS_PER_TEAM;
+        public int WinningScore { get; set; } = GameConstants.WINNING_SCORE;
+        public int CannotScoreThreshold { get; set; } = GameConstants.CANNOT_SCORE_THRESHOLD;
 
         // Betting configuration
-        public int MinimumBet { get; set; } = 50;
-        public int MaximumBet { get; set; } = 100;
-        public int BetIncrement { get; set; } = 5;
-        public int MinimumPlayersToPass { get; set; } = 3;
-        public int PassedBidValue { get; set; } = -1; // not using this yet
+        public int MinimumBet { get; set; } = GameConstants.MINIMUM_BET;
+        public int MaximumBet { get; set; } = GameConstants.MAXIMUM_BET;
+        public int BetIncrement { get; set; } = GameConstants.BET_INCREMENT;
+        public int MinimumPlayersToPass { get; set; } = GameConstants.MINIMUM_PLAYERS_TO_PASS;
+        public int PassedBidValue { get; set; } = GameConstants.PASSED_BID_VALUE;
 
         public static IGameConfig CreateDefault()
         {
