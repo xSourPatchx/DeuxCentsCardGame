@@ -7,10 +7,10 @@ namespace DeuxCentsCardGame.Interfaces.Events
 {
     public interface IGameEventHandler
     {
-        void UnsubscribeFromEvents();
-        
         // Event handlers that might be called directly if needed
         void OnRoundStarted(object? sender, RoundStartedEventArgs e);
+        void OnDeckCutInput(object? sender, DeckCutInputEventArgs e);
+        void OnDeckCut(object? sender, DeckCutEventArgs e);
         void OnCardsDealt(object? sender, CardsDealtEventArgs e);
         void OnBettingRoundStarted(object? sender, BettingRoundStartedEventArgs e);
         void OnBetInput(object? sender, BetInputEventArgs e);
@@ -29,5 +29,8 @@ namespace DeuxCentsCardGame.Interfaces.Events
         void OnScoreUpdated(object? sender, ScoreUpdatedEventArgs e);
         void OnGameOver(object? sender, GameOverEventArgs e);
         void OnNextRoundPrompt(object? sender, NextRoundEventArgs e);
+
+        void UnsubscribeFromEvents();
+
     }
 }

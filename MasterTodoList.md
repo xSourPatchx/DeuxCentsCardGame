@@ -23,7 +23,7 @@
    - [ ] Consider adding GetValidCards Helper Method, could be useful for Unity implementation where you might want to highlight valid cards in the UI.
    - [ ] Add supporting helper classes to separated concerns, such as BettingAction, BetValidationResult and BettingActionType. Have in seperate .cs class file, view helperclassesexample.cs.
    - [ ] Do the same as above point, but in the Game.cs class.
-   - [ ] Extract Magic Numbers to Constants by creating class GameConstants `TEAM_ONE_PLAYER_1 = 0; TEAM_ONE_PLAYER_2 = 2; TEAM_TWO_PLAYER_1 = 1;TEAM_TWO_PLAYER_2 = 3; PLAYERS_PER_TEAM = 2; TOTAL_PLAYERS = 4;`
+   - [x] Extract Magic Numbers to Constants by creating class GameConstants `TEAM_ONE_PLAYER_1 = 0; TEAM_ONE_PLAYER_2 = 2; TEAM_TWO_PLAYER_1 = 1;TEAM_TWO_PLAYER_2 = 3; PLAYERS_PER_TEAM = 2; TOTAL_PLAYERS = 4;`
    - [ ] Improve Team Logic by creating proper team management system with Team enum with `TeamHelper` class with `GetPlayerTeam`  and `GetTeamPlayerIndices` methods.
    - [ ] Review files organization structure and class names
    
@@ -39,7 +39,7 @@
 
 2. **Deck Improvements**
    - [x] Implement Fisher-Yates shuffle algorithm in `Deck.cs`
-   - [ ] Add a method to cut the deck
+   - [x] Add a method to cut the deck
    - [ ] Consider adding a `DeckBuilder` pattern for custom decks
 
 3. **Game State Management**

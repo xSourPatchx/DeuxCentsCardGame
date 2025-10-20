@@ -6,6 +6,8 @@ namespace DeuxCentsCardGame.Interfaces.Events
     {
         // Round events
         void RaiseRoundStarted(int roundNumber, Player dealer);
+        int RaiseDeckCutInput(Player cuttingPlayer, int deckSize);
+        void RaiseDeckCut(Player cuttingPlayer, int cutPosition);
         void RaiseCardsDealt(List<Player> players, int dealerIndex);
 
         // Betting events

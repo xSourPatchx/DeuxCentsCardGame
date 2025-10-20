@@ -4,7 +4,7 @@ namespace DeuxCentsCardGame.Models
 {
     public class Deck : IDeck
     {
-        public List<Card> Cards { get; private set; }
+        public List<Card> Cards { get; set; }
         
         private static readonly CardSuit[] cardSuits = 
         [

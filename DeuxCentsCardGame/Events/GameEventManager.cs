@@ -9,6 +9,8 @@ namespace DeuxCentsCardGame.Events
         // Round events
         public event EventHandler<RoundStartedEventArgs>? RoundStarted;
         public event EventHandler<CardsDealtEventArgs>? CardsDealt;
+        public event EventHandler<DeckCutInputEventArgs>? DeckCutInput;
+        public event EventHandler<DeckCutEventArgs>? DeckCut;
 
         // Betting events
         public event EventHandler<BettingRoundStartedEventArgs>? BettingRoundStarted;
@@ -47,6 +49,16 @@ namespace DeuxCentsCardGame.Events
         protected virtual void OnCardsDealt(CardsDealtEventArgs e)
         {
             CardsDealt?.Invoke(this, e);
+        }
+
+        protected virtual void OnDeckCutInput(DeckCutInputEventArgs e)
+        {
+            DeckCutInput?.Invoke(this, e);
+        }
+
+        protected virtual void OnDeckCut(DeckCutEventArgs e)
+        {
+            DeckCut?.Invoke(this, e);
         }
 
         // Betting events
@@ -149,6 +161,18 @@ namespace DeuxCentsCardGame.Events
         public void RaiseCardsDealt(List<Player> players, int dealerIndex)
         {
             OnCardsDealt(new CardsDealtEventArgs(players, dealerIndex));
+        }
+
+        public int RaiseDeckCutInput(Player cuttingPlayer, int deckSize)
+        {
+            var args = new DeckCutInputEventArgs(cuttingPlayer, deckSize);
+            OnDeckCutInput(args);
+            return args.Response;
+        }
+
+        public void RaiseDeckCut(Player cuttingPlayer, int cutPosition)
+        {
+            OnDeckCut(new DeckCutEventArgs(cuttingPlayer, cutPosition));
         }
 
         // Betting events

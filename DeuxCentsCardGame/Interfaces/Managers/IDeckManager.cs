@@ -7,5 +7,6 @@ namespace DeuxCentsCardGame.Interfaces.Managers
         Deck CurrentDeck { get; }
         void ResetDeck();
         void ShuffleDeck();
+        void CutDeck(int cutPosition);
     }
 }

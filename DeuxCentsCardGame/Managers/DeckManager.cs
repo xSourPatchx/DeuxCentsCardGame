@@ -32,7 +32,7 @@ namespace DeuxCentsCardGame.Managers
         {
             Console.WriteLine("Shuffling cards...\n");
             var cards = _currentDeck.Cards;
-            
+
             for (int cardIndex = 0; cardIndex < cards.Count; cardIndex++)
             {
                 int randomCardIndex = _randomService.Next(cardIndex, cards.Count);
@@ -43,7 +43,21 @@ namespace DeuxCentsCardGame.Managers
 
             // Could raise a DeckShuffled event if needed
             // _eventManager.RaiseDeckShuffled();
-        }
 
+        }
+        public void CutDeck(int cutPosition)
+            {
+                if (cutPosition < 1 || cutPosition >= _currentDeck.Cards.Count)
+                {
+                    throw new ArgumentOutOfRangeException(nameof(cutPosition), 
+                        $"Cut position must be between 1 and {_currentDeck.Cards.Count - 1}");
+                }
+
+                var cards = _currentDeck.Cards; 
+                var topPortion = cards.Skip(cutPosition).ToList();               
+                var bottomPortion = cards.Take(cutPosition).ToList();
+                
+                _currentDeck.Cards = topPortion.Concat(bottomPortion).ToList();
+            }
     }
 }

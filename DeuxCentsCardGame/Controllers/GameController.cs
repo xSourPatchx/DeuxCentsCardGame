@@ -2,6 +2,7 @@ using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Managers;
+using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Controllers
@@ -69,6 +70,7 @@ namespace DeuxCentsCardGame.Controllers
             _eventManager.RaiseRoundStarted(_currentRoundNumber, _playerManager.GetPlayer(DealerIndex));
             ResetRound();
             _deckManager.ShuffleDeck();
+            CutDeck();
             DealCards();
             ExecuteBettingRound();
             SelectTrumpSuit();
@@ -91,6 +93,19 @@ namespace DeuxCentsCardGame.Controllers
         {
             DealerIndex = _dealingManager.RotateDealerIndex(DealerIndex, _playerManager.Players.Count);
         }
+
+        private void CutDeck()
+        {
+            // Player to the right of dealer cuts (dealer - 1, wrapping around)
+            int cuttingPlayerIndex = (DealerIndex - 1 + _playerManager.Players.Count) % _playerManager.Players.Count;
+            Player cuttingPlayer = _playerManager.GetPlayer(cuttingPlayerIndex);
+            
+            int deckSize = _deckManager.CurrentDeck.Cards.Count;
+            int cutPosition = _eventManager.RaiseDeckCutInput(cuttingPlayer, deckSize);
+            
+            _deckManager.CutDeck(cutPosition);
+            _eventManager.RaiseDeckCut(cuttingPlayer, cutPosition);
+        }  
 
         private void DealCards()
         { 

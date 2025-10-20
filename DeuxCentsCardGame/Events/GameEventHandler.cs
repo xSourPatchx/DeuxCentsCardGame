@@ -28,6 +28,8 @@ namespace DeuxCentsCardGame.Events
         {
             // Round events
             _eventManager.RoundStarted += OnRoundStarted;
+            _eventManager.DeckCutInput += OnDeckCutInput;
+            _eventManager.DeckCut += OnDeckCut;
             _eventManager.CardsDealt += OnCardsDealt;
 
             // Betting events
@@ -63,6 +65,16 @@ namespace DeuxCentsCardGame.Events
         {
             _ui.ClearScreen();
             _ui.DisplayFormattedMessage("\nRound {0} Started. Dealer: {1}\n", e.RoundNumber, e.Dealer.Name);
+        }
+        public void OnDeckCutInput(object? sender, DeckCutInputEventArgs e)
+        {
+            string prompt = $"{e.CuttingPlayer.Name}, where would you like to cut the deck? (enter a number between 1-{e.DeckSize - 1}):";
+            e.Response = _ui.GetIntInput(prompt, 1, e.DeckSize - 1);
+        }
+
+        public void OnDeckCut(object? sender, DeckCutEventArgs e)
+        {
+            _ui.DisplayFormattedMessage("{0} cut the deck at position {1}\n", e.CuttingPlayer.Name, e.CutPosition);
         }
 
         public void OnCardsDealt(object? sender, CardsDealtEventArgs e)
@@ -267,6 +279,8 @@ namespace DeuxCentsCardGame.Events
         public void UnsubscribeFromEvents()
         {
             _eventManager.RoundStarted -= OnRoundStarted;
+            _eventManager.DeckCutInput -= OnDeckCutInput;
+            _eventManager.DeckCut -= OnDeckCut;
             _eventManager.CardsDealt -= OnCardsDealt;
             _eventManager.BettingRoundStarted -= OnBettingRoundStarted;
             _eventManager.BetInput -= OnBetInput;
