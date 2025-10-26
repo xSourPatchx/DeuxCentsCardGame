@@ -125,7 +125,7 @@ namespace DeuxCentsCardGame.Managers
                     return HandleValidBet(currentPlayerIndex, bet);
                 }
 
-                _eventManager.RaiseInvalidBet("\nInvalid bet, please try again.\n");
+                _eventManager.RaiseInvalidMove(_players[currentPlayerIndex], "Invalid bet, please try again.", Enums.InvalidMoveType.InvalidBet);
             }
         }
 

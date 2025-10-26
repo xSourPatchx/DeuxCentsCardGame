@@ -8,9 +8,12 @@ namespace DeuxCentsCardGame.Events
     {
         // Round events
         public event EventHandler<RoundStartedEventArgs>? RoundStarted;
-        public event EventHandler<CardsDealtEventArgs>? CardsDealt;
+        public event EventHandler<RoundEndedEventArgs>? RoundEnded;
+        public event EventHandler<DeckShuffledEventArgs>? DeckShuffled;
         public event EventHandler<DeckCutInputEventArgs>? DeckCutInput;
         public event EventHandler<DeckCutEventArgs>? DeckCut;
+        public event EventHandler<CardsDealtEventArgs>? CardsDealt;
+        public event EventHandler<InvalidMoveEventArgs>? InvalidMove;
 
         // Betting events
         public event EventHandler<BettingRoundStartedEventArgs>? BettingRoundStarted;
@@ -46,9 +49,14 @@ namespace DeuxCentsCardGame.Events
             RoundStarted?.Invoke(this, e);
         }
 
-        protected virtual void OnCardsDealt(CardsDealtEventArgs e)
+        protected virtual void OnRoundEnded(RoundEndedEventArgs e)
         {
-            CardsDealt?.Invoke(this, e);
+            RoundEnded?.Invoke(this, e);
+        }
+
+        protected virtual void OnDeckShuffled(DeckShuffledEventArgs e)
+        {
+            DeckShuffled?.Invoke(this, e);
         }
 
         protected virtual void OnDeckCutInput(DeckCutInputEventArgs e)
@@ -59,6 +67,16 @@ namespace DeuxCentsCardGame.Events
         protected virtual void OnDeckCut(DeckCutEventArgs e)
         {
             DeckCut?.Invoke(this, e);
+        }
+
+        protected virtual void OnCardsDealt(CardsDealtEventArgs e)
+        {
+            CardsDealt?.Invoke(this, e);
+        }
+
+        protected virtual void OnInvalidMove(InvalidMoveEventArgs e)
+        {
+            InvalidMove?.Invoke(this, e);
         }
 
         // Betting events
@@ -158,9 +176,14 @@ namespace DeuxCentsCardGame.Events
             OnRoundStarted(new RoundStartedEventArgs(roundNumber, dealer));
         }
 
-        public void RaiseCardsDealt(List<Player> players, int dealerIndex)
+        public void RaiseRoundEnded(int roundNumber, int teamOneRoundPoints, int teamTwoRoundPoints, Player winningBidder, int winningBid)
         {
-            OnCardsDealt(new CardsDealtEventArgs(players, dealerIndex));
+            OnRoundEnded(new RoundEndedEventArgs(roundNumber, teamOneRoundPoints, teamTwoRoundPoints, winningBidder, winningBid));
+        }
+
+        public void RaiseDeckShuffled(string message)
+        {
+            OnDeckShuffled(new DeckShuffledEventArgs(message));
         }
 
         public int RaiseDeckCutInput(Player cuttingPlayer, int deckSize)
@@ -173,6 +196,16 @@ namespace DeuxCentsCardGame.Events
         public void RaiseDeckCut(Player cuttingPlayer, int cutPosition)
         {
             OnDeckCut(new DeckCutEventArgs(cuttingPlayer, cutPosition));
+        }
+
+        public void RaiseCardsDealt(List<Player> players, int dealerIndex)
+        {
+            OnCardsDealt(new CardsDealtEventArgs(players, dealerIndex));
+        }
+
+        public void RaiseInvalidMove(Player player, string message, Enums.InvalidMoveType moveType)
+        {
+            OnInvalidMove(new InvalidMoveEventArgs(player, message, moveType));
         }
 
         // Betting events

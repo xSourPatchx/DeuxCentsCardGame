@@ -6,9 +6,12 @@ namespace DeuxCentsCardGame.Interfaces.Events
     {
         // Round events
         void RaiseRoundStarted(int roundNumber, Player dealer);
+        void RaiseRoundEnded(int roundNumber, int teamOneRoundPoints, int teamTwoRoundPoints, Player winningBidder, int winningBid);
+        void RaiseDeckShuffled(string message);
         int RaiseDeckCutInput(Player cuttingPlayer, int deckSize);
         void RaiseDeckCut(Player cuttingPlayer, int cutPosition);
         void RaiseCardsDealt(List<Player> players, int dealerIndex);
+        void RaiseInvalidMove(Player player, string message, Enums.InvalidMoveType moveType);
 
         // Betting events
         void RaiseBettingRoundStarted(string message);
@@ -36,5 +39,14 @@ namespace DeuxCentsCardGame.Interfaces.Events
         // Game end events
         void RaiseGameOver(int teamOneFinalScore, int teamTwoFinalScore);
         void RaiseNextRoundPrompt(string message = "Press any key to start the next round...");
+    }
+    
+    public enum InvalidMoveType
+    {
+        InvalidCard,
+        InvalidBet,
+        OutOfTurn,
+        InvalidTrumpSelection,
+        Other
     }
 }

@@ -28,9 +28,12 @@ namespace DeuxCentsCardGame.Events
         {
             // Round events
             _eventManager.RoundStarted += OnRoundStarted;
+            _eventManager.RoundEnded += OnRoundEnded;
+            _eventManager.DeckShuffled += OnDeckShuffled;
             _eventManager.DeckCutInput += OnDeckCutInput;
             _eventManager.DeckCut += OnDeckCut;
             _eventManager.CardsDealt += OnCardsDealt;
+            _eventManager.InvalidMove += OnInvalidMove;
 
             // Betting events
             _eventManager.BettingRoundStarted += OnBettingRoundStarted;
@@ -66,6 +69,21 @@ namespace DeuxCentsCardGame.Events
             _ui.ClearScreen();
             _ui.DisplayFormattedMessage("\nRound {0} Started. Dealer: {1}\n", e.RoundNumber, e.Dealer.Name);
         }
+
+        public void OnRoundEnded(object? sender, RoundEndedEventArgs e)
+        {
+            _ui.DisplayMessage("\n=== Round Complete ===");
+            _ui.DisplayFormattedMessage("Round {0} has ended.", e.RoundNumber);
+            _ui.DisplayFormattedMessage("Winning Bidder: {0} (Bid: {1})", e.WinningBidder.Name, e.WinningBid);
+            _ui.DisplayFormattedMessage("Team One Points: {0}", e.TeamOneRoundPoints);
+            _ui.DisplayFormattedMessage("Team Two Points: {0}", e.TeamTwoRoundPoints);
+        }
+
+        public void OnDeckShuffled(object? sender, DeckShuffledEventArgs e)
+        {
+            _ui.DisplayFormattedMessage(e.Message);
+        }
+
         public void OnDeckCutInput(object? sender, DeckCutInputEventArgs e)
         {
             string prompt = $"{e.CuttingPlayer.Name}, where would you like to cut the deck? (enter a number between 1-{e.DeckSize - 1}):";
@@ -85,6 +103,20 @@ namespace DeuxCentsCardGame.Events
             // Display all players hands using instance method
             List<IPlayer> playersAsInterface = e.Players.Cast<IPlayer>().ToList();
             _ui.DisplayAllHands(playersAsInterface, e.DealerIndex + 1);
+        }
+
+        public void OnInvalidMove(object? sender, InvalidMoveEventArgs e)
+        {
+            string moveTypeText = ((DeuxCentsCardGame.Enums.InvalidMoveType)e.MoveType) switch
+            {
+                Enums.InvalidMoveType.InvalidCard => "Invalid Card",
+                Enums.InvalidMoveType.InvalidBet => "Invalid Bet",
+                Enums.InvalidMoveType.OutOfTurn => "Out of Turn",
+                Enums.InvalidMoveType.InvalidTrumpSelection => "Invalid Trump Selection",
+                _ => "Invalid Move"
+            };
+
+            _ui.DisplayFormattedMessage("[{0}] {1}: {2}", moveTypeText, e.Player.Name, e.Message);
         }
 
         public void OnBettingRoundStarted(object? sender, BettingRoundStartedEventArgs e)
@@ -279,9 +311,12 @@ namespace DeuxCentsCardGame.Events
         public void UnsubscribeFromEvents()
         {
             _eventManager.RoundStarted -= OnRoundStarted;
+            _eventManager.RoundEnded -= OnRoundEnded;
+            _eventManager.DeckShuffled -= OnDeckShuffled;
             _eventManager.DeckCutInput -= OnDeckCutInput;
             _eventManager.DeckCut -= OnDeckCut;
             _eventManager.CardsDealt -= OnCardsDealt;
+            _eventManager.InvalidMove -= OnInvalidMove;
             _eventManager.BettingRoundStarted -= OnBettingRoundStarted;
             _eventManager.BetInput -= OnBetInput;
             _eventManager.InvalidBet -= OnInvalidBet;

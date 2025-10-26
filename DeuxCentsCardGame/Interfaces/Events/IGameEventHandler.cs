@@ -1,7 +1,4 @@
 using DeuxCentsCardGame.Events.EventArgs;
-using DeuxCentsCardGame.Interfaces.Events;
-using DeuxCentsCardGame.Interfaces.GameConfig;
-using DeuxCentsCardGame.Interfaces.UI;
 
 namespace DeuxCentsCardGame.Interfaces.Events
 {
@@ -9,9 +6,12 @@ namespace DeuxCentsCardGame.Interfaces.Events
     {
         // Event handlers that might be called directly if needed
         void OnRoundStarted(object? sender, RoundStartedEventArgs e);
+        void OnRoundEnded(object? sender, RoundEndedEventArgs e);
+        void OnDeckShuffled(object? sender, DeckShuffledEventArgs e);
         void OnDeckCutInput(object? sender, DeckCutInputEventArgs e);
         void OnDeckCut(object? sender, DeckCutEventArgs e);
         void OnCardsDealt(object? sender, CardsDealtEventArgs e);
+        void OnInvalidMove(object? sender, InvalidMoveEventArgs e);
         void OnBettingRoundStarted(object? sender, BettingRoundStartedEventArgs e);
         void OnBetInput(object? sender, BetInputEventArgs e);
         void OnInvalidBet(object? sender, InvalidBetEventArgs e);
@@ -31,6 +31,5 @@ namespace DeuxCentsCardGame.Interfaces.Events
         void OnNextRoundPrompt(object? sender, NextRoundEventArgs e);
 
         void UnsubscribeFromEvents();
-
     }
 }

@@ -41,8 +41,7 @@ namespace DeuxCentsCardGame.Managers
                 cards[cardIndex] = temp;
             }
 
-            // Could raise a DeckShuffled event if needed
-            // _eventManager.RaiseDeckShuffled();
+            _eventManager.RaiseDeckShuffled("Deck has been shuffled");
 
         }
         public void CutDeck(int cutPosition)

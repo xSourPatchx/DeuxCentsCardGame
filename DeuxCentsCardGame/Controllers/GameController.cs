@@ -205,7 +205,9 @@ namespace DeuxCentsCardGame.Controllers
                 else
                 {
                     string leadingSuitString = leadingSuit.HasValue ? Deck.CardSuitToString(leadingSuit.Value) : "none";
-                    _eventManager.RaiseInvalidCard($"You must play the suit of {leadingSuitString} since it's in your deck, try again.");
+                    string message = $"You must play the suit of {leadingSuitString} since it's in your deck, try again.";
+
+                    _eventManager.RaiseInvalidMove(currentPlayer, message, Enums.InvalidMoveType.InvalidCard);
                 }
             }
         }
@@ -245,6 +247,14 @@ namespace DeuxCentsCardGame.Controllers
 
         private void EndGameCheck()
         {
+            _eventManager.RaiseRoundEnded(
+                _currentRoundNumber,
+                _scoringManager.TeamOneRoundPoints,
+                _scoringManager.TeamTwoRoundPoints,
+                _playerManager.GetPlayer(_bettingManager.CurrentWinningBidIndex),
+                _bettingManager.CurrentWinningBid
+            );
+
             if (_scoringManager.IsGameOver())
             {
                 _scoringManager.RaiseGameOverEvent();
