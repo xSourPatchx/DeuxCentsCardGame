@@ -1,5 +1,4 @@
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Enums;
 
 namespace DeuxCentsCardGame.Events.EventArgs
 {

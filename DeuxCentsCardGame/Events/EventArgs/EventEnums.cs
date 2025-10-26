@@ -1,7 +1,4 @@
-// Create this file at: DeuxCentsCardGame/Enums/EventEnums.cs
-// OR: DeuxCentsCardGame/Events/EventEnums.cs
-
-namespace DeuxCentsCardGame.Enums
+namespace DeuxCentsCardGame.Events.EventArgs
 {
     public enum InvalidMoveType
     {

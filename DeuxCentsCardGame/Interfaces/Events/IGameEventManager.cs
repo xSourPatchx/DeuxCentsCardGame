@@ -1,4 +1,5 @@
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Events.EventArgs;
 
 namespace DeuxCentsCardGame.Interfaces.Events
 {
@@ -11,12 +12,12 @@ namespace DeuxCentsCardGame.Interfaces.Events
         int RaiseDeckCutInput(Player cuttingPlayer, int deckSize);
         void RaiseDeckCut(Player cuttingPlayer, int cutPosition);
         void RaiseCardsDealt(List<Player> players, int dealerIndex);
-        void RaiseInvalidMove(Player player, string message, Enums.InvalidMoveType moveType);
+        void RaiseInvalidMove(Player player, string message, InvalidMoveType moveType);
 
         // Betting events
         void RaiseBettingRoundStarted(string message);
         string RaiseBetInput(Player currentPlayer, int minBet, int maxBet, int betIncrement);
-        void RaiseInvalidBet(string message);
+        // void RaiseInvalidBet(string message);
         void RaiseBettingAction(Player player, int bet, bool hasPassed = false, bool hasBet = false);
         void RaiseBettingCompleted(Player winningBidder, int winningBid, Dictionary<Player, int> allBids);
 
@@ -28,7 +29,7 @@ namespace DeuxCentsCardGame.Interfaces.Events
         void RaisePlayerTurn(Player player, CardSuit? leadingSuit, CardSuit? trumpSuit, int trickNumber);
         int RaiseCardSelectionInput(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit, List<Card> hand);
         void RaiseCardPlayed(Player player, Card card, int trickNumber, CardSuit? leadingSuit, CardSuit? trumpSuit);
-        void RaiseInvalidCard(string message);
+        // void RaiseInvalidCard(string message);
         void RaiseTrickCompleted(int trickNumber, Player winningPlayer, Card winningCard, List<(Card card, Player player)> playedCards, int trickPoints);
 
         // Scoring events
@@ -39,14 +40,5 @@ namespace DeuxCentsCardGame.Interfaces.Events
         // Game end events
         void RaiseGameOver(int teamOneFinalScore, int teamTwoFinalScore);
         void RaiseNextRoundPrompt(string message = "Press any key to start the next round...");
-    }
-    
-    public enum InvalidMoveType
-    {
-        InvalidCard,
-        InvalidBet,
-        OutOfTurn,
-        InvalidTrumpSelection,
-        Other
     }
 }

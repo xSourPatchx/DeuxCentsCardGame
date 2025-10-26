@@ -18,7 +18,6 @@ namespace DeuxCentsCardGame.Events
         // Betting events
         public event EventHandler<BettingRoundStartedEventArgs>? BettingRoundStarted;
         public event EventHandler<BetInputEventArgs>? BetInput;
-        public event EventHandler<InvalidBetEventArgs>? InvalidBet;
         public event EventHandler<BettingActionEventArgs>? BettingAction;
         public event EventHandler<BettingCompletedEventArgs>? BettingCompleted;
 
@@ -30,7 +29,6 @@ namespace DeuxCentsCardGame.Events
         public event EventHandler<PlayerTurnEventArgs>? PlayerTurn;
         public event EventHandler<CardSelectionInputEventArgs>? CardSelectionInput;
         public event EventHandler<CardPlayedEventArgs>? CardPlayed;
-        public event EventHandler<InvalidCardEventArgs>? InvalidCard;
         public event EventHandler<TrickCompletedEventArgs>? TrickCompleted;
 
         // Scoring events
@@ -89,11 +87,6 @@ namespace DeuxCentsCardGame.Events
         {
             BetInput?.Invoke(this, e);
         }
-        
-        protected virtual void OnInvalidBet(InvalidBetEventArgs e)
-        {
-            InvalidBet?.Invoke(this, e);
-        }
 
         protected virtual void OnBettingAction(BettingActionEventArgs e)
         {
@@ -130,11 +123,6 @@ namespace DeuxCentsCardGame.Events
         protected virtual void OnCardPlayed(CardPlayedEventArgs e)
         {
             CardPlayed?.Invoke(this, e);
-        }
-
-        protected virtual void OnInvalidCard(InvalidCardEventArgs e)
-        {
-            InvalidCard?.Invoke(this, e);
         }
 
         protected virtual void OnTrickCompleted(TrickCompletedEventArgs e)
@@ -203,7 +191,7 @@ namespace DeuxCentsCardGame.Events
             OnCardsDealt(new CardsDealtEventArgs(players, dealerIndex));
         }
 
-        public void RaiseInvalidMove(Player player, string message, Enums.InvalidMoveType moveType)
+        public void RaiseInvalidMove(Player player, string message, InvalidMoveType moveType)
         {
             OnInvalidMove(new InvalidMoveEventArgs(player, message, moveType));
         }
@@ -220,11 +208,6 @@ namespace DeuxCentsCardGame.Events
             var args = new BetInputEventArgs(currentPlayer, minBet, maxBet, betIncrement);
             OnBetInput(args);
             return args.Response;
-        }
-
-        public void RaiseInvalidBet(string message)
-        {
-            OnInvalidBet(new InvalidBetEventArgs(message));
         }
 
         public void RaiseBettingAction(Player player, int bet, bool hasPassed = false, bool hasBet = false)
@@ -266,11 +249,6 @@ namespace DeuxCentsCardGame.Events
         public void RaiseCardPlayed(Player player, Card card, int trickNumber, CardSuit? leadingSuit, CardSuit? trumpSuit)
         {
             OnCardPlayed(new CardPlayedEventArgs(player, card, trickNumber, leadingSuit, trumpSuit));
-        }
-
-        public void RaiseInvalidCard(string message)
-        {
-            OnInvalidCard(new InvalidCardEventArgs(message));
         }
 
         public void RaiseTrickCompleted(int trickNumber, Player winningPlayer, Card winningCard, List<(Card card, Player player)> playedCards, int trickPoints)

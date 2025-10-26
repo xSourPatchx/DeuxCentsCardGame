@@ -14,7 +14,6 @@ namespace DeuxCentsCardGame.Interfaces.Events
         void OnInvalidMove(object? sender, InvalidMoveEventArgs e);
         void OnBettingRoundStarted(object? sender, BettingRoundStartedEventArgs e);
         void OnBetInput(object? sender, BetInputEventArgs e);
-        void OnInvalidBet(object? sender, InvalidBetEventArgs e);
         void OnBettingAction(object? sender, BettingActionEventArgs e);
         void OnBettingCompleted(object? sender, BettingCompletedEventArgs e);
         void OnTrumpSelectionInput(object? sender, TrumpSelectionInputEventArgs e);
@@ -22,7 +21,6 @@ namespace DeuxCentsCardGame.Interfaces.Events
         void OnPlayerTurn(object? sender, PlayerTurnEventArgs e);
         void OnCardSelectionInput(object? sender, CardSelectionInputEventArgs e);
         void OnCardPlayed(object? sender, CardPlayedEventArgs e);
-        void OnInvalidCard(object? sender, InvalidCardEventArgs e);
         void OnTrickCompleted(object? sender, TrickCompletedEventArgs e);
         void OnTrickPointsAwarded(object? sender, TrickPointsAwardedEventArgs e);
         void OnTeamScoring(object? sender, TeamScoringEventArgs e);

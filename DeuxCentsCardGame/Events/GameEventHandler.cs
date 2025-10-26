@@ -38,7 +38,6 @@ namespace DeuxCentsCardGame.Events
             // Betting events
             _eventManager.BettingRoundStarted += OnBettingRoundStarted;
             _eventManager.BetInput += OnBetInput;
-            _eventManager.InvalidBet += OnInvalidBet;
             _eventManager.BettingAction += OnBettingAction;
             _eventManager.BettingCompleted += OnBettingCompleted;
 
@@ -50,7 +49,6 @@ namespace DeuxCentsCardGame.Events
             _eventManager.PlayerTurn += OnPlayerTurn;
             _eventManager.CardSelectionInput += OnCardSelectionInput;
             _eventManager.CardPlayed += OnCardPlayed;
-            _eventManager.InvalidCard += OnInvalidCard;
             _eventManager.TrickCompleted += OnTrickCompleted;
 
             // Scoring events
@@ -107,12 +105,12 @@ namespace DeuxCentsCardGame.Events
 
         public void OnInvalidMove(object? sender, InvalidMoveEventArgs e)
         {
-            string moveTypeText = ((DeuxCentsCardGame.Enums.InvalidMoveType)e.MoveType) switch
+            string moveTypeText = e.MoveType switch
             {
-                Enums.InvalidMoveType.InvalidCard => "Invalid Card",
-                Enums.InvalidMoveType.InvalidBet => "Invalid Bet",
-                Enums.InvalidMoveType.OutOfTurn => "Out of Turn",
-                Enums.InvalidMoveType.InvalidTrumpSelection => "Invalid Trump Selection",
+                InvalidMoveType.InvalidCard => "Invalid Card",
+                InvalidMoveType.InvalidBet => "Invalid Bet",
+                InvalidMoveType.OutOfTurn => "Out of Turn",
+                InvalidMoveType.InvalidTrumpSelection => "Invalid Trump Selection",
                 _ => "Invalid Move"
             };
 
@@ -130,11 +128,6 @@ namespace DeuxCentsCardGame.Events
             string betInput = _ui.GetUserInput(prompt).ToLower();
             
             e.Response = betInput;
-        }
-
-        public void OnInvalidBet(object? sender, InvalidBetEventArgs e)
-        {
-            _ui.DisplayMessage(e.Message);
         }
 
         public void OnBettingAction(object? sender, BettingActionEventArgs e)
@@ -230,11 +223,6 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayFormattedMessage("{0} played {1} in trick {2}\n", e.Player.Name, e.Card, e.TrickNumber + 1);
         }
 
-        public void OnInvalidCard(object? sender, InvalidCardEventArgs e)
-        {
-            _ui.DisplayMessage(e.Message);
-        }
-
         public void OnTrickCompleted(object? sender, TrickCompletedEventArgs e)
         {
             _ui.DisplayFormattedMessage("\nTrick #{0} complete.", e.TrickNumber + 1);
@@ -319,7 +307,6 @@ namespace DeuxCentsCardGame.Events
             _eventManager.InvalidMove -= OnInvalidMove;
             _eventManager.BettingRoundStarted -= OnBettingRoundStarted;
             _eventManager.BetInput -= OnBetInput;
-            _eventManager.InvalidBet -= OnInvalidBet;
             _eventManager.BettingAction -= OnBettingAction;
             _eventManager.BettingCompleted -= OnBettingCompleted;
             _eventManager.TrumpSelectionInput -= OnTrumpSelectionInput;
@@ -327,7 +314,6 @@ namespace DeuxCentsCardGame.Events
             _eventManager.PlayerTurn -= OnPlayerTurn;
             _eventManager.CardSelectionInput -= OnCardSelectionInput;
             _eventManager.CardPlayed -= OnCardPlayed;
-            _eventManager.InvalidCard -= OnInvalidCard;
             _eventManager.TrickCompleted -= OnTrickCompleted;
             _eventManager.ScoreUpdated -= OnScoreUpdated;
             _eventManager.TeamScoring -= OnTeamScoring;

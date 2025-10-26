@@ -1,4 +1,5 @@
 using DeuxCentsCardGame.Constants;
+using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Managers;
@@ -207,7 +208,7 @@ namespace DeuxCentsCardGame.Controllers
                     string leadingSuitString = leadingSuit.HasValue ? Deck.CardSuitToString(leadingSuit.Value) : "none";
                     string message = $"You must play the suit of {leadingSuitString} since it's in your deck, try again.";
 
-                    _eventManager.RaiseInvalidMove(currentPlayer, message, Enums.InvalidMoveType.InvalidCard);
+                    _eventManager.RaiseInvalidMove(currentPlayer, message, InvalidMoveType.InvalidCard);
                 }
             }
         }

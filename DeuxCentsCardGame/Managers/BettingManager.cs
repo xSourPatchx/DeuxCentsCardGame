@@ -1,3 +1,4 @@
+using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
@@ -125,7 +126,11 @@ namespace DeuxCentsCardGame.Managers
                     return HandleValidBet(currentPlayerIndex, bet);
                 }
 
-                _eventManager.RaiseInvalidMove(_players[currentPlayerIndex], "Invalid bet, please try again.", Enums.InvalidMoveType.InvalidBet);
+                _eventManager.RaiseInvalidMove(
+                    _players[currentPlayerIndex],
+                    "Invalid bet, please try again.",
+                    InvalidMoveType.InvalidBet
+                );
             }
         }
 
