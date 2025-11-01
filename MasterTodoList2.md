@@ -31,11 +31,11 @@
    - [ ] Extract interfaces for all major components
    - [x] Allow injection of components like `UIConsoleGameView` so you can swap it with a Unity UI system later
    - [ ] Set up DI container (Microsoft.Extensions.DependencyInjection)
-   - [ ] Ensure logic and view are completely decoupled. Core classes should never call `Console.WriteLine`
+   - [x] Ensure logic and view are completely decoupled. Core classes should never call `Console.WriteLine`
 
 5. **Configuration**
    - [ ] Move game constants to config files (appsettings.json)
-   - [ ] Create a `GameSettings` or `GameConfig` class to hold configuration
+   - [x] Create a `GameConfig` class to hold configuration
    - [ ] Implement hot-reload for configuration changes
 
 6. **Abstraction of All I/O and UI Calls**
