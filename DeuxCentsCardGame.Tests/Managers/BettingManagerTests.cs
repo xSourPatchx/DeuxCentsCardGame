@@ -3,6 +3,7 @@ using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Events.EventArgs;
 
 namespace DeuxCentsCardGame.Tests.Managers
 {
@@ -79,7 +80,7 @@ namespace DeuxCentsCardGame.Tests.Managers
             _bettingManager.ExecuteBettingRound();
 
             // Assert
-            _mockEventManager.Verify(x => x.RaiseInvalidBet(It.IsAny<string>()), Times.AtLeastOnce);
+            _mockEventManager.Verify(x => x.RaiseInvalidMove(It.IsAny<Player>(), It.IsAny<string>(), It.IsAny<InvalidMoveType>()), Times.AtLeastOnce);
         }
 
         [Fact]

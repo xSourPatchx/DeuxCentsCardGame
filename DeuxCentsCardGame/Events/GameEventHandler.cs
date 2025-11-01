@@ -5,7 +5,6 @@ using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Models;
 using DeuxCentsCardGame.Interfaces.UI;
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.UI;
 
 namespace DeuxCentsCardGame.Events
 {
@@ -13,12 +12,12 @@ namespace DeuxCentsCardGame.Events
     {
         private readonly IGameConfig _gameConfig;
         private readonly GameEventManager _eventManager;
-        private readonly UIGameView _ui;
+        private readonly IUIGameView _ui;
 
         public GameEventHandler(GameEventManager eventManager, IUIGameView ui, IGameConfig gameConfig)
         {
             _eventManager = eventManager;
-            _ui = (UIGameView)ui;
+            _ui = ui ?? throw new ArgumentNullException(nameof(ui));
             _gameConfig = gameConfig;
 
             SubscribeToEvents();

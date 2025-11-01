@@ -48,7 +48,6 @@ namespace DeuxCentsCardGame.UI
                 {
                     DisplayMessage($"Invalid input. Please enter a number between {min} and {max}.");
                 }
-                
             } while (!isValid);
 
             return result;

@@ -1,6 +1,7 @@
 ﻿using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Controllers;
 using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces.UI;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.UI;
 using DeuxCentsCardGame.Services;
@@ -20,7 +21,7 @@ namespace DeuxCentsCardGame
 
             // UI
             var console = new ConsoleWrapper();
-            var ui = new UIGameView(console);
+            IUIGameView ui = new UIGameView(console);
 
             // Events
             var eventManager = new GameEventManager();
@@ -36,8 +37,7 @@ namespace DeuxCentsCardGame
             var scoringManager = new ScoringManager(eventManager, playerManager.Players.ToList(), teamManager, gameConfig);
 
             // Controller
-            var game = new GameController
-            (
+            var game = new GameController(
                 playerManager,
                 deckManager,
                 dealingManager,

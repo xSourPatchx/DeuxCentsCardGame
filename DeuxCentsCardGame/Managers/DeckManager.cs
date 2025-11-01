@@ -30,7 +30,8 @@ namespace DeuxCentsCardGame.Managers
 
         public void ShuffleDeck()
         {
-            Console.WriteLine("Shuffling cards...\n");
+
+            _eventManager.RaiseDeckShuffled("Shuffling cards...");
             var cards = _currentDeck.Cards;
 
             for (int cardIndex = 0; cardIndex < cards.Count; cardIndex++)

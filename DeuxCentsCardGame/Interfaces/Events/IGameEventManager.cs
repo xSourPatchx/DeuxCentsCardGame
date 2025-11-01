@@ -17,7 +17,6 @@ namespace DeuxCentsCardGame.Interfaces.Events
         // Betting events
         void RaiseBettingRoundStarted(string message);
         string RaiseBetInput(Player currentPlayer, int minBet, int maxBet, int betIncrement);
-        // void RaiseInvalidBet(string message);
         void RaiseBettingAction(Player player, int bet, bool hasPassed = false, bool hasBet = false);
         void RaiseBettingCompleted(Player winningBidder, int winningBid, Dictionary<Player, int> allBids);
 
@@ -29,7 +28,6 @@ namespace DeuxCentsCardGame.Interfaces.Events
         void RaisePlayerTurn(Player player, CardSuit? leadingSuit, CardSuit? trumpSuit, int trickNumber);
         int RaiseCardSelectionInput(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit, List<Card> hand);
         void RaiseCardPlayed(Player player, Card card, int trickNumber, CardSuit? leadingSuit, CardSuit? trumpSuit);
-        // void RaiseInvalidCard(string message);
         void RaiseTrickCompleted(int trickNumber, Player winningPlayer, Card winningCard, List<(Card card, Player player)> playedCards, int trickPoints);
 
         // Scoring events
