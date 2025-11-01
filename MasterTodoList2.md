@@ -16,6 +16,17 @@
    - [ ] Remove Nested Loops and Complex Logic, betting round logic is too complex. Break it into smaller, testable methods: ProcessBettingRound(), SetWinningBid(bettingState.GetWinningBid())
    - [ ] Make Game Logic Async-Friendly since unity multiplayer often requires async operations. Prepare for this: `public async Task<Card> GetPlayerCardChoice(Player player, CardSuit? leadingSuit)`
    - [ ] Avoid Console-Specific Code by remove or abstract away `Console.SetCursorPosition()` and similar console-specific methods.
+   - [ ] In events, Unity prefers Action/UnityEvent patterns
+   - [ ] MonoBehaviour-ready components (for future Unity transition)
+   - [ ] SerializeField for Unity inspector
+   - [ ] Unity lifecycle methods
+   - [ ] ScriptableObject configuration (Unity approach)
+   - [ ] Error Handling: Add more comprehensive error handling
+   - [ ] Immutability: Consider making more objects immutable
+
+   - [ ] Should fix diplay betting results
+   - [ ] Should fix displaying hand before playing
+
 
 2. **Deck Improvements**
    - [ ] Consider adding a `DeckBuilder` pattern for custom decks

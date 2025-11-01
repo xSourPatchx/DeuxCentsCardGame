@@ -1,25 +1,3 @@
-
-// next
-// Currently at 5. Unity Naming Convention Adjustments
-
-// In events, Unity prefers Action/UnityEvent patterns
-// MonoBehaviour-ready components (for future Unity transition)
-// SerializeField for Unity inspector
-// Unity lifecycle methods
-// ScriptableObject configuration (Unity approach)
-// Error Handling: Add more comprehensive error handling
-// Immutability: Consider making more objects immutable
-
-// Should fix diplay betting results
-// Should fix displaying hand before playing
-
-// # Code Refactoring Summary
-
-// ## Overview
-// This refactoring breaks down complex methods into smaller, focused helper methods following the Single Responsibility Principle (SRP) and improving code maintainability.
-
-// ---
-
 // ## 1. ScoringManager.cs Refactoring
 
 // ### Before: `ScoreTeam` (29 lines)

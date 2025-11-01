@@ -1,9 +1,8 @@
-using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Controllers;
+using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
-using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Controllers
@@ -21,9 +20,10 @@ namespace DeuxCentsCardGame.Controllers
         private readonly IBettingManager _bettingManager;
         private readonly ITrumpSelectionManager _trumpSelectionManager;
         private readonly IScoringManager _scoringManager;
+        private readonly IGameConfig _gameConfig;
 
         // Dealer starts at player 4 (index 3)
-        public int DealerIndex = GameConstants.INITIAL_DEALER_INDEX;
+        public int DealerIndex;
 
         // Event references
         private readonly IGameEventManager _eventManager;
@@ -38,7 +38,8 @@ namespace DeuxCentsCardGame.Controllers
             ITrumpSelectionManager trumpSelectionManager,
             IScoringManager scoringManager,
             IGameEventManager eventManager,
-            IGameEventHandler eventHandler
+            IGameEventHandler eventHandler,
+            IGameConfig gameConfig
         )
         {
             // Initialize managers
@@ -48,12 +49,14 @@ namespace DeuxCentsCardGame.Controllers
             _bettingManager = bettingManager ?? throw new ArgumentNullException(nameof(bettingManager));
             _trumpSelectionManager = trumpSelectionManager ?? throw new ArgumentNullException(nameof(trumpSelectionManager));
             _scoringManager = scoringManager ?? throw new ArgumentNullException(nameof(scoringManager));
+            _gameConfig = gameConfig ?? throw new ArgumentNullException(nameof(gameConfig));
 
             // Initialize events
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
             _eventHandler = eventHandler ?? throw new ArgumentNullException(nameof(eventHandler));
 
             _trumpSuit = null;
+            DealerIndex = _gameConfig.InitialDealerIndex;
         }
 
         public void StartGame()
