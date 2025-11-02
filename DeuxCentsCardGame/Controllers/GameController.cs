@@ -59,6 +59,8 @@ namespace DeuxCentsCardGame.Controllers
             DealerIndex = _gameConfig.InitialDealerIndex;
         }
 
+        #region Game Flow
+
         public void StartGame()
         {
             while (!_isGameEnded)
@@ -72,17 +74,20 @@ namespace DeuxCentsCardGame.Controllers
         public void NewRound()
         {
             _eventManager.RaiseRoundStarted(_currentRoundNumber, _playerManager.GetPlayer(DealerIndex));
-            ResetRound();
-            _deckManager.ShuffleDeck();
-            CutDeck();
-            DealCards();
-            ExecuteBettingRound();
-            SelectTrumpSuit();
-            PlayRound();
-            ScoreRound();
-            EndGameCheck();
-            RotateDealer();
+            InitializeRound();
+            PrepareGameState();
+            ExecuteRoundPhases();
+            FinalizeRound();
             _currentRoundNumber++;
+        }
+
+        #endregion
+
+        #region Round Initialization
+
+        private void InitializeRound()
+        {
+            ResetRound();
         }
 
         private void ResetRound()
@@ -93,9 +98,20 @@ namespace DeuxCentsCardGame.Controllers
             _bettingManager.ResetBettingRound();
         }
 
-        private void RotateDealer()
+        #endregion
+
+        #region Game State Preparation
+
+        private void PrepareGameState()
         {
-            DealerIndex = _dealingManager.RotateDealerIndex(DealerIndex, _playerManager.Players.Count);
+            ShuffleDeck();
+            CutDeck();
+            DealCards();
+        }
+
+        private void ShuffleDeck()
+        {
+            _deckManager.ShuffleDeck();
         }
 
         private void CutDeck()
@@ -109,12 +125,23 @@ namespace DeuxCentsCardGame.Controllers
             
             _deckManager.CutDeck(cutPosition);
             _eventManager.RaiseDeckCut(cuttingPlayer, cutPosition);
-        }  
+        }
 
         private void DealCards()
         { 
             _dealingManager.DealCards(_deckManager.CurrentDeck, _playerManager.Players.ToList());
             _dealingManager.RaiseCardsDealtEvent(_playerManager.Players.ToList(), DealerIndex);
+        }
+
+        #endregion
+
+        #region Round Execution
+
+        private void ExecuteRoundPhases()
+        {
+            ExecuteBettingRound();
+            SelectTrumpSuit();
+            PlayRound();
         }
 
         public void ExecuteBettingRound()
@@ -130,9 +157,13 @@ namespace DeuxCentsCardGame.Controllers
 
         private void PlayRound()
         {
-            int currentPlayerIndex = _bettingManager.CurrentWinningBidIndex;
-            PlayAllTricks(currentPlayerIndex);
+            int startingPlayerIndex = _bettingManager.CurrentWinningBidIndex;
+            PlayAllTricks(startingPlayerIndex);
         }
+
+        #endregion
+
+        #region Trick Management
 
         private void PlayAllTricks(int startingPlayerIndex)
         {
@@ -142,27 +173,30 @@ namespace DeuxCentsCardGame.Controllers
 
             for (int trickNumber = 0; trickNumber < totalTricks; trickNumber++)
             {
-                PlaySingleTrick(currentPlayerIndex, trickNumber, out Player trickWinner, out Card trickWinningCard);
-
-                // Set winning player as the current player for the next trick
-                currentPlayerIndex = _playerManager.Players.ToList().IndexOf(trickWinner);
+                currentPlayerIndex = ExecuteSingleTrick(currentPlayerIndex, trickNumber);
             }
         }
 
-        private void PlaySingleTrick(int currentPlayerIndex, int trickNumber, out Player trickWinner, out Card trickWinningCard)
+        private int ExecuteSingleTrick(int currentPlayerIndex, int trickNumber)
         {
             CardSuit? leadingSuit = null;
             List<(Card card, Player player)> currentTrick = [];
 
-            PlayTrickCards(currentPlayerIndex, leadingSuit, currentTrick, trickNumber);
+            PlayTrickCards(currentPlayerIndex, ref leadingSuit, currentTrick, trickNumber);
 
-            (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick, _trumpSuit);
-            
+            var (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick);
             int trickPoints = CalculateTrickPoints(currentTrick);
             AwardTrickPointsAndNotify(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
+
+            // Return winning player index for next trick
+            return _playerManager.Players.ToList().IndexOf(trickWinner);
         }
 
-        private void PlayTrickCards(int currentPlayerIndex, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick, int trickNumber)
+        #endregion
+
+        #region Card Play Logic
+
+        private void PlayTrickCards(int currentPlayerIndex, ref CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick, int trickNumber)
         {
             var players = _playerManager.Players.ToList();
 
@@ -171,59 +205,89 @@ namespace DeuxCentsCardGame.Controllers
                 int playerIndex = (currentPlayerIndex + trickIndex) % players.Count;
                 Player currentPlayer = _playerManager.GetPlayer(playerIndex);
 
-                leadingSuit = PlayPlayerTurn(currentPlayer, leadingSuit, trickNumber, currentTrick);
+                ExecutePlayerTurn(currentPlayer, ref leadingSuit, trickNumber, currentTrick);
             }
         }
 
-        private CardSuit? PlayPlayerTurn(Player currentPlayer, CardSuit? leadingSuit, int trickNumber, List<(Card card, Player player)> currentTrick)
+        private void ExecutePlayerTurn(Player currentPlayer, ref CardSuit? leadingSuit, int trickNumber, List<(Card card, Player player)> currentTrick)
         {
-            _eventManager.RaisePlayerTurn(currentPlayer, leadingSuit, _trumpSuit, trickNumber);
-
+            RaisePlayerTurnEvent(currentPlayer, leadingSuit, trickNumber);
             Card playedCard = GetValidCardFromPlayer(currentPlayer, leadingSuit);
             currentPlayer.RemoveCard(playedCard);
+            UpdateLeadingSuit(playedCard, ref leadingSuit, currentTrick);
+            currentTrick.Add((playedCard, currentPlayer));
+            RaiseCardPlayedEvent(currentPlayer, playedCard, trickNumber, leadingSuit);
+        }
 
+        private void RaisePlayerTurnEvent(Player currentPlayer, CardSuit? leadingSuit, int trickNumber)
+        {
+            _eventManager.RaisePlayerTurn(currentPlayer, leadingSuit, _trumpSuit, trickNumber);
+        }
+
+        private void UpdateLeadingSuit(Card playedCard, ref CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick)
+        {
             // Set leading suit if this is the first card in the trick
             if (currentTrick.Count == 0)
-                {
-                    leadingSuit = playedCard.CardSuit;
-                }
-
-                currentTrick.Add((playedCard, currentPlayer));
-
-                _eventManager.RaiseCardPlayed(currentPlayer, playedCard, trickNumber, leadingSuit, _trumpSuit);
-                
-                return leadingSuit;
+            {
+                leadingSuit = playedCard.CardSuit;
+            }
         }
+
+        private void RaiseCardPlayedEvent(Player currentPlayer, Card playedCard, int trickNumber, CardSuit? leadingSuit)
+        {
+            _eventManager.RaiseCardPlayed(currentPlayer, playedCard, trickNumber, leadingSuit, _trumpSuit);
+        }
+
+        #endregion
+
+        #region Card Selection and Validation
 
         private Card GetValidCardFromPlayer(Player currentPlayer, CardSuit? leadingSuit)
         {
             while (true)
             {
-                int cardIndex = _eventManager.RaiseCardSelectionInput(currentPlayer, leadingSuit, _trumpSuit, currentPlayer.Hand);
+                int cardIndex = RequestCardSelection(currentPlayer, leadingSuit);
                 Card selectedCard = currentPlayer.Hand[cardIndex];
 
-                if (selectedCard.IsPlayableCard(leadingSuit, currentPlayer.Hand))
+                if (IsCardValid(selectedCard, leadingSuit, currentPlayer.Hand))
                 {
                     return selectedCard;
                 }
-                else
-                {
-                    string leadingSuitString = leadingSuit.HasValue ? Deck.CardSuitToString(leadingSuit.Value) : "none";
-                    string message = $"You must play the suit of {leadingSuitString} since it's in your deck, try again.";
 
-                    _eventManager.RaiseInvalidMove(currentPlayer, message, InvalidMoveType.InvalidCard);
-                }
+                DisplayInvalidCardMessage(currentPlayer, leadingSuit);
             }
         }
 
-        private (Card winningCard, Player winningPlayer) DetermineTrickWinner(List<(Card card, Player player)> trick, CardSuit? trumpSuit)
+        private int RequestCardSelection(Player currentPlayer, CardSuit? leadingSuit)
+        {
+            return _eventManager.RaiseCardSelectionInput(currentPlayer, leadingSuit, _trumpSuit, currentPlayer.Hand);
+        }
+
+        private bool IsCardValid(Card selectedCard, CardSuit? leadingSuit, List<Card> hand)
+        {
+            return selectedCard.IsPlayableCard(leadingSuit, hand);
+        }
+
+        private void DisplayInvalidCardMessage(Player currentPlayer, CardSuit? leadingSuit)
+        {
+            string leadingSuitString = leadingSuit.HasValue ? Deck.CardSuitToString(leadingSuit.Value) : "none";
+            string message = $"You must play the suit of {leadingSuitString} since it's in your deck, try again.";
+
+            _eventManager.RaiseInvalidMove(currentPlayer, message, InvalidMoveType.InvalidCard);
+        }
+
+        #endregion
+
+        #region Trick Resolution
+
+        private (Card winningCard, Player winningPlayer) DetermineTrickWinner(List<(Card card, Player player)> trick)
         {
             var trickWinner = trick[0];
             CardSuit? leadingSuit = trickWinner.card.CardSuit;
 
             for (int i = 1; i < trick.Count; i++)
             {
-                if (trick[i].card.WinsAgainst(trickWinner.card, trumpSuit, leadingSuit))
+                if (trick[i].card.WinsAgainst(trickWinner.card, _trumpSuit, leadingSuit))
                 {
                     trickWinner = trick[i];
                 }
@@ -240,8 +304,18 @@ namespace DeuxCentsCardGame.Controllers
         private void AwardTrickPointsAndNotify(int trickNumber, Player trickWinner, Card trickWinningCard, List<(Card card, Player player)> currentTrick, int trickPoints)
         {
             _scoringManager.AwardTrickPoints(_playerManager.Players.ToList().IndexOf(trickWinner), trickPoints);
-            
             _eventManager.RaiseTrickCompleted(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
+        }
+
+        #endregion
+
+        #region Round Finalization
+
+        private void FinalizeRound()
+        {
+            ScoreRound();
+            EndGameCheck();
+            RotateDealer();
         }
 
         private void ScoreRound()
@@ -269,5 +343,12 @@ namespace DeuxCentsCardGame.Controllers
                 _eventManager.RaiseNextRoundPrompt();
             }
         }
+
+        private void RotateDealer()
+        {
+            DealerIndex = _dealingManager.RotateDealerIndex(DealerIndex, _playerManager.Players.Count);
+        }
+
+        #endregion
     }
 }
