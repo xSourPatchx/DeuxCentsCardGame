@@ -78,51 +78,73 @@ namespace DeuxCentsCardGame.Models
         {
             // Can play if no leading suit established
             if (!leadingSuit.HasValue)
-                return true; 
+                return true;
 
             // Can play if CardSuit matches leading suit
             if (CardSuit == leadingSuit.Value)
                 return true;
-            
+
             // Can play if no card of leading suit in hand
             return !hand.Any(card => card.CardSuit == leadingSuit.Value);
         }
 
         public bool WinsAgainst(Card otherCard, CardSuit? trumpSuit, CardSuit? leadingSuit)
         {
-            // first case - current card is trump AND other card is not - we win
-            if (IsTrump(trumpSuit) && !otherCard.IsTrump(trumpSuit))
+            bool thisCardIsTrump = IsTrump(trumpSuit);
+            bool otherCardIsTrump = otherCard.IsTrump(trumpSuit);
+
+            // Handle trump card scenarios
+            if (thisCardIsTrump || otherCardIsTrump)
+                return HandleTrumpComparison(otherCard, thisCardIsTrump, otherCardIsTrump);
+
+            // Handle leading suit scenarios
+            if (leadingSuit.HasValue)
+                return HandleLeadingSuitComparison(otherCard, leadingSuit.Value);
+
+            // Handle same suit comparison
+            return HandleSameSuitComparison(otherCard);
+        }
+
+        private bool HandleTrumpComparison(Card otherCard, bool thisCardIsTrump, bool otherCardIsTrump)
+        {
+            // Only this card is trump, we win
+            if (thisCardIsTrump && !otherCardIsTrump)
                 return true;
 
-            // second case - current card is not trump AND other card is trump - they win
-            if (!IsTrump(trumpSuit) && otherCard.IsTrump(trumpSuit))
+            // Only other card is trump, we lose
+            if (!thisCardIsTrump && otherCardIsTrump)
                 return false;
 
-            // third case - both cards are trump cards, higher value wins
-            if (IsTrump(trumpSuit) && otherCard.IsTrump(trumpSuit))
+            // Both are trump, higher face value wins
+            return CardFaceValue > otherCard.CardFaceValue;
+        }
+
+        private bool HandleLeadingSuitComparison(Card otherCard, CardSuit leadingSuit)
+        {
+            bool thisCardMatchesLeading = CardSuit == leadingSuit;
+            bool otherCardMatchesLeading = otherCard.CardSuit == leadingSuit;
+
+            // Only this card matches leading suit, we win
+            if (thisCardMatchesLeading && !otherCardMatchesLeading)
+                return true;
+
+            // Only other card matches leading suit, we lose
+            if (!thisCardMatchesLeading && otherCardMatchesLeading)
+                return false;
+
+            // Both match or neither matches - compare if same suit
+            return HandleSameSuitComparison(otherCard);
+        }
+
+        private bool HandleSameSuitComparison(Card otherCard)
+        {
+            // Only compare face values if cards are same suit
+            if (IsSameSuit(otherCard))
                 return CardFaceValue > otherCard.CardFaceValue;
             
-            // fourth cases - neither is trump, check leading suit
-            if (leadingSuit.HasValue)
-            {
-                // current card matches leading suit, other doesn't - we win
-                if (CardSuit == leadingSuit.Value && otherCard.CardSuit != leadingSuit.Value)
-                    return true;
-                
-                // other card matches leading suit, we don't - they win
-                if (CardSuit != leadingSuit.Value && otherCard.CardSuit == leadingSuit.Value)
-                    return false;
-            }
-            // neither matches leading suit - higher value wins
-            if (IsSameSuit(otherCard))
-            {
-                return CardFaceValue > otherCard.CardFaceValue;
-            }
-
             // default case
             return false;
         }
-
 
         public override string ToString() =>
             $"{GetCardFaceString(CardFace)} of {CardSuit.ToString().ToLower()} ({CardPointValue} pts)";
