@@ -30,6 +30,12 @@ namespace DeuxCentsCardGame.Managers
 
         public void ShuffleDeck()
         {
+            PerformFisherYatesShuffle();
+            RaiseDeckShuffled();
+        }
+
+        private void PerformFisherYatesShuffle()
+        {
             var cards = _currentDeck.Cards;
 
             for (int cardIndex = 0; cardIndex < cards.Count; cardIndex++)
@@ -39,23 +45,26 @@ namespace DeuxCentsCardGame.Managers
                 cards[randomCardIndex] = cards[cardIndex];
                 cards[cardIndex] = temp;
             }
-
-            _eventManager.RaiseDeckShuffled("Deck has been shuffled");
-
         }
-        public void CutDeck(int cutPosition)
-            {
-                if (cutPosition < 1 || cutPosition >= _currentDeck.Cards.Count)
-                {
-                    throw new ArgumentOutOfRangeException(nameof(cutPosition), 
-                        $"Cut position must be between 1 and {_currentDeck.Cards.Count - 1}");
-                }
 
-                var cards = _currentDeck.Cards; 
-                var topPortion = cards.Skip(cutPosition).ToList();               
-                var bottomPortion = cards.Take(cutPosition).ToList();
-                
-                _currentDeck.Cards = topPortion.Concat(bottomPortion).ToList();
+        private void RaiseDeckShuffled()
+        {
+            _eventManager.RaiseDeckShuffled("Deck has been shuffled");
+        }
+
+        public void CutDeck(int cutPosition)
+        {
+            if (cutPosition < 1 || cutPosition >= _currentDeck.Cards.Count)
+            {
+                throw new ArgumentOutOfRangeException(nameof(cutPosition),
+                    $"Cut position must be between 1 and {_currentDeck.Cards.Count - 1}");
             }
+
+            var cards = _currentDeck.Cards;
+            var topPortion = cards.Skip(cutPosition).ToList();
+            var bottomPortion = cards.Take(cutPosition).ToList();
+
+            _currentDeck.Cards = topPortion.Concat(bottomPortion).ToList();
+        }
     }
 }

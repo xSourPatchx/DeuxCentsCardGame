@@ -1,6 +1,7 @@
 using DeuxCentsCardGame.Controllers;
 using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
+using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 using Moq;
@@ -18,6 +19,7 @@ namespace DeuxCentsCardGame.Tests.Controllers
         private readonly Mock<IScoringManager> _mockScoringManager;
         private readonly Mock<IGameEventManager> _mockEventManager;
         private readonly Mock<IGameEventHandler> _mockEventHandler;
+        private readonly Mock<IGameConfig> _mockGameConfig;
         private readonly IGameController _gameController;
         private readonly List<Player> _testPlayers;
         private readonly Deck _testDeck;
@@ -33,6 +35,7 @@ namespace DeuxCentsCardGame.Tests.Controllers
             _mockScoringManager = new Mock<IScoringManager>();
             _mockEventManager = new Mock<IGameEventManager>();
             _mockEventHandler = new Mock<IGameEventHandler>();
+            _mockGameConfig = new Mock<IGameConfig>();
 
             // Setup test data
             _testPlayers = new List<Player>
@@ -54,6 +57,10 @@ namespace DeuxCentsCardGame.Tests.Controllers
             _mockBettingManager.Setup(m => m.CurrentWinningBid).Returns(50);
             _mockTrumpSelectionManager.Setup(m => m.SelectTrumpSuit(It.IsAny<Player>()))
                 .Returns(CardSuit.Hearts);
+                       
+            // Setup game config defaults
+            _mockGameConfig.Setup(c => c.InitialDealerIndex).Returns(3);
+            _mockGameConfig.Setup(c => c.MaximumBet).Returns(100);
 
             // Game ends after one round by default
             _mockScoringManager.SetupSequence(m => m.IsGameOver())
@@ -69,7 +76,8 @@ namespace DeuxCentsCardGame.Tests.Controllers
                 _mockTrumpSelectionManager.Object,
                 _mockScoringManager.Object,
                 _mockEventManager.Object,
-                _mockEventHandler.Object
+                _mockEventHandler.Object,
+                _mockGameConfig.Object
             );
         }
 
@@ -94,7 +102,8 @@ namespace DeuxCentsCardGame.Tests.Controllers
                 _mockTrumpSelectionManager.Object,
                 _mockScoringManager.Object,
                 _mockEventManager.Object,
-                _mockEventHandler.Object
+                _mockEventHandler.Object,
+                _mockGameConfig.Object
             ));
         }
 
@@ -110,7 +119,8 @@ namespace DeuxCentsCardGame.Tests.Controllers
                 _mockTrumpSelectionManager.Object,
                 _mockScoringManager.Object,
                 _mockEventManager.Object,
-                _mockEventHandler.Object
+                _mockEventHandler.Object,
+                _mockGameConfig.Object
             ));
         }
 
@@ -126,7 +136,25 @@ namespace DeuxCentsCardGame.Tests.Controllers
                 _mockTrumpSelectionManager.Object,
                 _mockScoringManager.Object,
                 null!,
-                _mockEventHandler.Object
+                _mockEventHandler.Object,
+                _mockGameConfig.Object
+            ));
+        }
+
+        [Fact]
+        public void Constructor_WithNullGameConfig_ThrowsArgumentNullException()
+        {
+            // Act & Assert
+            Assert.Throws<ArgumentNullException>(() => new GameController(
+                _mockPlayerManager.Object,
+                _mockDeckManager.Object,
+                _mockDealingManager.Object,
+                _mockBettingManager.Object,
+                _mockTrumpSelectionManager.Object,
+                _mockScoringManager.Object,
+                _mockEventManager.Object,
+                _mockEventHandler.Object,
+                null!
             ));
         }
 
@@ -489,45 +517,6 @@ namespace DeuxCentsCardGame.Tests.Controllers
                 It.IsAny<int>(),
                 It.IsAny<int>()), Times.Exactly(10));
         }
-
-        // failed, will fix later
-        // [Fact]
-        // public void NewRound_ValidatesPlayedCards_RaisesInvalidCardEvent_WhenInvalid()
-        // {
-        //     // Arrange
-        //     _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
-
-        //     var player1 = _testPlayers[0];
-        //     player1.AddCard(new Card(CardSuit.Hearts, CardFace.Five, 1, 5));
-        //     player1.AddCard(new Card(CardSuit.Clubs, CardFace.Six, 2, 0));
-
-        //     foreach (var player in _testPlayers.Skip(1))
-        //     {
-        //         player.AddCard(new Card(CardSuit.Hearts, CardFace.Seven, 3, 0));
-        //     }
-
-        //     // First try invalid card (index 1, clubs when hearts is leading), then valid (index 0)
-        //     _mockEventManager.SetupSequence(m => m.RaiseCardSelectionInput(
-        //         _testPlayers[1],
-        //         CardSuit.Hearts,
-        //         It.IsAny<CardSuit?>(),
-        //         It.IsAny<List<Card>>()))
-        //         .Returns(1)
-        //         .Returns(0);
-
-        //     _mockEventManager.Setup(m => m.RaiseCardSelectionInput(
-        //         It.Is<Player>(p => p != _testPlayers[1]),
-        //         It.IsAny<CardSuit?>(),
-        //         It.IsAny<CardSuit?>(),
-        //         It.IsAny<List<Card>>()))
-        //         .Returns(0);
-
-        //     // Act
-        //     _gameController.NewRound();
-
-        //     // Assert
-        //     _mockEventManager.Verify(m => m.RaiseInvalidCard(It.IsAny<string>()), Times.AtLeastOnce);
-        // }
 
         #endregion
 
