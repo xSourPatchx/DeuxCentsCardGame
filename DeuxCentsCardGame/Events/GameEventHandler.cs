@@ -97,22 +97,13 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayMessage("Dealing cards...\n");
             _ui.DisplayFormattedMessage("\nCards dealt to all {0} players. Dealer index: {1}", e.Players.Count, e.DealerIndex);
 
-            // Display all players hands using instance method
             List<IPlayer> playersAsInterface = e.Players.Cast<IPlayer>().ToList();
             _ui.DisplayAllHands(playersAsInterface, e.DealerIndex + 1);
         }
 
         public void OnInvalidMove(object? sender, InvalidMoveEventArgs e)
         {
-            string moveTypeText = e.MoveType switch
-            {
-                InvalidMoveType.InvalidCard => "Invalid Card",
-                InvalidMoveType.InvalidBet => "Invalid Bet",
-                InvalidMoveType.OutOfTurn => "Out of Turn",
-                InvalidMoveType.InvalidTrumpSelection => "Invalid Trump Selection",
-                _ => "Invalid Move"
-            };
-
+            string moveTypeText = FormatMoveTypeText(e.MoveType);
             _ui.DisplayFormattedMessage("[{0}] {1}: {2}", moveTypeText, e.Player.Name, e.Message);
         }
 
@@ -125,7 +116,7 @@ namespace DeuxCentsCardGame.Events
         {
             string prompt = $"{e.CurrentPlayer.Name}, enter a bet (between {e.MinimumBet}-{e.MaximumBet}, intervals of {e.BetIncrement}) or 'pass': ";
             string betInput = _ui.GetUserInput(prompt).ToLower();
-            
+
             e.Response = betInput;
         }
 
@@ -141,7 +132,7 @@ namespace DeuxCentsCardGame.Events
 
                 if (e.Bet == _gameConfig.MaximumBet)
                 {
-                    _ui.DisplayFormattedMessage("{0} bid the maximum bet, betting round ends.", e.Player.Name);                
+                    _ui.DisplayFormattedMessage("{0} bid the maximum bet, betting round ends.", e.Player.Name);
                 }
             }
         }
@@ -149,33 +140,9 @@ namespace DeuxCentsCardGame.Events
         public void OnBettingCompleted(object? sender, BettingCompletedEventArgs e)
         {
             _ui.DisplayMessage("\nBetting round complete.");
-            _ui.DisplayMessage("Results:");
-
-            foreach (var bid in e.AllBids)
-            {
-                string bidText;
-                if (bid.Key == e.WinningBidder)
-                {
-                    // Show actual bet amount for the winner
-                    bidText = $"Bet {bid.Value}";
-                }
-                else if (bid.Key.HasBet)
-                {
-                    // Show "Bet placed" for non-winning players who placed bets
-                    bidText = "Bet placed";
-                }
-                else
-                {
-                    // Show "Passed" for players who didn't place any bets
-                    bidText = "Passed";
-                }
-
-                _ui.DisplayFormattedMessage("{0}: {1}", bid.Key.Name, bidText);
-            }
-            _ui.DisplayFormattedMessage("\nThe winning bidder is {0} with {1}\n", e.WinningBidder.Name, e.WinningBid);
-
-            // Display winner's hand using instance method
-            _ui.DisplayHand(e.WinningBidder);
+            DisplayBiddingResults(e.AllBids, e.WinningBidder);
+            DisplayWinningBidder(e.WinningBidder, e.WinningBid);
+            ShowWinnerHand(e.WinningBidder);
         }
 
         public void OnTrumpSelectionInput(object? sender, TrumpSelectionInputEventArgs e)
@@ -194,15 +161,7 @@ namespace DeuxCentsCardGame.Events
         public void OnPlayerTurn(object? sender, PlayerTurnEventArgs e)
         {
             _ui.DisplayHand(e.Player);
-            string leadingSuitInfo = e.LeadingSuit.HasValue ? $" (Leading suit is {e.LeadingSuit})" : "Not yet set.";
-            string trumpSuitInfo = e.TrumpSuit.HasValue ? $" (Trump suit is {e.TrumpSuit})" : "Not yet set.";
-
-            _ui.DisplayFormattedMessage("It's {0}'s turn to play in trick {1}", e.Player.Name, e.TrickNumber + 1);
-            if (e.LeadingSuit.HasValue)
-            {
-                _ui.DisplayFormattedMessage("Leading suit: {0}", leadingSuitInfo);
-            }
-            _ui.DisplayFormattedMessage("Trump suit: {0}", trumpSuitInfo);
+            DisplayTurnInformation(e.Player, e.TrickNumber, e.LeadingSuit, e.TrumpSuit);
         }
 
         public void OnCardSelectionInput(object? sender, CardSelectionInputEventArgs e)
@@ -225,18 +184,10 @@ namespace DeuxCentsCardGame.Events
         public void OnTrickCompleted(object? sender, TrickCompletedEventArgs e)
         {
             _ui.DisplayFormattedMessage("\nTrick #{0} complete.", e.TrickNumber + 1);
-
-            // Display all cards played in the trick
-            _ui.DisplayMessage("Cards played:");
-            foreach (var (card, player) in e.PlayedCards)
-            {
-                _ui.DisplayFormattedMessage("{0}: {1}", player.Name, card);
-            }
-
-            _ui.DisplayFormattedMessage("\nTrick winner: {0} with {1}", e.WinningPlayer.Name, e.WinningCard);
-            _ui.DisplayFormattedMessage("Trick points: {0}", e.TrickPoints);
+            DisplayPlayedCards(e.PlayedCards);
+            DisplayTrickWinner(e.WinningPlayer, e.WinningCard, e.TrickPoints);
         }
-        
+
         public void OnTrickPointsAwarded(object? sender, TrickPointsAwardedEventArgs e)
         {
             _ui.DisplayFormattedMessage("{0} collected {1} points for {2}\n", e.Player.Name, e.TrickPoints, e.TeamName);
@@ -244,34 +195,14 @@ namespace DeuxCentsCardGame.Events
 
         public void OnTeamScoring(object? sender, TeamScoringEventArgs e)
         {
-            if (e.CannotScore)
-            {
-                _ui.DisplayFormattedMessage("{0} did not place any bets and has over 100 points, so they score 0 points this round.", e.TeamName);
-            }
-            else if (e.MadeBid)
-            {
-                _ui.DisplayFormattedMessage("{0} made their bet of {1} and wins {2} points.", e.TeamName, e.WinningBid, e.AwardedPoints);
-            }
-            else if (e.AwardedPoints < 0)
-            {
-                _ui.DisplayFormattedMessage("{0} did not make their bet of {1} and loses {1} points.", e.TeamName, e.WinningBid);
-            }
-            else
-            {
-                _ui.DisplayFormattedMessage("{0} did not win the bid, scores {1} points.", e.TeamName, e.AwardedPoints);
-            }
+            string message = FormatTeamScoringMessage(e);
+            _ui.DisplayFormattedMessage(message);
         }
 
         public void OnScoreUpdated(object? sender, ScoreUpdatedEventArgs e)
         {
-            _ui.DisplayMessage("\n--- Round Scoring ---");
-            _ui.DisplayFormattedMessage("Team One round points: {0}", e.TeamOneRoundPoints);
-            _ui.DisplayFormattedMessage("Team Two round points: {0}", e.TeamTwoRoundPoints);
-            _ui.DisplayFormattedMessage("Winning bid: {0}", e.WinningBid);
-            _ui.DisplayMessage($"Bid winner: {(e.IsBidWinnerTeamOne ? "Team One" : "Team Two")}");
-            _ui.DisplayMessage("\nRunning totals:");
-            _ui.DisplayFormattedMessage("Team One: {0} points", e.TeamOneTotalPoints);
-            _ui.DisplayFormattedMessage("Team Two: {0} points", e.TeamTwoTotalPoints);
+            DisplayRoundScoring(e);
+            DisplayRunningTotals(e.TeamOneTotalPoints, e.TeamTwoTotalPoints);
         }
 
         public void OnGameOver(object? sender, GameOverEventArgs e)
@@ -280,11 +211,9 @@ namespace DeuxCentsCardGame.Events
 
             _ui.DisplayMessage("\n" + new string('-', GameConstants.GAME_OVER_SEPARATOR_LENGTH));
             _ui.DisplayMessage("GAME OVER");
-
             _ui.DisplayMessage($"Final Scores:");
             _ui.DisplayFormattedMessage("Team One: {0} points", e.TeamOneFinalScore);
             _ui.DisplayFormattedMessage("Team Two: {0} points", e.TeamTwoFinalScore);
-            
             _ui.DisplayFormattedMessage("\n {0} WINS!!", winner);
             _ui.DisplayMessage(new string('-', GameConstants.GAME_OVER_SEPARATOR_LENGTH));
         }
@@ -292,6 +221,113 @@ namespace DeuxCentsCardGame.Events
         public void OnNextRoundPrompt(object? sender, NextRoundEventArgs e)
         {
             _ui.WaitForUser("\nPress any key to start the next round...");
+        }
+
+        private string FormatMoveTypeText(InvalidMoveType moveType)
+        {
+            return moveType switch
+            {
+                InvalidMoveType.InvalidCard => "Invalid Card",
+                InvalidMoveType.InvalidBet => "Invalid Bet",
+                InvalidMoveType.OutOfTurn => "Out of Turn",
+                InvalidMoveType.InvalidTrumpSelection => "Invalid Trump Selection",
+                _ => "Invalid Move"
+            };
+        }
+
+        private string FormatBidText(Player player, Player winningBidder, int bidAmount)
+        {
+            if (player == winningBidder)
+            {
+                return $"Bet {bidAmount}";
+            }
+
+            return player.HasBet ? "Bet placed" : "Passed";
+        }
+
+        private void DisplayBiddingResults(Dictionary<Player, int> allBids, Player winningBidder)
+        {
+            _ui.DisplayMessage("Results:");
+
+            foreach (var bid in allBids)
+            {
+                string bidText = FormatBidText(bid.Key, winningBidder, bid.Value);
+                _ui.DisplayFormattedMessage("{0}: {1}", bid.Key.Name, bidText);
+            }
+        }
+
+        private void DisplayWinningBidder(Player winningBidder, int winningBid)
+        {
+            _ui.DisplayFormattedMessage("\nWinning bidder is {0} with {1}\n", winningBidder.Name, winningBid);
+        }
+
+        private void ShowWinnerHand(Player winningBidder)
+        {
+            _ui.DisplayHand(winningBidder);
+        }
+
+        private void DisplayTurnInformation(Player player, int trickNumber, CardSuit? leadingSuit, CardSuit? trumpSuit)
+        {
+            _ui.DisplayFormattedMessage("It's {0}'s turn to play in trick {1}", player.Name, trickNumber + 1);
+
+            if (leadingSuit.HasValue)
+            {
+                _ui.DisplayFormattedMessage("Leading suit: {0}", leadingSuit);
+            }
+
+            string trumpSuitInfo = trumpSuit.HasValue ? trumpSuit.ToString() : "Not yet set.";
+            _ui.DisplayFormattedMessage("Trump suit: {0}", trumpSuitInfo);
+        }
+
+        private void DisplayPlayedCards(List<(Card card, Player player)> playedCards)
+        {
+            _ui.DisplayMessage("Cards played:");
+            foreach (var (card, player) in playedCards)
+            {
+                _ui.DisplayFormattedMessage("{0}: {1}", player.Name, card);
+            }
+        }
+
+        private void DisplayTrickWinner(Player winningPlayer, Card winningCard, int trickPoints)
+        {
+            _ui.DisplayFormattedMessage("\nTrick winner: {0} with {1}", winningPlayer.Name, winningCard);
+            _ui.DisplayFormattedMessage("Trick points: {0}", trickPoints);
+        }
+
+        private string FormatTeamScoringMessage(TeamScoringEventArgs e)
+        {
+            if (e.CannotScore)
+            {
+                return $"{e.TeamName} did not place any bets and has over 100 points, so they score 0 points this round.";
+            }
+
+            if (e.MadeBid)
+            {
+                return $"{e.TeamName} made their bet of {e.WinningBid} and wins {e.AwardedPoints} points.";
+            }
+        
+            if (e.AwardedPoints < 0)
+            {
+                return $"{e.TeamName} did not make their bet of {e.WinningBid} and loses {e.WinningBid} points.";
+            }
+
+            return $"{e.TeamName} did not make their bet of {e.WinningBid} and scores {e.AwardedPoints} points.";
+        }
+
+        private void DisplayRoundScoring(ScoreUpdatedEventArgs e)
+        {
+            _ui.DisplayMessage("\n--- Round Scoring ---");
+            _ui.DisplayFormattedMessage("Team One round points: {0}", e.TeamOneRoundPoints);
+            _ui.DisplayFormattedMessage("Team Two round points: {0}", e.TeamTwoRoundPoints);
+            _ui.DisplayFormattedMessage("Winning bid: {0}", e.WinningBid);
+            _ui.DisplayMessage($"Bid winner: {(e.IsBidWinnerTeamOne ? "Team One" : "Team Two")}");
+        }
+
+        private void DisplayRunningTotals(int teamOneTotalPoints, int teamTwoTotalPoints)
+        {
+            _ui.DisplayMessage("\nRunning totals:");
+            _ui.DisplayFormattedMessage("Team One: {0} points", teamOneTotalPoints);
+            _ui.DisplayFormattedMessage("Team Two: {0} points", teamTwoTotalPoints);
         }
 
         // Method to unsubscribe from events for cleanup

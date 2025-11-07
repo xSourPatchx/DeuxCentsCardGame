@@ -32,7 +32,7 @@
    - [ ] Consider adding a `DeckBuilder` pattern for custom decks
 
 3. **Game State Management**
-   - [ ] Implement a state machine pattern for game flow (e.g., `GameState` enum with transitions)
+   - [ ] Implement a state machine pattern for game flow (e.g., `GameState` enum with transitions)    
    - [ ] Create separate classes for different game states (`StartState`, `DealState`, `PlayState`, `EndState`, `BettingState`, `PlayingState`, etc.) to control flow
    - [ ] Add events for TrickStartedEventArgs,DealerRotatedEventArgs, GameStateChangedEventArgs, BetRaisedEventArgs, LeadingSuitEstablishedEventArgs, PlayerConnectionEventArgs, HandUpdatedArgs, Game state changes.
    - [ ] Support saving and loading Game State by serializing the current game state to JSON to persist or debug state easily
