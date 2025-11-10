@@ -9,6 +9,7 @@ namespace DeuxCentsCardGame.Managers
     { 
         private readonly IGameEventManager _eventManager;
         private readonly IRandomService _randomService;
+        private readonly ICardUtility _cardUtility;
         private Deck _currentDeck;
 
         public Deck CurrentDeck 
@@ -16,16 +17,17 @@ namespace DeuxCentsCardGame.Managers
             get { return _currentDeck; } 
         }
 
-        public DeckManager(IGameEventManager eventManager, IRandomService randomService)
+        public DeckManager(IGameEventManager eventManager, IRandomService randomService, ICardUtility cardUtility)
         {
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
             _randomService = randomService ?? throw new ArgumentNullException(nameof(randomService));
-            _currentDeck = new Deck();
+            _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
+            _currentDeck = new Deck(_cardUtility);
         }
 
         public void ResetDeck()
         { 
-            _currentDeck = new Deck();
+            _currentDeck = new Deck(_cardUtility);
         }
 
         public void ShuffleDeck()

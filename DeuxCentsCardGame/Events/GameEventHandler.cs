@@ -5,17 +5,20 @@ using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Models;
 using DeuxCentsCardGame.Interfaces.UI;
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Interfaces.Services;
 
 namespace DeuxCentsCardGame.Events
 {
     public class GameEventHandler : IGameEventHandler
     {
+        private readonly ICardUtility _cardUtility;
         private readonly IGameConfig _gameConfig;
         private readonly GameEventManager _eventManager;
         private readonly IUIGameView _ui;
 
-        public GameEventHandler(GameEventManager eventManager, IUIGameView ui, IGameConfig gameConfig)
+        public GameEventHandler(GameEventManager eventManager, IUIGameView ui, IGameConfig gameConfig, ICardUtility cardUtility)
         {
+            _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
             _eventManager = eventManager;
             _ui = ui ?? throw new ArgumentNullException(nameof(ui));
             _gameConfig = gameConfig;
@@ -166,8 +169,8 @@ namespace DeuxCentsCardGame.Events
 
         public void OnCardSelectionInput(object? sender, CardSelectionInputEventArgs e)
         {
-            string leadingSuitString = e.LeadingSuit.HasValue ? Deck.CardSuitToString(e.LeadingSuit.Value) : "none";
-            string trumpSuitString = e.TrumpSuit.HasValue ? Deck.CardSuitToString(e.TrumpSuit.Value) : "none";
+            string leadingSuitString = e.LeadingSuit.HasValue ? _cardUtility.CardSuitToString(e.LeadingSuit.Value) : "none";
+            string trumpSuitString = e.TrumpSuit.HasValue ? _cardUtility.CardSuitToString(e.TrumpSuit.Value) : "none";
 
             string prompt = $"{e.CurrentPlayer.Name}, choose a card to play (enter index 0-{e.Hand.Count - 1}" +
                 (e.LeadingSuit.HasValue ? $", leading suit is {leadingSuitString}" : "") +

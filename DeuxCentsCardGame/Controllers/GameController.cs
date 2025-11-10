@@ -4,6 +4,7 @@ using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Interfaces.Services;
 
 namespace DeuxCentsCardGame.Controllers
 {
@@ -14,13 +15,14 @@ namespace DeuxCentsCardGame.Controllers
         private int _currentRoundNumber = 1;
 
         // Manager dependencies injected as interfaces
+        private readonly IGameConfig _gameConfig;
+        private readonly ICardUtility _cardUtility;
         private readonly IPlayerManager _playerManager;
         private readonly IDeckManager _deckManager;
         private readonly IDealingManager _dealingManager;
         private readonly IBettingManager _bettingManager;
         private readonly ITrumpSelectionManager _trumpSelectionManager;
         private readonly IScoringManager _scoringManager;
-        private readonly IGameConfig _gameConfig;
 
         // Dealer starts at player 4 (index 3)
         public int DealerIndex;
@@ -31,6 +33,8 @@ namespace DeuxCentsCardGame.Controllers
 
         public GameController
         (
+            IGameConfig gameConfig,
+            ICardUtility cardUtility,
             IPlayerManager playerManager,
             IDeckManager deckManager,
             IDealingManager dealingManager,
@@ -38,10 +42,11 @@ namespace DeuxCentsCardGame.Controllers
             ITrumpSelectionManager trumpSelectionManager,
             IScoringManager scoringManager,
             IGameEventManager eventManager,
-            IGameEventHandler eventHandler,
-            IGameConfig gameConfig
+            IGameEventHandler eventHandler
         )
         {
+            _gameConfig = gameConfig ?? throw new ArgumentNullException(nameof(gameConfig));
+            _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
             // Initialize managers
             _playerManager = playerManager ?? throw new ArgumentNullException(nameof(playerManager));
             _deckManager = deckManager ?? throw new ArgumentNullException(nameof(deckManager));
@@ -49,7 +54,6 @@ namespace DeuxCentsCardGame.Controllers
             _bettingManager = bettingManager ?? throw new ArgumentNullException(nameof(bettingManager));
             _trumpSelectionManager = trumpSelectionManager ?? throw new ArgumentNullException(nameof(trumpSelectionManager));
             _scoringManager = scoringManager ?? throw new ArgumentNullException(nameof(scoringManager));
-            _gameConfig = gameConfig ?? throw new ArgumentNullException(nameof(gameConfig));
 
             // Initialize events
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
@@ -270,7 +274,7 @@ namespace DeuxCentsCardGame.Controllers
 
         private void DisplayInvalidCardMessage(Player currentPlayer, CardSuit? leadingSuit)
         {
-            string leadingSuitString = leadingSuit.HasValue ? Deck.CardSuitToString(leadingSuit.Value) : "none";
+            string leadingSuitString = leadingSuit.HasValue ? _cardUtility.CardSuitToString(leadingSuit.Value) : "none";
             string message = $"You must play the suit of {leadingSuitString} since it's in your deck, try again.";
 
             _eventManager.RaiseInvalidMove(currentPlayer, message, InvalidMoveType.InvalidCard);

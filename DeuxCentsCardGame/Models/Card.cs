@@ -1,5 +1,6 @@
 using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Interfaces.Models;
+using DeuxCentsCardGame.Interfaces.Services;
 
 namespace DeuxCentsCardGame.Models
 {
@@ -8,12 +9,7 @@ namespace DeuxCentsCardGame.Models
 
     public class Card : ICard
     {
-        private static readonly int[] ValidPointValues =
-        {
-            GameConstants.CARD_POINT_VALUE_ZERO,
-            GameConstants.CARD_POINT_VALUE_FIVE,
-            GameConstants.CARD_POINT_VALUE_TEN
-        };
+        private readonly ICardUtility _cardUtility;
 
         // card fields
         public CardSuit CardSuit { get; init; }
@@ -21,8 +17,10 @@ namespace DeuxCentsCardGame.Models
         public int CardFaceValue { get; init; }
         public int CardPointValue { get; init; }
 
-        public Card(CardSuit cardSuit, CardFace cardFace, int cardFaceValue, int cardPointValue)
+        public Card(CardSuit cardSuit, CardFace cardFace, int cardFaceValue, int cardPointValue, ICardUtility cardUtility)
         {
+            _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
+
             ValidateConstructorArguments(cardSuit, cardFace, cardFaceValue, cardPointValue);
         
             CardSuit = cardSuit;
@@ -42,15 +40,15 @@ namespace DeuxCentsCardGame.Models
             if (faceValue < GameConstants.MINIMUM_CARD_FACE_VALUE || faceValue > GameConstants.MAXIMUM_CARD_FACE_VALUE)
                 throw new ArgumentOutOfRangeException(nameof(faceValue), 
                 $"Invalid card face value, must be between {GameConstants.MINIMUM_CARD_FACE_VALUE}-{GameConstants.MAXIMUM_CARD_FACE_VALUE}. faceValue : {faceValue}");
-                
-            if (Array.IndexOf(ValidPointValues, pointValue) == -1)
-                throw new ArgumentOutOfRangeException(nameof(pointValue), 
-                    $"Invalid card point value, must be {string.Join(", ", ValidPointValues)}. pointValue: {pointValue}");
+
+            if (Array.IndexOf(_cardUtility.GetCardPointValues(), pointValue) == -1)
+                throw new ArgumentOutOfRangeException(nameof(pointValue),
+                    $"Invalid card point value, must be {string.Join(", ", _cardUtility.GetCardPointValues())}. pointValue: {pointValue}");
 
             ValidateFacePointConsistency(face, pointValue);
         }
 
-        private static void ValidateFacePointConsistency(CardFace face, int pointValue)
+        private void ValidateFacePointConsistency(CardFace face, int pointValue)
         {
             var expectedPointValue = face switch
             {
@@ -147,9 +145,9 @@ namespace DeuxCentsCardGame.Models
         }
 
         public override string ToString() =>
-            $"{GetCardFaceString(CardFace)} of {CardSuit.ToString().ToLower()} ({CardPointValue} pts)";
+            $"{_cardUtility.FormatCardFace(CardFace)} of {CardSuit.ToString().ToLower()} ({CardPointValue} pts)";
 
-        private static string GetCardFaceString(CardFace face) => face switch
+        private string GetCardFaceString(CardFace face) => face switch
         {  
                 CardFace.Jack => "J",
                 CardFace.Queen => "Q",
