@@ -20,7 +20,6 @@ namespace DeuxCentsCardGame.Models
         public Card(CardSuit cardSuit, CardFace cardFace, int cardFaceValue, int cardPointValue, ICardUtility cardUtility)
         {
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
-
             ValidateConstructorArguments(cardSuit, cardFace, cardFaceValue, cardPointValue);
         
             CardSuit = cardSuit;
@@ -146,14 +145,5 @@ namespace DeuxCentsCardGame.Models
 
         public override string ToString() =>
             $"{_cardUtility.FormatCardFace(CardFace)} of {CardSuit.ToString().ToLower()} ({CardPointValue} pts)";
-
-        private string GetCardFaceString(CardFace face) => face switch
-        {  
-                CardFace.Jack => "J",
-                CardFace.Queen => "Q",
-                CardFace.King => "K",
-                CardFace.Ace => "A",
-                _ => ((int)face + 5).ToString()
-        };
     }
 }
