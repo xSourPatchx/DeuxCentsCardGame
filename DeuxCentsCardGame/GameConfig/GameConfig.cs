@@ -4,6 +4,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace DeuxCentsCardGame.GameConfig
 {
+    [Serializable]
     public class GameConfig : IGameConfig
     {
         // Team Configuration

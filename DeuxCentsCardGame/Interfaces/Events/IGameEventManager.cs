@@ -1,5 +1,6 @@
-using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.Events.EventArgs;
+using DeuxCentsCardGame.GameStates;
+using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Interfaces.Events
 {
@@ -13,6 +14,11 @@ namespace DeuxCentsCardGame.Interfaces.Events
         void RaiseDeckCut(Player cuttingPlayer, int cutPosition);
         void RaiseCardsDealt(List<Player> players, int dealerIndex);
         void RaiseInvalidMove(Player player, string message, InvalidMoveType moveType);
+
+        // Add these three methods
+        void RaiseStateChanged(GameState previousState, GameState newState);
+        void RaiseGamePaused(GameState currentState);
+        void RaiseGameResumed(GameState resumingToState);
 
         // Betting events
         void RaiseBettingRoundStarted(string message);

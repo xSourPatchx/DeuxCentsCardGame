@@ -1,10 +1,11 @@
 using DeuxCentsCardGame.Events.EventArgs;
+using DeuxCentsCardGame.GameStates;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
-using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.Interfaces.Services;
+using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Controllers
 {
@@ -13,6 +14,10 @@ namespace DeuxCentsCardGame.Controllers
         private bool _isGameEnded;
         private CardSuit? _trumpSuit;
         private int _currentRoundNumber = 1;
+
+        // State management
+        private readonly GameStateData _gameStateData;
+        private readonly Dictionary<GameState, Action> _gameStateHandlers;
 
         // Manager dependencies injected as interfaces
         private readonly IGameConfig _gameConfig;
@@ -31,8 +36,7 @@ namespace DeuxCentsCardGame.Controllers
         private readonly IGameEventManager _eventManager;
         private readonly IGameEventHandler _eventHandler;
 
-        public GameController
-        (
+        public GameController(
             IGameConfig gameConfig,
             ICardUtility cardUtility,
             IPlayerManager playerManager,
@@ -42,11 +46,12 @@ namespace DeuxCentsCardGame.Controllers
             ITrumpSelectionManager trumpSelectionManager,
             IScoringManager scoringManager,
             IGameEventManager eventManager,
-            IGameEventHandler eventHandler
-        )
+            IGameEventHandler eventHandler)
         {
+            // Initialize configs and utilities
             _gameConfig = gameConfig ?? throw new ArgumentNullException(nameof(gameConfig));
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
+
             // Initialize managers
             _playerManager = playerManager ?? throw new ArgumentNullException(nameof(playerManager));
             _deckManager = deckManager ?? throw new ArgumentNullException(nameof(deckManager));
@@ -61,7 +66,89 @@ namespace DeuxCentsCardGame.Controllers
 
             _trumpSuit = null;
             DealerIndex = _gameConfig.InitialDealerIndex;
+
+            // Initialize state system
+            _gameStateData = new GameStateData
+            {
+                CurrentState = GameState.Initialization,
+                CurrentRound = 0
+            };
+
+            // Map states to handlers
+            _gameStateHandlers = new Dictionary<GameState, Action>
+            {
+                { GameState.Initialization, HandleInitialization },
+                { GameState.RoundStart, HandleRoundStart },
+                { GameState.DeckPreparation, HandleDeckPreparation },
+                { GameState.Betting, HandleBetting },
+                { GameState.TrumpSelection, HandleTrumpSelection },
+                { GameState.Playing, HandlePlaying },
+                { GameState.RoundEnd, HandleRoundEnd },
+                { GameState.GameOver, HandleGameOver }
+            };
+
         }
+  
+        #region State Management
+
+        public void TransitionToState(GameState newState)
+        {
+            if (_gameStateData.IsPaused)
+            {
+                // Prevent state transitions while paused
+                return;
+            }
+
+            _gameStateData.PreviousState = _gameStateData.CurrentState;
+            _gameStateData.CurrentState = newState;
+
+            // Raise event for UI/logging
+            _eventManager.RaiseStateChanged(_gameStateData.PreviousState, newState);
+
+            // Execute state handler
+            if (_gameStateHandlers.TryGetValue(newState, out var handler))
+            {
+                handler.Invoke();
+            }
+        }
+
+        // Gets the current game state (useful for Unity UI)
+        public GameState GetCurrentState() => _gameStateData.CurrentState;
+
+        // Gets the current round number
+        public int GetCurrentRound() => _gameStateData.CurrentRound;
+
+        // Gets the current trick number (within Playing state)
+        public int GetCurrentTrick() => _gameStateData.CurrentTrick;
+
+        // Pauses the game (preserves current state)
+        public void PauseGame()
+        {
+            if (!_gameStateData.IsPaused)
+            {
+                _gameStateData.IsPaused = true;
+                _gameStateData.StateBeforePause = _gameStateData.CurrentState;
+                _eventManager.RaiseGamePaused(_gameStateData.CurrentState);
+            }
+        }
+
+        // Resumes the game from pause
+        public void ResumeGame()
+        {
+            if (_gameStateData.IsPaused)
+            {
+                _gameStateData.IsPaused = false;
+                GameState resumeToState = _gameStateData.StateBeforePause;
+                _eventManager.RaiseGameResumed();
+
+                // Continue from where we left off
+                TransitionToState(_gameStateData.StateBeforePause);
+            }
+        }
+
+        public bool IsPaused() => _gameStateData.IsPaused;
+
+        #endregion
 
         #region Game Flow
 

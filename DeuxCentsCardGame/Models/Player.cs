@@ -2,13 +2,20 @@
 
 namespace DeuxCentsCardGame.Models
 {
-    public class Player(string name) : IPlayer
+    [Serializable]
+    public class Player : IPlayer
     {
-        public string Name { get; } = name;
-        public List<Card> Hand { get; } = [];
+        public string Name { get; }
+        public List<Card> Hand { get; }
         public bool HasBet { get; set; }
         public bool HasPassed { get; set; }
         public int CurrentBid { get; set; }
+
+        public Player(string name)
+        {
+            Name = name;
+            Hand = [];
+        }
 
         public void AddCard(Card card)
         {

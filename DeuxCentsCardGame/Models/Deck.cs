@@ -3,6 +3,7 @@ using DeuxCentsCardGame.Interfaces.Services;
 
 namespace DeuxCentsCardGame.Models
 {
+    [Serializable]
     public class Deck : IDeck
     {
         private readonly ICardUtility _cardUtility;

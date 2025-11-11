@@ -1,4 +1,5 @@
 using DeuxCentsCardGame.Events.EventArgs;
+using DeuxCentsCardGame.GameStates;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Models;
 
@@ -14,6 +15,11 @@ namespace DeuxCentsCardGame.Events
         public event EventHandler<DeckCutEventArgs>? DeckCut;
         public event EventHandler<CardsDealtEventArgs>? CardsDealt;
         public event EventHandler<InvalidMoveEventArgs>? InvalidMove;
+
+        // Game state change events
+        public event EventHandler<StateChangedEventArgs>? StateChanged;
+        public event EventHandler<GamePausedEventArgs>? GamePaused;
+        public event EventHandler<GameResumedEventArgs>? GameResumed;
 
         // Betting events
         public event EventHandler<BettingRoundStartedEventArgs>? BettingRoundStarted;
@@ -75,6 +81,22 @@ namespace DeuxCentsCardGame.Events
         protected virtual void OnInvalidMove(InvalidMoveEventArgs e)
         {
             InvalidMove?.Invoke(this, e);
+        }
+
+        // Game state change events
+        protected virtual void OnStateChanged(StateChangedEventArgs e)
+        {
+            StateChanged?.Invoke(this, e);
+        }
+
+        protected virtual void OnGamePaused(GamePausedEventArgs e)
+        {
+            GamePaused?.Invoke(this, e);
+        }
+
+        protected virtual void OnGameResumed(GameResumedEventArgs e)
+        {
+            GameResumed?.Invoke(this, e);
         }
 
         // Betting events
@@ -194,6 +216,22 @@ namespace DeuxCentsCardGame.Events
         public void RaiseInvalidMove(Player player, string message, InvalidMoveType moveType)
         {
             OnInvalidMove(new InvalidMoveEventArgs(player, message, moveType));
+        }
+
+        // Game state change events
+        public void RaiseStateChanged(GameState previousState, GameState newState)
+        {
+            OnStateChanged(new StateChangedEventArgs(previousState, newState));
+        }
+
+        public void RaiseGamePaused(GameState currentState)
+        {
+            OnGamePaused(new GamePausedEventArgs(currentState));
+        }
+
+        public void RaiseGameResumed(GameState resumingToState)
+        {
+            OnGameResumed(new GameResumedEventArgs(resumingToState));
         }
 
         // Betting events

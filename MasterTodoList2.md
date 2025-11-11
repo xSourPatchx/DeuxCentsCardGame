@@ -74,7 +74,7 @@
 
 ### Unity Preparation
 10. **Unity-Friendly Patterns**
-    - [ ] Make all game objects serializable by marking key classes with `[Serializable]` so Unity can handle them in the editor/inspector
+    - [x] Make all game objects serializable by marking key classes with `[Serializable]` so Unity can handle them in the editor/inspector
     - [x] Use events for UI updates instead of direct calls
     - [ ] Minimize static references to favor instance-based architecture for Unity compatibility and testability
       - [ ] IUIGameView.DisplayAllHands() takes List<IPlayer>: `void DisplayAllHands(List<IPlayer> players, int dealerIndex);`. For Unity, you might want to just raise an event instead: Add to IGameEventManager `void RaiseAllHandsDisplay(List<Player> players, int dealerIndex);`. Then Unity can subscribe and decide how to render (3D card models, 2D sprites, etc.)

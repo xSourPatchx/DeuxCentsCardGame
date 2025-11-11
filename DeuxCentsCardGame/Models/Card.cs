@@ -4,9 +4,13 @@ using DeuxCentsCardGame.Interfaces.Services;
 
 namespace DeuxCentsCardGame.Models
 {
+    [Serializable]
     public enum CardSuit { Clubs, Diamonds, Hearts, Spades }
+
+    [Serializable]
     public enum CardFace { Five, Six, Seven, Eight, Nine, Ten, Jack, Queen, King, Ace }
 
+    [Serializable]
     public class Card : ICard
     {
         private readonly ICardUtility _cardUtility;
@@ -21,7 +25,7 @@ namespace DeuxCentsCardGame.Models
         {
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
             ValidateConstructorArguments(cardSuit, cardFace, cardFaceValue, cardPointValue);
-        
+
             CardSuit = cardSuit;
             CardFace = cardFace;
             CardFaceValue = cardFaceValue;
@@ -35,9 +39,9 @@ namespace DeuxCentsCardGame.Models
 
             if (!Enum.IsDefined(typeof(CardFace), face))
                 throw new ArgumentException($"Invalid card face: {face}", nameof(face));
-            
+
             if (faceValue < GameConstants.MINIMUM_CARD_FACE_VALUE || faceValue > GameConstants.MAXIMUM_CARD_FACE_VALUE)
-                throw new ArgumentOutOfRangeException(nameof(faceValue), 
+                throw new ArgumentOutOfRangeException(nameof(faceValue),
                 $"Invalid card face value, must be between {GameConstants.MINIMUM_CARD_FACE_VALUE}-{GameConstants.MAXIMUM_CARD_FACE_VALUE}. faceValue : {faceValue}");
 
             if (Array.IndexOf(_cardUtility.GetCardPointValues(), pointValue) == -1)
@@ -138,7 +142,7 @@ namespace DeuxCentsCardGame.Models
             // Only compare face values if cards are same suit
             if (IsSameSuit(otherCard))
                 return CardFaceValue > otherCard.CardFaceValue;
-            
+
             // default case
             return false;
         }
