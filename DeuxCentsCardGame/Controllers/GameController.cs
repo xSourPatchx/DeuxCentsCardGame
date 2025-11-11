@@ -1,7 +1,7 @@
 using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.GameStates;
-using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Controllers;
+using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Interfaces.Services;
@@ -68,11 +68,7 @@ namespace DeuxCentsCardGame.Controllers
             DealerIndex = _gameConfig.InitialDealerIndex;
 
             // Initialize state system
-            _gameStateData = new GameStateData
-            {
-                CurrentState = GameState.Initialization,
-                CurrentRound = 0
-            };
+            _gameStateData = new GameStateData();
 
             // Map states to handlers
             _gameStateHandlers = new Dictionary<GameState, Action>
@@ -86,7 +82,6 @@ namespace DeuxCentsCardGame.Controllers
                 { GameState.RoundEnd, HandleRoundEnd },
                 { GameState.GameOver, HandleGameOver }
             };
-
         }
   
         #region State Management
@@ -139,10 +134,10 @@ namespace DeuxCentsCardGame.Controllers
             {
                 _gameStateData.IsPaused = false;
                 GameState resumeToState = _gameStateData.StateBeforePause;
-                _eventManager.RaiseGameResumed();
+                _eventManager.RaiseGameResumed(resumeToState);
 
                 // Continue from where we left off
-                TransitionToState(_gameStateData.StateBeforePause);
+                TransitionToState(resumeToState);
             }
         }
 
@@ -154,9 +149,15 @@ namespace DeuxCentsCardGame.Controllers
 
         public void StartGame()
         {
+            // Begin initialization state
+            TransitionToState(GameState.Initialization);
+
+            // Wait for game to end
+            // In Unity, this loop would be replaced with Update() calls
+            // or coroutines that check _isGameEnded
             while (!_isGameEnded)
             {
-                NewRound();
+                // NewRound(); // This would be triggered by events in a real game loop
             }
 
             _eventHandler.UnsubscribeFromEvents();
@@ -164,12 +165,90 @@ namespace DeuxCentsCardGame.Controllers
 
         public void NewRound()
         {
+            // Start a new round
+            TransitionToState(GameState.RoundStart);
+        }
+
+        #endregion
+
+        #region State Handlers
+
+        private void HandleInitialization()
+        {
+            // First-time setup
+            _gameStateData.CurrentRound = 1;
+            _currentRoundNumber = 1;
+
+            // Automatically move to first round
+            TransitionToState(GameState.RoundStart);
+        }
+
+        private void HandleRoundStart()
+        {
+            _gameStateData.CurrentRound = _currentRoundNumber;
             _eventManager.RaiseRoundStarted(_currentRoundNumber, _playerManager.GetPlayer(DealerIndex));
+
             InitializeRound();
+
+            // Move to deck preparation
+            TransitionToState(GameState.DeckPreparation);
+        }
+
+        private void HandleDeckPreparation()
+        {
             PrepareGameState();
-            ExecuteRoundPhases();
+
+            // Move to betting phase
+            TransitionToState(GameState.Betting);
+        }
+
+        private void HandleBetting()
+        {
+            ExecuteBettingRound();
+
+            // Move to trump selection
+            TransitionToState(GameState.TrumpSelection);
+        }
+
+        private void HandleTrumpSelection()
+        {
+            SelectTrumpSuit();
+
+            // Reset trick counter for new round
+            _gameStateData.CurrentTrick = 0;
+
+            // Move to playing phase
+            TransitionToState(GameState.Playing);
+        }
+
+        private void HandlePlaying()
+        {
+            PlayRound();
+
+            // Move to round end
+            TransitionToState(GameState.RoundEnd);
+        }
+
+        private void HandleRoundEnd()
+        {
             FinalizeRound();
-            _currentRoundNumber++;
+
+            // Check for game over
+            if (_scoringManager.IsGameOver())
+            {
+                TransitionToState(GameState.GameOver);
+            }
+            else
+            {
+                _currentRoundNumber++;
+                TransitionToState(GameState.RoundStart);
+            }
+        }
+        
+        private void HandleGameOver()
+        {
+            _scoringManager.RaiseGameOverEvent();
+            _isGameEnded = true;
         }
 
         #endregion
@@ -228,13 +307,6 @@ namespace DeuxCentsCardGame.Controllers
 
         #region Round Execution
 
-        private void ExecuteRoundPhases()
-        {
-            ExecuteBettingRound();
-            SelectTrumpSuit();
-            PlayRound();
-        }
-
         public void ExecuteBettingRound()
         {
             _bettingManager.UpdateDealerIndex(DealerIndex);
@@ -264,6 +336,7 @@ namespace DeuxCentsCardGame.Controllers
 
             for (int trickNumber = 0; trickNumber < totalTricks; trickNumber++)
             {
+                _gameStateData.CurrentTrick = trickNumber;
                 currentPlayerIndex = ExecuteSingleTrick(currentPlayerIndex, trickNumber);
             }
         }
@@ -424,12 +497,7 @@ namespace DeuxCentsCardGame.Controllers
                 _bettingManager.CurrentWinningBid
             );
 
-            if (_scoringManager.IsGameOver())
-            {
-                _scoringManager.RaiseGameOverEvent();
-                _isGameEnded = true;
-            }
-            else
+            if (!_scoringManager.IsGameOver())
             {
                 _eventManager.RaiseNextRoundPrompt();
             }
