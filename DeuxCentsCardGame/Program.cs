@@ -58,6 +58,11 @@ namespace DeuxCentsCardGame
 
             // Register managers
             services.AddSingleton<IPlayerManager, PlayerManager>();
+            services.AddSingleton<IPlayerTurnManager>(sp =>
+            {
+                var gameConfig = sp.GetRequiredService<IGameConfig>();
+                return new PlayerTurnManager(gameConfig.TotalPlayers);
+            });
             services.AddSingleton<IDeckManager, DeckManager>();
             services.AddSingleton<IDealingManager, DealingManager>();
             services.AddSingleton<ITeamManager, TeamManager>();

@@ -23,6 +23,7 @@ namespace DeuxCentsCardGame.Controllers
         private readonly IGameConfig _gameConfig;
         private readonly ICardUtility _cardUtility;
         private readonly IPlayerManager _playerManager;
+        private readonly IPlayerTurnManager _playerTurnManager;
         private readonly IDeckManager _deckManager;
         private readonly IDealingManager _dealingManager;
         private readonly IBettingManager _bettingManager;
@@ -40,6 +41,7 @@ namespace DeuxCentsCardGame.Controllers
             IGameConfig gameConfig,
             ICardUtility cardUtility,
             IPlayerManager playerManager,
+            IPlayerTurnManager playerTurnManager,
             IDeckManager deckManager,
             IDealingManager dealingManager,
             IBettingManager bettingManager,
@@ -54,6 +56,7 @@ namespace DeuxCentsCardGame.Controllers
 
             // Initialize managers
             _playerManager = playerManager ?? throw new ArgumentNullException(nameof(playerManager));
+            _playerTurnManager = playerTurnManager as IPlayerTurnManager ?? throw new ArgumentNullException(nameof(playerTurnManager));
             _deckManager = deckManager ?? throw new ArgumentNullException(nameof(deckManager));
             _dealingManager = dealingManager ?? throw new ArgumentNullException(nameof(dealingManager));
             _bettingManager = bettingManager ?? throw new ArgumentNullException(nameof(bettingManager));
@@ -266,6 +269,7 @@ namespace DeuxCentsCardGame.Controllers
             _trumpSuit = null;
             _scoringManager.ResetRoundPoints();
             _bettingManager.ResetBettingRound();
+            _playerTurnManager.ResetTurnSequence();
         }
 
         #endregion
@@ -286,8 +290,8 @@ namespace DeuxCentsCardGame.Controllers
 
         private void CutDeck()
         {
-            // Player to the right of dealer cuts (dealer - 1, wrapping around)
-            int cuttingPlayerIndex = (DealerIndex - 1 + _playerManager.Players.Count) % _playerManager.Players.Count;
+            // Player to the right of dealer cuts
+            int cuttingPlayerIndex = _playerTurnManager.GetPlayerRightOfDealer(DealerIndex);
             Player cuttingPlayer = _playerManager.GetPlayer(cuttingPlayerIndex);
             
             int deckSize = _deckManager.CurrentDeck.Cards.Count;
@@ -332,43 +336,44 @@ namespace DeuxCentsCardGame.Controllers
         {
             var startingPlayer = _playerManager.GetPlayer(startingPlayerIndex);
             int totalTricks = startingPlayer.Hand.Count;
-            int currentPlayerIndex = startingPlayerIndex;
+
+            // Initialize turn manager for the round
+            _playerTurnManager.InitializeTurnSequence(startingPlayerIndex);
 
             for (int trickNumber = 0; trickNumber < totalTricks; trickNumber++)
             {
                 _gameStateData.CurrentTrick = trickNumber;
-                currentPlayerIndex = ExecuteSingleTrick(currentPlayerIndex, trickNumber);
+                ExecuteSingleTrick(trickNumber);
             }
         }
 
-        private int ExecuteSingleTrick(int currentPlayerIndex, int trickNumber)
+        private void ExecuteSingleTrick(int trickNumber)
         {
             CardSuit? leadingSuit = null;
             List<(Card card, Player player)> currentTrick = [];
 
-            PlayTrickCards(currentPlayerIndex, ref leadingSuit, currentTrick, trickNumber);
+            PlayTrickCards(ref leadingSuit, currentTrick, trickNumber);
 
             var (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick);
             int trickPoints = CalculateTrickPoints(currentTrick);
-            AwardTrickPointsAndNotify(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
+            int trickWinnerIndex = AwardTrickPointsAndNotify(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
 
-            // Return winning player index for next trick
-            return _playerManager.Players.ToList().IndexOf(trickWinner);
+            // Update turn manager for next trick
+            _playerTurnManager.SetCurrentPlayer(trickWinnerIndex);
         }
 
         #endregion
 
         #region Card Play Logic
 
-        private void PlayTrickCards(int currentPlayerIndex, ref CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick, int trickNumber)
+        private void PlayTrickCards(ref CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick, int trickNumber)
         {
             var players = _playerManager.Players.ToList();
+            var turnOrder = _playerTurnManager.GetTurnOrder();
 
-            for (int trickIndex = 0; trickIndex < players.Count; trickIndex++)
+            foreach (int playerIndex in turnOrder)
             {
-                int playerIndex = (currentPlayerIndex + trickIndex) % players.Count;
                 Player currentPlayer = _playerManager.GetPlayer(playerIndex);
-
                 ExecutePlayerTurn(currentPlayer, ref leadingSuit, trickNumber, currentTrick);
             }
         }
@@ -465,10 +470,12 @@ namespace DeuxCentsCardGame.Controllers
             return trick.Sum(trick => trick.card.CardPointValue);
         }
 
-        private void AwardTrickPointsAndNotify(int trickNumber, Player trickWinner, Card trickWinningCard, List<(Card card, Player player)> currentTrick, int trickPoints)
+        private int AwardTrickPointsAndNotify(int trickNumber, Player trickWinner, Card trickWinningCard, List<(Card card, Player player)> currentTrick, int trickPoints)
         {
-            _scoringManager.AwardTrickPoints(_playerManager.Players.ToList().IndexOf(trickWinner), trickPoints);
+            int winnerIndex = _playerManager.Players.ToList().IndexOf(trickWinner);
+            _scoringManager.AwardTrickPoints(winnerIndex, trickPoints);
             _eventManager.RaiseTrickCompleted(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
+            return winnerIndex;
         }
 
         #endregion
@@ -505,7 +512,7 @@ namespace DeuxCentsCardGame.Controllers
 
         private void RotateDealer()
         {
-            DealerIndex = _dealingManager.RotateDealerIndex(DealerIndex, _playerManager.Players.Count);
+            DealerIndex = _playerTurnManager.RotateDealer(DealerIndex);
         }
 
         #endregion

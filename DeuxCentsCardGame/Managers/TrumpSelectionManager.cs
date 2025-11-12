@@ -1,4 +1,3 @@
-using DeuxCentsCardGame.Events;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
