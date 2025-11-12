@@ -57,7 +57,7 @@
 
 ### Gameplay Features
 7. **Player System**
-   - [ ] Implement player turn manager system to encapsulate turn rotation logic and current player management
+   - [x] Implement player turn manager system to encapsulate turn rotation logic and current player management
    - [ ] Add player types (Human vs AI) and add basic AI strategies now to prepare for eventual CPU players in Unity
    - [ ] Create base AI class for Unity adaptation
 

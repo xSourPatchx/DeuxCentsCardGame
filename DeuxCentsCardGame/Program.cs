@@ -7,6 +7,7 @@ using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Interfaces.UI;
 using DeuxCentsCardGame.Managers;
+using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.Services;
 using DeuxCentsCardGame.UI;
 using Microsoft.Extensions.Configuration;
@@ -27,6 +28,26 @@ namespace DeuxCentsCardGame
             // Setup dependency injection
             var serviceProvider = ConfigureServices(configuration);
 
+            // Configure player types (example: 2 humans vs 2 AI)
+            var playerManager = serviceProvider.GetRequiredService<IPlayerManager>() as PlayerManager;
+                        
+            // Uncomment one of these configurations:
+            
+            // All human players (default)
+            // playerManager.InitializePlayersWithTypes(
+            //     PlayerType.Human, PlayerType.Human, 
+            //     PlayerType.Human, PlayerType.Human);
+            
+            // 2 humans vs 2 AI
+            // playerManager.InitializePlayersWithTypes(
+            //     PlayerType.Human, PlayerType.AI, 
+            //     PlayerType.Human, PlayerType.AI);
+            
+            // 1 human vs 3 AI
+            // playerManager.InitializePlayersWithTypes(
+            //     PlayerType.Human, PlayerType.AI, 
+            //     PlayerType.AI, PlayerType.AI);
+
             // Get the game controller and start the game
             var game = serviceProvider.GetRequiredService<IGameController>();
             game.StartGame();
@@ -46,6 +67,7 @@ namespace DeuxCentsCardGame
             // Register services
             services.AddSingleton<IRandomService, RandomService>();
             services.AddSingleton<ICardUtility, CardUtility>();
+            // services.AddSingleton<IAIService, AIService>();
 
             // Register UI
             services.AddSingleton<IConsoleWrapper, ConsoleWrapper>();
