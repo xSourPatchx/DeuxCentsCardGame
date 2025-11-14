@@ -10,10 +10,12 @@ namespace DeuxCentsCardGame.Models
         public bool HasBet { get; set; }
         public bool HasPassed { get; set; }
         public int CurrentBid { get; set; }
+        public PlayerType PlayerType { get; set; }
 
         public Player(string name)
         {
             Name = name;
+            PlayerType = playerType;
             Hand = [];
         }
 
@@ -32,6 +34,16 @@ namespace DeuxCentsCardGame.Models
             HasBet = false;
             HasPassed = false;
             CurrentBid = 0;
+        }
+
+        public bool IsHuman()
+        {
+            return PlayerType == PlayerType.Human;
+        }
+
+        public bool IsAI()
+        {
+            return PlayerType == PlayerType.AI;
         }
     }
 }

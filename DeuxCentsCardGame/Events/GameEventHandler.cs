@@ -1,3 +1,4 @@
+using DeuxCentsCardGame.AI;
 using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.Interfaces.Events;
@@ -15,8 +16,10 @@ namespace DeuxCentsCardGame.Events
         private readonly IGameConfig _gameConfig;
         private readonly GameEventManager _eventManager;
         private readonly IUIGameView _ui;
+        private readonly IAIService _aiService;
+        private readonly AIDifficulty _defaultAIDifficulty = AIDifficulty.Medium;
 
-        public GameEventHandler(GameEventManager eventManager, IUIGameView ui, IGameConfig gameConfig, ICardUtility cardUtility)
+        public GameEventHandler(GameEventManager eventManager, IUIGameView ui, IGameConfig gameConfig, ICardUtility cardUtility, IAIService aiService, IGameConfig gameConfig)
         {
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
             _eventManager = eventManager;
