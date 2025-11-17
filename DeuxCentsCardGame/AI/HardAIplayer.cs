@@ -6,8 +6,7 @@ namespace DeuxCentsCardGame.AI
     // Hard AI - Uses advanced strategy and optimal play
     public class HardAIPlayer : BaseAIPlayer
     {
-        public HardAIPlayer(IRandomService randomService)
-        : base(randomService, AIDifficulty.Hard)
+        public HardAIPlayer(IRandomService randomService, ICardUtility cardUtility) : base(randomService, cardUtility, AIDifficulty.Hard)
         {
         }
 

@@ -4,10 +4,9 @@ using DeuxCentsCardGame.Models;
 namespace DeuxCentsCardGame.AI
 {
     // Easy AI - Makes mostly random decisions with minimal strategy
-    public class MediumAIPlayer : BaseAIPlayer
+    public class EasyAIPlayer : BaseAIPlayer
     {
-        public MediumAIPlayer(IRandomService randomService)
-            : base(randomService, AIDifficulty.Easy)
+        public EasyAIPlayer(IRandomService randomService, ICardUtility cardUtility) : base(randomService, cardUtility, AIDifficulty.Easy)
         { 
         }
 
@@ -25,7 +24,7 @@ namespace DeuxCentsCardGame.AI
         public override CardSuit SelectTrumpSuit(List<Card> hand)
         {
             // Select random suit
-            var suits = Deck.GetCardSuits();
+            var suits = _cardUtility.GetAllCardSuits();
             return suits[_randomService.Next(0, suits.Length)];
         }
 

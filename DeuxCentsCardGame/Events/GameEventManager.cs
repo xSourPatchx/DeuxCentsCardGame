@@ -241,9 +241,10 @@ namespace DeuxCentsCardGame.Events
         }
         
         // here im using event to return response, might not be used in Unity
-        public string RaiseBetInput(Player currentPlayer, int minBet, int maxBet, int betIncrement)
+        public string RaiseBetInput(Player currentPlayer, int minBet, int maxBet, int betIncrement, 
+            List<int> takenBids, int currentHighestBid)
         {
-            var args = new BetInputEventArgs(currentPlayer, minBet, maxBet, betIncrement);
+            var args = new BetInputEventArgs(currentPlayer, minBet, maxBet, betIncrement, takenBids, currentHighestBid);
             OnBetInput(args);
             return args.Response;
         }

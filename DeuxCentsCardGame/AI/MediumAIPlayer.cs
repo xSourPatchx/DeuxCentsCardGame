@@ -6,8 +6,7 @@ namespace DeuxCentsCardGame.AI
     // Medium AI - Uses basic strategy with some randomness
      public class MediumAIPlayer : BaseAIPlayer
     {
-        public MediumAIPlayer(IRandomService randomService)
-            : base(randomService, AIDifficulty.Medium)
+        public MediumAIPlayer(IRandomService randomService, ICardUtility cardUtility) : base(randomService, cardUtility, AIDifficulty.Medium)
         { 
         }
 

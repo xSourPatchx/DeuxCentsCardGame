@@ -67,7 +67,7 @@ namespace DeuxCentsCardGame
             // Register services
             services.AddSingleton<IRandomService, RandomService>();
             services.AddSingleton<ICardUtility, CardUtility>();
-            // services.AddSingleton<IAIService, AIService>();
+            services.AddSingleton<IAIService, AIService>();
 
             // Register UI
             services.AddSingleton<IConsoleWrapper, ConsoleWrapper>();

@@ -4,9 +4,9 @@ using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Models;
+using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Interfaces.UI;
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Interfaces.Services;
 
 namespace DeuxCentsCardGame.Events
 {
@@ -19,12 +19,16 @@ namespace DeuxCentsCardGame.Events
         private readonly IAIService _aiService;
         private readonly AIDifficulty _defaultAIDifficulty = AIDifficulty.Medium;
 
-        public GameEventHandler(GameEventManager eventManager, IUIGameView ui, IGameConfig gameConfig, ICardUtility cardUtility, IAIService aiService, IGameConfig gameConfig)
+        // Track current trick cards for AI decision-making
+        private List<(Card card, Player player)> _currentTrickCards = [];
+
+        public GameEventHandler(GameEventManager eventManager, IUIGameView ui, IGameConfig gameConfig, ICardUtility cardUtility, IAIService aiService)
         {
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
-            _eventManager = eventManager;
+            _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
             _ui = ui ?? throw new ArgumentNullException(nameof(ui));
-            _gameConfig = gameConfig;
+            _gameConfig = gameConfig ?? throw new ArgumentNullException(nameof(gameConfig));
+            _aiService = aiService ?? throw new ArgumentNullException(nameof(aiService));
 
             SubscribeToEvents();
         }
@@ -89,8 +93,17 @@ namespace DeuxCentsCardGame.Events
 
         public void OnDeckCutInput(object? sender, DeckCutInputEventArgs e)
         {
-            string prompt = $"{e.CuttingPlayer.Name}, where would you like to cut the deck? (enter a number between 1-{e.DeckSize - 1}):";
-            e.Response = _ui.GetIntInput(prompt, 1, e.DeckSize - 1);
+            if (e.CuttingPlayer.IsAI())
+            {
+                // AI decides where to cut
+                e.Response = new Random().Next(1, e.DeckSize - 1);
+                _ui.DisplayFormattedMessage("{0} (AI) cuts the deck at position {1}", e.CuttingPlayer.Name, e.Response);
+            }
+            else
+            {
+                string prompt = $"{e.CuttingPlayer.Name}, where would you like to cut the deck? (enter a number between 1-{e.DeckSize - 1}):";
+                e.Response = _ui.GetIntInput(prompt, 1, e.DeckSize - 1);
+            }
         }
 
         public void OnDeckCut(object? sender, DeckCutEventArgs e)
@@ -120,10 +133,34 @@ namespace DeuxCentsCardGame.Events
 
         public void OnBetInput(object? sender, BetInputEventArgs e)
         {
-            string prompt = $"{e.CurrentPlayer.Name}, enter a bet (between {e.MinimumBet}-{e.MaximumBet}, intervals of {e.BetIncrement}) or 'pass': ";
-            string betInput = _ui.GetUserInput(prompt).ToLower();
+            if (e.CurrentPlayer.IsAI())
+            {
+                // Let AI make decision
+                int aiBet = _aiService.MakeAIBettingDecision(
+                    e.CurrentPlayer, 
+                    _defaultAIDifficulty,
+                    e.MinimumBet, 
+                    e.MaximumBet, 
+                    e.BetIncrement,
+                    e.CurrentHighestBid,
+                    e.TakenBids
+                );
 
-            e.Response = betInput;
+                e.Response = aiBet == -1 ? "pass" : aiBet.ToString();
+
+                // Display AI decision
+                _ui.DisplayFormattedMessage("[AI] {0} thinking...", e.CurrentPlayer.Name);
+                _ui.DisplayFormattedMessage("[AI] {0} decision: {1}", 
+                    e.CurrentPlayer.Name, 
+                    aiBet == -1 ? "pass" : $"bet {aiBet}");
+            }
+            else
+            {
+                // Human player input
+                string prompt = $"{e.CurrentPlayer.Name}, enter a bet (between {e.MinimumBet}-{e.MaximumBet}, intervals of {e.BetIncrement}) or 'pass': ";
+                string betInput = _ui.GetUserInput(prompt).ToLower();
+                e.Response = betInput;
+            }
         }
 
         public void OnBettingAction(object? sender, BettingActionEventArgs e)
@@ -148,42 +185,91 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayMessage("\nBetting round complete.");
             DisplayBiddingResults(e.AllBids, e.WinningBidder);
             DisplayWinningBidder(e.WinningBidder, e.WinningBid);
+            
             ShowWinnerHand(e.WinningBidder);
         }
 
         public void OnTrumpSelectionInput(object? sender, TrumpSelectionInputEventArgs e)
         {
-            string[] validSuits = Enum.GetNames<CardSuit>().Select(suit => suit.ToLower()).ToArray();
-            string prompt = $"{e.SelectingPlayer.Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")";
+            if (e.SelectingPlayer.IsAI())
+            {
+                // Let AI select trump suit
+                CardSuit aiTrumpSuitChoice = _aiService.MakeAITrumpSelection(e.SelectingPlayer, _defaultAIDifficulty);
 
-            e.Response = _ui.GetOptionInput(prompt, validSuits);
+                e.Response = _cardUtility.CardSuitToString(aiTrumpSuitChoice);
+
+                _ui.DisplayFormattedMessage("[AI] {0} selecting trump...", e.SelectingPlayer.Name);
+                _ui.DisplayFormattedMessage("[AI] {0} selected {1} as trump", e.SelectingPlayer.Name, aiTrumpSuitChoice);           
+            }
+            else
+            {
+                // Human player input
+                string[] validSuits = Enum.GetNames<CardSuit>().Select(suit => suit.ToLower()).ToArray();
+                string prompt = $"{e.SelectingPlayer.Name}, please choose a trump suit. (enter \"clubs\", \"diamonds\", \"hearts\", \"spades\")";
+                e.Response = _ui.GetOptionInput(prompt, validSuits);            
+            }
         }
 
         public void OnTrumpSelected(object? sender, TrumpSelectedEventArgs e)
         {
-            _ui.DisplayFormattedMessage("\nTrump suit is {0} by {1}", e.TrumpSuit, e.SelectedBy.Name);
+            _ui.DisplayFormattedMessage("\nTrump suit is {0} by {1}\n", e.TrumpSuit, e.SelectedBy.Name);
         }
 
         public void OnPlayerTurn(object? sender, PlayerTurnEventArgs e)
         {
-            _ui.DisplayHand(e.Player);
+            // Reset trick cards if this is the first player
+            if (_currentTrickCards.Count == 0 || _currentTrickCards.Count == 4)
+            {
+                _currentTrickCards.Clear();
+            }
+
+            if (e.Player.IsHuman())
+            {
+                _ui.DisplayHand(e.Player);
+            }
+            else
+            {
+                _ui.DisplayMessage($"\n[AI] {e.Player.Name}'s turn...");
+            }
+
             DisplayTurnInformation(e.Player, e.TrickNumber, e.LeadingSuit, e.TrumpSuit);
         }
 
         public void OnCardSelectionInput(object? sender, CardSelectionInputEventArgs e)
         {
-            string leadingSuitString = e.LeadingSuit.HasValue ? _cardUtility.CardSuitToString(e.LeadingSuit.Value) : "none";
-            string trumpSuitString = e.TrumpSuit.HasValue ? _cardUtility.CardSuitToString(e.TrumpSuit.Value) : "none";
+            if (e.CurrentPlayer.IsAI())
+            {
+                // Let AI choose card
+                int aiCardIndex = _aiService.MakeAICardSelection(
+                    e.CurrentPlayer, 
+                    _defaultAIDifficulty,
+                    e.LeadingSuit,
+                    e.TrumpSuit,
+                    _currentTrickCards
+                );
 
-            string prompt = $"{e.CurrentPlayer.Name}, choose a card to play (enter index 0-{e.Hand.Count - 1}" +
-                (e.LeadingSuit.HasValue ? $", leading suit is {leadingSuitString}" : "") +
-                $" and trump suit is {trumpSuitString}):";
+                e.Response = aiCardIndex;
 
-            e.Response = _ui.GetIntInput(prompt, 0, e.Hand.Count - 1);
+                _ui.DisplayFormattedMessage("[AI] {0} is selecting card...", e.CurrentPlayer.Name);
+            }
+            else
+            {
+                // Human player input
+                string leadingSuitString = e.LeadingSuit.HasValue ? _cardUtility.CardSuitToString(e.LeadingSuit.Value) : "none";
+                string trumpSuitString = e.TrumpSuit.HasValue ? _cardUtility.CardSuitToString(e.TrumpSuit.Value) : "none";
+
+                string prompt = $"{e.CurrentPlayer.Name}, choose a card to play (enter index 0-{e.Hand.Count - 1}" +
+                    (e.LeadingSuit.HasValue ? $", leading suit is {leadingSuitString}" : "") +
+                    $" and trump suit is {trumpSuitString}):";
+
+                e.Response = _ui.GetIntInput(prompt, 0, e.Hand.Count - 1);
+            }
         }
 
         public void OnCardPlayed(object? sender, CardPlayedEventArgs e)
         {
+            // Track current trick cards for AI decision-making
+            _currentTrickCards.Add((e.Card, e.Player));
             _ui.DisplayFormattedMessage("{0} played {1} in trick {2}\n", e.Player.Name, e.Card, e.TrickNumber + 1);
         }
 
@@ -192,6 +278,9 @@ namespace DeuxCentsCardGame.Events
             _ui.DisplayFormattedMessage("\nTrick #{0} complete.", e.TrickNumber + 1);
             DisplayPlayedCards(e.PlayedCards);
             DisplayTrickWinner(e.WinningPlayer, e.WinningCard, e.TrickPoints);
+
+            // Clear current trick cards for next trick
+            _currentTrickCards.Clear();
         }
 
         public void OnTrickPointsAwarded(object? sender, TrickPointsAwardedEventArgs e)
@@ -229,6 +318,7 @@ namespace DeuxCentsCardGame.Events
             _ui.WaitForUser("\nPress any key to start the next round...");
         }
 
+        // Helper methods for formatting and displaying information
         private string FormatMoveTypeText(InvalidMoveType moveType)
         {
             return moveType switch

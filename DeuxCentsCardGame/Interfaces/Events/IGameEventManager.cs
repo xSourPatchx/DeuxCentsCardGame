@@ -22,7 +22,7 @@ namespace DeuxCentsCardGame.Interfaces.Events
 
         // Betting events
         void RaiseBettingRoundStarted(string message);
-        string RaiseBetInput(Player currentPlayer, int minBet, int maxBet, int betIncrement);
+        string RaiseBetInput(Player currentPlayer, int minBet, int maxBet, int betIncrement, List<int> takenBids, int currentHighestBid);
         void RaiseBettingAction(Player player, int bet, bool hasPassed = false, bool hasBet = false);
         void RaiseBettingCompleted(Player winningBidder, int winningBid, Dictionary<Player, int> allBids);
 

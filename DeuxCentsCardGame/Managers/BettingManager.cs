@@ -111,11 +111,27 @@ namespace DeuxCentsCardGame.Managers
 
         private string RequestBetInput(int playerIndex)
         {
+            // Get list of already taken bids
+            var takenBids = _players
+            .Where(p => p.CurrentBid > 0)
+            .Select(p => p.CurrentBid)
+            .ToList();
+
+            // Get current highest bid
+            int currentHighestBid = _players
+                .Where(p => p.CurrentBid > 0)
+                .Select(p => p.CurrentBid)
+                .DefaultIfEmpty(0)
+                .Max();
+
+            // Raise event with enhanced information for AI
             return _eventManager.RaiseBetInput(
-                                _players[playerIndex],
-                                _gameConfig.MinimumBet,
-                                _gameConfig.MaximumBet,
-                                _gameConfig.BetIncrement
+                _players[playerIndex],
+                _gameConfig.MinimumBet,
+                _gameConfig.MaximumBet,
+                _gameConfig.BetIncrement,
+                takenBids,
+                currentHighestBid
             );
         }
 

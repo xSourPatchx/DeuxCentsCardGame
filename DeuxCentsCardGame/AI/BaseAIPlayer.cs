@@ -7,11 +7,13 @@ namespace DeuxCentsCardGame.AI
     public abstract class BaseAIPlayer : IAIPlayer
     {
         protected readonly IRandomService _randomService;
+        protected readonly ICardUtility _cardUtility;
         protected readonly AIDifficulty _difficulty;
 
-        protected BaseAIPlayer(IRandomService randomService, AIDifficulty difficulty)
+        protected BaseAIPlayer(IRandomService randomService, ICardUtility cardUtility, AIDifficulty difficulty)
         {
             _randomService = randomService ?? throw new ArgumentNullException(nameof(randomService));
+            _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
             _difficulty = difficulty;
         }
 

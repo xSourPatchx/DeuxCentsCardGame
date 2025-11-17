@@ -8,19 +8,21 @@ namespace DeuxCentsCardGame.Services
     public class AIService : IAIService
     {
         private readonly IRandomService _randomService;
+        private readonly ICardUtility _cardUtility;
         private readonly Dictionary<AIDifficulty, IAIPlayer> _aiPlayers;
 
 
-        public AIService(IRandomService randomService)
+        public AIService(IRandomService randomService, ICardUtility cardUtility)
         {
             _randomService = randomService ?? throw new ArgumentNullException(nameof(randomService));
+            _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
             
             // Initialize AI players for each difficulty
             _aiPlayers = new Dictionary<AIDifficulty, IAIPlayer>
             {
-                { AIDifficulty.Easy, new EasyAIPlayer(_randomService) },
-                { AIDifficulty.Medium, new MediumAIPlayer(_randomService) },
-                { AIDifficulty.Hard, new HardAIPlayer(_randomService) }
+                { AIDifficulty.Easy, new EasyAIPlayer(_randomService, _cardUtility) },
+                { AIDifficulty.Medium, new MediumAIPlayer(_randomService, _cardUtility) },
+                { AIDifficulty.Hard, new HardAIPlayer(_randomService, _cardUtility) }
             };
         }
 

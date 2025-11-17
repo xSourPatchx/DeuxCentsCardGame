@@ -12,7 +12,7 @@ namespace DeuxCentsCardGame.Models
         public int CurrentBid { get; set; }
         public PlayerType PlayerType { get; set; }
 
-        public Player(string name)
+        public Player(string name, PlayerType playerType = PlayerType.Human)
         {
             Name = name;
             PlayerType = playerType;
