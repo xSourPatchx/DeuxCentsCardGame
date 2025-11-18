@@ -43,10 +43,10 @@
    - [ ] Consider adding a `DeckBuilder` pattern for custom decks
 
 3. **Game State Management**
-   - [ ] Implement a state machine pattern for game flow (e.g., `GameState` enum with transitions)
-   - [ ] Create separate classes for different game states (`StartState`, `DealState`, `PlayState`, `EndState`, `BettingState`, `PlayingState`, etc.) to control flow
+   - [x] Implement a state machine pattern for game flow (e.g., `GameState` enum with transitions)
+   - [x] Create separate classes for different game states (`StartState`, `DealState`, `PlayState`, `EndState`, `BettingState`, `PlayingState`, etc.) to control flow
    - [x] Use events for game state changes (e.g., `OnCardPlayed`, `OnGameOver`, `OnRoundStarted`, `OnTrickCompleted`) for a decoupled design
-   - [ ] Add events for TrickStartedEventArgs,DealerRotatedEventArgs, GameStateChangedEventArgs, BetRaisedEventArgs, LeadingSuitEstablishedEventArgs, PlayerConnectionEventArgs, HandUpdatedArgs, Game state changes.
+   - [ ] Add events for TrickStartedEventArgs, DealerRotatedEventArgs, GameStateChangedEventArgs, BetRaisedEventArgs, LeadingSuitEstablishedEventArgs, PlayerConnectionEventArgs, HandUpdatedArgs, Game state changes.
    - [ ] Support saving and loading Game State by serializing the current game state to JSON to persist or debug state easily
 
 ### Architecture Improvements
@@ -58,20 +58,20 @@
    - [ ] Ensure logic and view are completely decoupled. Core classes should never call `Console.WriteLine`
 
 5. **Configuration**
-   - [ ] Move game constants to config files (appsettings.json)
-   - [ ] Create a `GameSettings` or `GameConfig` class to hold configuration
+   - [x] Move game constants to config files (appsettings.json)
+   - [x] Create a `GameSettings` or `GameConfig` class to hold configuration
    - [ ] Implement hot-reload for configuration changes
 
 6. **Abstraction of All I/O and UI Calls**
    - [ ] Create a proper `IGameView` interface for UI to easily swap `Console` view with Unity view
-   - [ ] Separate game logic from console-specific UI concerns
+   - [x] Separate game logic from console-specific UI concerns
    - [ ] Prepare for Unity UI by making rendering abstract
 
 
 ### Gameplay Features
 7. **Player System**
-   - [ ] Implement player turn manager system to encapsulate turn rotation logic and current player management
-   - [ ] Add player types (Human vs AI) and add basic AI strategies now to prepare for eventual CPU players in Unity
+   - [x] Implement player turn manager system to encapsulate turn rotation logic and current player management
+   - [x] Add player types (Human vs AI) and add basic AI strategies now to prepare for eventual CPU players in Unity
    - [ ] Create base AI class for Unity adaptation
 
 8. **Scoring System**
@@ -87,9 +87,9 @@
 
 ### Unity Preparation
 10. **Unity-Friendly Patterns**
-    - [ ] Make all game objects serializable by marking key classes with `[Serializable]` so Unity can handle them in the editor/inspector
+    - [x] Make all game objects serializable by marking key classes with `[Serializable]` so Unity can handle them in the editor/inspector
     - [ ] Use events for UI updates instead of direct calls
-    - [ ] Minimize static references to favor instance-based architecture for Unity compatibility and testability
+    - [x] Minimize static references to favor instance-based architecture for Unity compatibility and testability
     - [ ] Separate game simulation from rendering, since logic happens in `Update`, rendering in UI
     - [ ] Create MonoBehaviour wrappers for core classes
 

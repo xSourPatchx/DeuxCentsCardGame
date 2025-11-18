@@ -34,19 +34,13 @@ namespace DeuxCentsCardGame
             // Uncomment one of these configurations:
             
             // All human players (default)
-            // playerManager.InitializePlayersWithTypes(
-            //     PlayerType.Human, PlayerType.Human, 
-            //     PlayerType.Human, PlayerType.Human);
+            // playerManager.InitializePlayersWithTypes(PlayerType.Human, PlayerType.Human, PlayerType.Human, PlayerType.Human);
             
             // 2 humans vs 2 AI
-            // playerManager.InitializePlayersWithTypes(
-            //     PlayerType.Human, PlayerType.AI, 
-            //     PlayerType.Human, PlayerType.AI);
+            playerManager.InitializePlayersWithTypes(PlayerType.Human, PlayerType.AI, PlayerType.Human, PlayerType.AI);
             
             // 1 human vs 3 AI
-            // playerManager.InitializePlayersWithTypes(
-            //     PlayerType.Human, PlayerType.AI, 
-            //     PlayerType.AI, PlayerType.AI);
+            // playerManager.InitializePlayersWithTypes(PlayerType.Human, PlayerType.AI, PlayerType.AI, PlayerType.AI);
 
             // Get the game controller and start the game
             var game = serviceProvider.GetRequiredService<IGameController>();

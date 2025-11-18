@@ -32,9 +32,9 @@
    - [ ] Consider adding a `DeckBuilder` pattern for custom decks
 
 3. **Game State Management**
-   - [ ] Implement a state machine pattern for game flow (e.g., `GameState` enum with transitions)    
-   - [ ] Create separate classes for different game states (`StartState`, `DealState`, `PlayState`, `EndState`, `BettingState`, `PlayingState`, etc.) to control flow
-   - [ ] Add events for TrickStartedEventArgs,DealerRotatedEventArgs, GameStateChangedEventArgs, BetRaisedEventArgs, LeadingSuitEstablishedEventArgs, PlayerConnectionEventArgs, HandUpdatedArgs, Game state changes.
+   - [x] Implement a state machine pattern for game flow (e.g., `GameState` enum with transitions)    
+   - [x] Create separate classes for different game states (`StartState`, `DealState`, `PlayState`, `EndState`, `BettingState`, `PlayingState`, etc.) to control flow
+   - [ ] Add events for TrickStartedEventArgs, DealerRotatedEventArgs, GameStateChangedEventArgs, BetRaisedEventArgs, LeadingSuitEstablishedEventArgs, PlayerConnectionEventArgs, HandUpdatedArgs, Game state changes.
    - [ ] Support saving and loading Game State by serializing the current game state to JSON to persist or debug state easily
 
 ### Architecture Improvements
@@ -58,7 +58,7 @@
 ### Gameplay Features
 7. **Player System**
    - [x] Implement player turn manager system to encapsulate turn rotation logic and current player management
-   - [ ] Add player types (Human vs AI) and add basic AI strategies now to prepare for eventual CPU players in Unity
+   - [x] Add player types (Human vs AI) and add basic AI strategies now to prepare for eventual CPU players in Unity
    - [ ] Create base AI class for Unity adaptation
 
 8. **Scoring System**
@@ -76,7 +76,7 @@
 10. **Unity-Friendly Patterns**
     - [x] Make all game objects serializable by marking key classes with `[Serializable]` so Unity can handle them in the editor/inspector
     - [x] Use events for UI updates instead of direct calls
-    - [ ] Minimize static references to favor instance-based architecture for Unity compatibility and testability
+    - [x] Minimize static references to favor instance-based architecture for Unity compatibility and testability
       - [ ] IUIGameView.DisplayAllHands() takes List<IPlayer>: `void DisplayAllHands(List<IPlayer> players, int dealerIndex);`. For Unity, you might want to just raise an event instead: Add to IGameEventManager `void RaiseAllHandsDisplay(List<Player> players, int dealerIndex);`. Then Unity can subscribe and decide how to render (3D card models, 2D sprites, etc.)
     - [ ] Separate game simulation from rendering, since logic happens in `Update`, rendering in UI
     - [ ] Create MonoBehaviour wrappers for core classes

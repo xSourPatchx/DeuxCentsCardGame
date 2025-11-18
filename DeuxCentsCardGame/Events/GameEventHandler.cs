@@ -135,6 +135,12 @@ namespace DeuxCentsCardGame.Events
         {
             if (e.CurrentPlayer.IsAI())
             {
+                // Debug output - remove after testing
+                _ui.DisplayFormattedMessage("[DEBUG] Taken bids: {0}",
+                    string.Join(", ", e.TakenBids));
+                _ui.DisplayFormattedMessage("[DEBUG] Current highest bid: {0}",
+                    e.CurrentHighestBid);
+
                 // Let AI make decision
                 int aiBet = _aiService.MakeAIBettingDecision(
                     e.CurrentPlayer, 

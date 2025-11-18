@@ -113,16 +113,12 @@ namespace DeuxCentsCardGame.Managers
         {
             // Get list of already taken bids
             var takenBids = _players
-            .Where(p => p.CurrentBid > 0)
+            .Where(p => p.CurrentBid > 0 && !p.HasPassed)
             .Select(p => p.CurrentBid)
             .ToList();
 
             // Get current highest bid
-            int currentHighestBid = _players
-                .Where(p => p.CurrentBid > 0)
-                .Select(p => p.CurrentBid)
-                .DefaultIfEmpty(0)
-                .Max();
+            int currentHighestBid = takenBids.Any() ? takenBids.Max() : 0;
 
             // Raise event with enhanced information for AI
             return _eventManager.RaiseBetInput(
