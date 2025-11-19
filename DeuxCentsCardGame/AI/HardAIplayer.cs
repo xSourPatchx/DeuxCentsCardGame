@@ -40,7 +40,7 @@ namespace DeuxCentsCardGame.AI
             var availableBets = new List<int>();
             for (int bet = minBet; bet <= maxBet; bet += betIncrement)
             {
-                if (!takenBids.Contains(bet) && bet >= currentHighestBid + betIncrement)
+                if (!takenBids.Contains(bet) && bet > currentHighestBid)
                     availableBets.Add(bet);
             }
 

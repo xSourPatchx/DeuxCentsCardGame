@@ -1,12 +1,12 @@
 ### **Master TODO**
 1. **Refactoring**
-   - [ ] Simplify Complex Methods and break down large methods into smaller, focused ones: 
-       - [ ] `UpdateTeamPoints`: Extract team logic into helper methods.
+   - [x] Simplify Complex Methods and break down large methods into smaller, focused ones: 
+       - [x] `UpdateTeamPoints`: Extract team logic into helper methods.
    - [ ] Consider adding GetValidCards Helper Method, could be useful for Unity implementation where you might want to highlight valid cards in the UI.
    - [ ] Add supporting helper classes to separated concerns, such as BettingAction, BetValidationResult and BettingActionType. Have in seperate .cs class file, view helperclassesexample.cs.
    - [ ] Do the same as above point, but in the Game.cs class.
    - [ ] Improve Team Logic by creating proper team management system with Team enum with `TeamHelper` class with `GetPlayerTeam`  and `GetTeamPlayerIndices` methods.
-   - [ ] Review files organization structure and class names
+   - [x] Review files organization structure and class names
    
    **(For later)**
    - [ ] Extract Game Data from Game Logic by creating separate `GameData` class to hold state that Unity can serialize: DealerIndex, WinningBidIndex, WinningBid, TrumpSuit, TeamOneTotalPoints, TeamTwoTotalPoints, other state data
