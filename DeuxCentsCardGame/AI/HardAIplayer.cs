@@ -1,3 +1,4 @@
+using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
 
@@ -6,8 +7,11 @@ namespace DeuxCentsCardGame.AI
     // Hard AI - Uses advanced strategy and optimal play
     public class HardAIPlayer : BaseAIPlayer
     {
-        public HardAIPlayer(IRandomService randomService, ICardUtility cardUtility) : base(randomService, cardUtility, AIDifficulty.Hard)
+        private readonly CardComparer _cardComparer;
+
+        public HardAIPlayer(IRandomService randomService, ICardUtility cardUtility, CardComparer cardComparer) : base(randomService, cardUtility, AIDifficulty.Hard)
         {
+            _cardComparer = cardComparer ?? throw new ArgumentNullException(nameof(cardComparer));
         }
 
         public override int DecideBet(List<Card> hand, int minBet, int maxBet, int betIncrement, 
@@ -154,7 +158,7 @@ namespace DeuxCentsCardGame.AI
             if (trickValue >= 10)
             {
                 var winningCards = playableCards
-                    .Where(c => c.WinsAgainst(currentWinningCard, trumpSuit, leadingSuit))
+                    .Where(c => _cardComparer.WinsAgainst(c, currentWinningCard, trumpSuit, leadingSuit))
                     .OrderBy(c => c.CardFaceValue)
                     .ToList();
                 
@@ -186,7 +190,7 @@ namespace DeuxCentsCardGame.AI
             if (trickValue >= 10)
             {
                 var winningCards = playableCards
-                    .Where(c => c.WinsAgainst(currentWinningCard, trumpSuit, leadingSuit))
+                    .Where(c => _cardComparer.WinsAgainst(c, currentWinningCard, trumpSuit, leadingSuit))
                     .OrderBy(c => c.CardFaceValue)
                     .ToList();
                 
@@ -206,7 +210,7 @@ namespace DeuxCentsCardGame.AI
             
             for (int i = 1; i < cardsPlayed.Count; i++)
             {
-                if (cardsPlayed[i].card.WinsAgainst(winningCard, trumpSuit, leadingSuit))
+                if (_cardComparer.WinsAgainst(cardsPlayed[i].card, winningCard, trumpSuit, leadingSuit))
                 {
                     winningCard = cardsPlayed[i].card;
                 }

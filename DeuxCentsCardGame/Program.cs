@@ -1,5 +1,6 @@
 ﻿using DeuxCentsCardGame.Controllers;
 using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
@@ -10,6 +11,7 @@ using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.Services;
 using DeuxCentsCardGame.UI;
+using DeuxCentsCardGame.Validators;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -61,6 +63,12 @@ namespace DeuxCentsCardGame
             // Register services
             services.AddSingleton<IRandomService, RandomService>();
             services.AddSingleton<ICardUtility, CardUtility>();
+
+            // Register card logic components
+            services.AddSingleton<CardValidator>();
+            services.AddSingleton<CardComparer>();
+
+            // Register AI service
             services.AddSingleton<IAIService, AIService>();
 
             // Register UI

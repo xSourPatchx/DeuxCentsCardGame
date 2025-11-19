@@ -1,11 +1,13 @@
 using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.GameStates;
+using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Validators;
 
 namespace DeuxCentsCardGame.Controllers
 {
@@ -18,6 +20,10 @@ namespace DeuxCentsCardGame.Controllers
         // State management
         private readonly GameStateData _gameStateData;
         private readonly Dictionary<GameState, Action> _gameStateHandlers;
+
+        // Card logic dependencies
+        private readonly CardComparer _cardComparer;
+        private readonly CardValidator _cardValidator;
 
         // Manager dependencies injected as interfaces
         private readonly IGameConfig _gameConfig;
@@ -48,11 +54,17 @@ namespace DeuxCentsCardGame.Controllers
             ITrumpSelectionManager trumpSelectionManager,
             IScoringManager scoringManager,
             IGameEventManager eventManager,
-            IGameEventHandler eventHandler)
+            IGameEventHandler eventHandler,
+            CardValidator cardValidator,
+            CardComparer cardComparer)
         {
             // Initialize configs and utilities
             _gameConfig = gameConfig ?? throw new ArgumentNullException(nameof(gameConfig));
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
+
+            // Initialize card logic components
+            _cardValidator = cardValidator ?? throw new ArgumentNullException(nameof(cardValidator));
+            _cardComparer = cardComparer ?? throw new ArgumentNullException(nameof(cardComparer));
 
             // Initialize managers
             _playerManager = playerManager ?? throw new ArgumentNullException(nameof(playerManager));
@@ -434,7 +446,7 @@ namespace DeuxCentsCardGame.Controllers
 
         private bool IsCardValid(Card selectedCard, CardSuit? leadingSuit, List<Card> hand)
         {
-            return selectedCard.IsPlayableCard(leadingSuit, hand);
+            return _cardValidator.IsPlayableCard(selectedCard, leadingSuit, hand);
         }
 
         private void DisplayInvalidCardMessage(Player currentPlayer, CardSuit? leadingSuit)
@@ -456,7 +468,7 @@ namespace DeuxCentsCardGame.Controllers
 
             for (int i = 1; i < trick.Count; i++)
             {
-                if (trick[i].card.WinsAgainst(trickWinner.card, _trumpSuit, leadingSuit))
+                if (_cardComparer.WinsAgainst(trick[i].card, trickWinner.card, _trumpSuit, leadingSuit))
                 {
                     trickWinner = trick[i];
                 }

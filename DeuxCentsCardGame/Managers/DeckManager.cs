@@ -2,6 +2,7 @@ using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Validators;
 
 namespace DeuxCentsCardGame.Managers
 {
@@ -10,6 +11,7 @@ namespace DeuxCentsCardGame.Managers
         private readonly IGameEventManager _eventManager;
         private readonly IRandomService _randomService;
         private readonly ICardUtility _cardUtility;
+        private readonly CardValidator _cardValidator;
         private Deck _currentDeck;
 
         public Deck CurrentDeck 
@@ -17,17 +19,18 @@ namespace DeuxCentsCardGame.Managers
             get { return _currentDeck; } 
         }
 
-        public DeckManager(IGameEventManager eventManager, IRandomService randomService, ICardUtility cardUtility)
+        public DeckManager(IGameEventManager eventManager, IRandomService randomService, ICardUtility cardUtility, CardValidator cardValidator)
         {
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
             _randomService = randomService ?? throw new ArgumentNullException(nameof(randomService));
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
-            _currentDeck = new Deck(_cardUtility);
+            _cardValidator = cardValidator ?? throw new ArgumentNullException(nameof(cardValidator));
+            _currentDeck = new Deck(_cardUtility, _cardValidator);
         }
 
         public void ResetDeck()
         { 
-            _currentDeck = new Deck(_cardUtility);
+            _currentDeck = new Deck(_cardUtility, _cardValidator);
         }
 
         public void ShuffleDeck()

@@ -1,13 +1,17 @@
+using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.AI
 {
     // Medium AI - Uses basic strategy with some randomness
-     public class MediumAIPlayer : BaseAIPlayer
+    public class MediumAIPlayer : BaseAIPlayer
     {
-        public MediumAIPlayer(IRandomService randomService, ICardUtility cardUtility) : base(randomService, cardUtility, AIDifficulty.Medium)
-        { 
+        private readonly CardComparer _cardComparer;
+        
+        public MediumAIPlayer(IRandomService randomService, ICardUtility cardUtility, CardComparer cardComparer) : base(randomService, cardUtility, AIDifficulty.Medium)
+        {
+            _cardComparer = cardComparer ?? throw new ArgumentNullException(nameof(cardComparer));
         }
 
         public override int DecideBet(List<Card> hand, int minBet, int maxBet, int betIncrement,
@@ -71,7 +75,7 @@ namespace DeuxCentsCardGame.AI
             
             // Try to win with lowest card possible
             var winningCards = playableCards
-                .Where(c => c.WinsAgainst(currentWinningCard, trumpSuit, leadingSuit))
+                .Where(c => _cardComparer.WinsAgainst(c, currentWinningCard, trumpSuit, leadingSuit))
                 .OrderBy(c => c.CardFaceValue)
                 .ToList();
 
@@ -96,7 +100,7 @@ namespace DeuxCentsCardGame.AI
         
         for (int i = 1; i < cardsPlayed.Count; i++)
         {
-            if (cardsPlayed[i].card.WinsAgainst(winningCard, trumpSuit, leadingSuit))
+            if (_cardComparer.WinsAgainst(cardsPlayed[i].card, winningCard, trumpSuit, leadingSuit))
             {
                 winningCard = cardsPlayed[i].card;
             }
