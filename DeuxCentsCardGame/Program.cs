@@ -120,10 +120,10 @@ namespace DeuxCentsCardGame
             });
 
             // Register orchestrators
-            services.AddSingleton<RoundOrchestrator>(sp =>
+            services.AddSingleton<RoundController>(sp =>
             {
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
-                return new RoundOrchestrator(
+                return new RoundController(
                     sp.GetRequiredService<IGameEventManager>(),
                     sp.GetRequiredService<IPlayerManager>(),
                     sp.GetRequiredService<IPlayerTurnManager>(),
@@ -134,7 +134,7 @@ namespace DeuxCentsCardGame
                     sp.GetRequiredService<IScoringManager>(),
                     gameConfig.InitialDealerIndex);
             });
-            services.AddSingleton<TrickOrchestrator>();
+            services.AddSingleton<TrickController>();
 
             // Register controller
             services.AddSingleton<IGameController, GameController>();

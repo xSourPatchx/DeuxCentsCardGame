@@ -2,9 +2,9 @@ using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 
-namespace DeuxCentsCardGame.Orchestrators
+namespace DeuxCentsCardGame.Controllers
 {
-    public class RoundOrchestrator
+    public class RoundController
     {
         private readonly IGameEventManager _eventManager;
         private readonly IPlayerManager _playerManager;
@@ -18,7 +18,7 @@ namespace DeuxCentsCardGame.Orchestrators
         public int DealerIndex { get; private set; }
         public CardSuit? TrumpSuit { get; private set; }
 
-        public RoundOrchestrator(
+        public RoundController(
             IGameEventManager eventManager,
             IPlayerManager playerManager,
             IPlayerTurnManager playerTurnManager,

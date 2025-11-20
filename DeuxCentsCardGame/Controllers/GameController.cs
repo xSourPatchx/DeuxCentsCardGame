@@ -2,7 +2,6 @@ using DeuxCentsCardGame.GameStates;
 using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
-using DeuxCentsCardGame.Orchestrators;
 
 namespace DeuxCentsCardGame.Controllers
 {
@@ -15,9 +14,9 @@ namespace DeuxCentsCardGame.Controllers
         private readonly GameStateData _gameStateData;
         private readonly Dictionary<GameState, Action> _gameStateHandlers;
 
-        // Orchestrators
-        private readonly RoundOrchestrator _roundOrchestrator;
-        private readonly TrickOrchestrator _trickOrchestrator;
+        // Controllers
+        private readonly RoundController _roundController;
+        private readonly TrickController _trickController;
         private readonly IScoringManager _scoringManager;
 
         // Dealer starts at player 4 (index 3)
@@ -28,15 +27,15 @@ namespace DeuxCentsCardGame.Controllers
         private readonly IGameEventHandler _eventHandler;
 
         public GameController(
-            RoundOrchestrator roundOrchestrator,
-            TrickOrchestrator trickOrchestrator,
+            RoundController roundController,
+            TrickController trickController,
             IScoringManager scoringManager,
             IGameEventManager eventManager,
             IGameEventHandler eventHandler)
         {
-            // Initialize orchestrators
-            _roundOrchestrator = roundOrchestrator ?? throw new ArgumentNullException(nameof(roundOrchestrator));
-            _trickOrchestrator = trickOrchestrator ?? throw new ArgumentNullException(nameof(trickOrchestrator));
+            // Initialize Controllers
+            _roundController = roundController ?? throw new ArgumentNullException(nameof(roundController));
+            _trickController = trickController ?? throw new ArgumentNullException(nameof(trickController));
             _scoringManager = scoringManager ?? throw new ArgumentNullException(nameof(scoringManager));
 
             // Initialize events
@@ -162,7 +161,7 @@ namespace DeuxCentsCardGame.Controllers
         private void HandleRoundStart()
         {
             _gameStateData.CurrentRound = _currentRoundNumber;
-            _roundOrchestrator.InitializeRound(_currentRoundNumber);
+            _roundController.InitializeRound(_currentRoundNumber);
 
             // Move to deck preparation
             TransitionToState(GameState.DeckPreparation);
@@ -170,7 +169,7 @@ namespace DeuxCentsCardGame.Controllers
 
         private void HandleDeckPreparation()
         {
-            _roundOrchestrator.PrepareRound();
+            _roundController.PrepareRound();
 
             // Move to betting phase
             TransitionToState(GameState.Betting);
@@ -178,7 +177,7 @@ namespace DeuxCentsCardGame.Controllers
 
         private void HandleBetting()
         {
-            _roundOrchestrator.ExecuteBettingPhase();
+            _roundController.ExecuteBettingPhase();
 
             // Move to trump selection
             TransitionToState(GameState.TrumpSelection);
@@ -186,7 +185,7 @@ namespace DeuxCentsCardGame.Controllers
 
         private void HandleTrumpSelection()
         {
-            _roundOrchestrator.SelectTrump();
+            _roundController.SelectTrump();
 
             // Reset trick counter for new round
             _gameStateData.CurrentTrick = 0;
@@ -197,8 +196,8 @@ namespace DeuxCentsCardGame.Controllers
 
         private void HandlePlaying()
         {
-            int startingPlayerIndex = _roundOrchestrator.GetStartingPlayerIndex();
-            _trickOrchestrator.PlayAllTricks(startingPlayerIndex, _roundOrchestrator.TrumpSuit);
+            int startingPlayerIndex = _roundController.GetStartingPlayerIndex();
+            _trickController.PlayAllTricks(startingPlayerIndex, _roundController.TrumpSuit);
 
             // Move to round end
             TransitionToState(GameState.RoundEnd);
@@ -206,7 +205,7 @@ namespace DeuxCentsCardGame.Controllers
 
         private void HandleRoundEnd()
         {
-            _roundOrchestrator.FinalizeRound(_currentRoundNumber);
+            _roundController.FinalizeRound(_currentRoundNumber);
 
             // Check for game over
             if (_scoringManager.IsGameOver())

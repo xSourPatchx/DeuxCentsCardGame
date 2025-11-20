@@ -4,9 +4,9 @@ using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.Validators;
 
-namespace DeuxCentsCardGame.Orchestrators
+namespace DeuxCentsCardGame.Controllers
 {
-    public class TrickOrchestrator
+    public class TrickController
     {
         private readonly IGameEventManager _eventManager;
         private readonly IPlayerManager _playerManager;
@@ -15,7 +15,7 @@ namespace DeuxCentsCardGame.Orchestrators
         private readonly CardComparer _cardComparer;
         private readonly CardPlayValidator _cardPlayValidator;
 
-        public TrickOrchestrator(
+        public TrickController(
             IGameEventManager eventManager,
             IPlayerManager playerManager,
             IPlayerTurnManager playerTurnManager,
