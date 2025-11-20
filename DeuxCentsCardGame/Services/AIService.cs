@@ -10,11 +10,11 @@ namespace DeuxCentsCardGame.Services
     {
         private readonly IRandomService _randomService;
         private readonly ICardUtility _cardUtility;
-        private readonly CardComparer _cardComparer;
+        private readonly CardLogic _cardComparer;
         private readonly Dictionary<AIDifficulty, IAIPlayer> _aiPlayers;
 
 
-        public AIService(IRandomService randomService, ICardUtility cardUtility, CardComparer cardComparer)
+        public AIService(IRandomService randomService, ICardUtility cardUtility, CardLogic cardComparer)
         {
             _randomService = randomService ?? throw new ArgumentNullException(nameof(randomService));
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));

@@ -7,9 +7,9 @@ namespace DeuxCentsCardGame.AI
     // Hard AI - Uses advanced strategy and optimal play
     public class HardAIPlayer : BaseAIPlayer
     {
-        private readonly CardComparer _cardComparer;
+        private readonly CardLogic _cardComparer;
 
-        public HardAIPlayer(IRandomService randomService, ICardUtility cardUtility, CardComparer cardComparer) : base(randomService, cardUtility, AIDifficulty.Hard)
+        public HardAIPlayer(IRandomService randomService, ICardUtility cardUtility, CardLogic cardComparer) : base(randomService, cardUtility, AIDifficulty.Hard)
         {
             _cardComparer = cardComparer ?? throw new ArgumentNullException(nameof(cardComparer));
         }

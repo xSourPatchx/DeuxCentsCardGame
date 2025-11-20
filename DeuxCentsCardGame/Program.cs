@@ -9,7 +9,6 @@ using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Interfaces.UI;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Orchestrators;
 using DeuxCentsCardGame.Services;
 using DeuxCentsCardGame.UI;
 using DeuxCentsCardGame.Validators;
@@ -66,7 +65,7 @@ namespace DeuxCentsCardGame
             services.AddSingleton<ICardUtility, CardUtility>();
 
             // Register card logic components
-            services.AddSingleton<CardComparer>();
+            services.AddSingleton<CardLogic>();
 
             // Register validators
             services.AddSingleton<CardValidator>();
