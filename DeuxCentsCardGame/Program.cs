@@ -9,6 +9,7 @@ using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Interfaces.UI;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Orchestrators;
 using DeuxCentsCardGame.Services;
 using DeuxCentsCardGame.UI;
 using DeuxCentsCardGame.Validators;
@@ -65,8 +66,11 @@ namespace DeuxCentsCardGame
             services.AddSingleton<ICardUtility, CardUtility>();
 
             // Register card logic components
-            services.AddSingleton<CardValidator>();
             services.AddSingleton<CardComparer>();
+
+            // Register validators
+            services.AddSingleton<CardValidator>();
+            services.AddSingleton<CardPlayValidator>();
 
             // Register AI service
             services.AddSingleton<IAIService, AIService>();
@@ -114,6 +118,23 @@ namespace DeuxCentsCardGame
                     teamManager,
                     gameConfig);
             });
+
+            // Register orchestrators
+            services.AddSingleton<RoundOrchestrator>(sp =>
+            {
+                var gameConfig = sp.GetRequiredService<IGameConfig>();
+                return new RoundOrchestrator(
+                    sp.GetRequiredService<IGameEventManager>(),
+                    sp.GetRequiredService<IPlayerManager>(),
+                    sp.GetRequiredService<IPlayerTurnManager>(),
+                    sp.GetRequiredService<IDeckManager>(),
+                    sp.GetRequiredService<IDealingManager>(),
+                    sp.GetRequiredService<IBettingManager>(),
+                    sp.GetRequiredService<ITrumpSelectionManager>(),
+                    sp.GetRequiredService<IScoringManager>(),
+                    gameConfig.InitialDealerIndex);
+            });
+            services.AddSingleton<TrickOrchestrator>();
 
             // Register controller
             services.AddSingleton<IGameController, GameController>();
