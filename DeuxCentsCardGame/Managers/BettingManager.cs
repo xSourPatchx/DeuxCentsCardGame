@@ -1,8 +1,10 @@
 using DeuxCentsCardGame.Events.EventArgs;
+using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Validators;
 
 namespace DeuxCentsCardGame.Managers
 {
@@ -13,18 +15,28 @@ namespace DeuxCentsCardGame.Managers
         public int CurrentWinningBidIndex { get; set; }
         public bool IsBettingRoundComplete { get; private set; }
 
-        // Private betting state fields
+        // Dependencies
         private readonly IGameConfig _gameConfig;
         private readonly List<Player> _players;
         private readonly IGameEventManager _eventManager;
+        private readonly BettingValidator _bettingValidator;
+        private readonly BettingLogic _bettingLogic;
         private int _dealerIndex;
 
-        public BettingManager(List<Player> players, int dealerIndex, IGameEventManager eventManager, IGameConfig gameConfig)
+        public BettingManager(
+            List<Player> players,
+            int dealerIndex,
+            IGameEventManager eventManager,
+            IGameConfig gameConfig,
+            BettingValidator bettingValidator,
+            BettingLogic bettingLogic)
         {
-            _players = players;
-            _eventManager = eventManager;
+            _players = players ?? throw new ArgumentNullException(nameof(players));
+            _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
             _dealerIndex = dealerIndex;
-            _gameConfig = gameConfig;
+            _gameConfig = gameConfig ?? throw new ArgumentNullException(nameof(gameConfig));
+            _bettingValidator = bettingValidator ?? throw new ArgumentNullException(nameof(bettingValidator));
+            _bettingLogic = bettingLogic ?? throw new ArgumentNullException(nameof(bettingLogic));
         }
 
         public void ExecuteBettingRound()
@@ -51,7 +63,7 @@ namespace DeuxCentsCardGame.Managers
 
         private void CompleteBettingRound()
         {
-            DetermineWinningBid();
+            SetWinningBid();
             RaiseBettingCompletedEvent();
         }
 
@@ -63,7 +75,7 @@ namespace DeuxCentsCardGame.Managers
                 Player currentPlayer = _players[currentPlayerIndex];
 
                 // Skip players who have already passed
-                if (SkipPlayer(currentPlayer))
+                if (_bettingValidator.HasPlayerPassed(currentPlayer))
                     continue;
 
                 // Parse and handle user input
@@ -71,21 +83,10 @@ namespace DeuxCentsCardGame.Managers
                     return true;
 
                 // Check if three or more players have passed
-                if (EndBettingRound())
+                if (_bettingValidator.HasMinimumPlayersPassed())
                     return HandleThreePassesScenario();
             }
             return false;
-        }
-
-        private bool SkipPlayer(Player player)
-        {
-            return player.HasPassed;
-        }
-
-        private bool EndBettingRound()
-        {
-            int passedPlayersCount = _players.Count(pass => pass.HasPassed);
-            return passedPlayersCount >= _gameConfig.MinimumPlayersToPass;
         }
 
         private bool ProcessPlayerBid(int currentPlayerIndex)
@@ -94,13 +95,13 @@ namespace DeuxCentsCardGame.Managers
             {
                 string betInput = RequestBetInput(currentPlayerIndex);
 
-                if (IsPassInput(betInput))
+                if (_bettingValidator.IsPassInput(betInput))
                 {
                     HandlePassInput(currentPlayerIndex);
                     return false;
                 }
 
-                if (ParseAndValidateBet(betInput, out int bet))
+                if (TryParseBet(betInput, out int bet) && _bettingValidator.IsValidBet(bet))
                 {
                     return HandleValidBet(currentPlayerIndex, bet);
                 }
@@ -131,17 +132,9 @@ namespace DeuxCentsCardGame.Managers
             );
         }
 
-        private bool IsPassInput(string input)
+        private bool TryParseBet(string betInput, out int bet)
         {
-            return input == "pass";
-        }
-
-        private bool ParseAndValidateBet(string betInput, out int bet)
-        {
-            if (!int.TryParse(betInput, out bet))
-                return false;
-
-            return IsValidBet(bet);
+            return int.TryParse(betInput, out bet);
         }
 
         private void RaiseInvalidBetEvent(int playerIndex)
@@ -153,54 +146,20 @@ namespace DeuxCentsCardGame.Managers
             );
         }
 
-        private bool IsValidBet(int bet)
-        {
-            return IsBetInValidRange(bet) &&
-                   IsBetValidIncrement(bet) &&
-                   IsBetUnique(bet);
-        }
-
-        private bool IsBetInValidRange(int bet)
-        {
-            return bet >= _gameConfig.MinimumBet && bet <= _gameConfig.MaximumBet;
-        }
-
-        private bool IsBetValidIncrement(int bet)
-        {
-            return bet % _gameConfig.BetIncrement == 0;
-        }
-
-        private bool IsBetUnique(int bet)
-        {
-            return !_players.Any(player => player.CurrentBid == bet);
-        }
-
         private void HandlePassInput(int currentPlayerIndex)
         {
             Player player = _players[currentPlayerIndex];
-
-            MarkPlayerAsPassed(player);
+            _bettingLogic.MarkPlayerAsPassed(player);
             RaiseBettingActionEvent(player, player.CurrentBid, isPassed: true, player.HasBet);
-        }
-
-        private void MarkPlayerAsPassed(Player player)
-        {
-            player.HasPassed = true;
-
-            if (!player.HasBet)
-            {
-                player.CurrentBid = -1;
-            }
         }
 
         private bool HandleValidBet(int currentPlayerIndex, int bet)
         {
             Player player = _players[currentPlayerIndex];
-
-            RecordPlayerBet(player, bet);
+            _bettingLogic.RecordPlayerBet(player, bet);
             RaiseBettingActionEvent(player, bet, isPassed: false, hasBet: true);
 
-            if (IsMaximumBet(bet))
+            if (_bettingValidator.IsMaximumBet(bet))
             {
                 // End round immediately
                 return HandleMaximumBetScenario(currentPlayerIndex);
@@ -209,41 +168,27 @@ namespace DeuxCentsCardGame.Managers
             return false;
         }
 
-        private void RecordPlayerBet(Player player, int bet)
-        {
-            player.CurrentBid = bet;
-            player.HasBet = true;
-        }
-
-        private bool IsMaximumBet(int bet)
-        {
-            return bet == _gameConfig.MaximumBet;
-        }
-
         private bool HandleMaximumBetScenario(int playerIndex)
         {
-            ForceOtherPlayersToPass(playerIndex);
-            return true;
-        }
+            _bettingLogic.ForceOtherPlayersToPass(_players, playerIndex);
 
-        private void ForceOtherPlayersToPass(int maxBetPlayerIndex)
-        {
+            // Raise events for forced passes
             for (int i = 0; i < _players.Count; i++)
             {
-                if (i == maxBetPlayerIndex || _players[i].HasPassed)
-                    continue;
-                
-                Player otherPlayer = _players[i];
-                MarkPlayerAsPassed(otherPlayer);
-                RaiseBettingActionEvent(otherPlayer, otherPlayer.CurrentBid, isPassed: true, otherPlayer.HasBet);
-            }
+                if (i != playerIndex && _players[i].HasPassed)
+                {
+                    RaiseBettingActionEvent(_players[i], _players[i].CurrentBid, isPassed: true, _players[i].HasBet);
+                }
+            }   
+
+            return true;
         }
 
         private bool HandleThreePassesScenario()
         {
-            List<Player> activePlayers = GetActivePlayers();
+            List<Player> activePlayers = _bettingLogic.GetActivePlayers(_players);
 
-            if (CheckIfOnlyOnePlayerRemains(activePlayers))
+            if (_bettingLogic.CheckIfOnlyOnePlayerRemains(activePlayers))
             {
                 HandleSingleActivePlayer(activePlayers[0]);
             }
@@ -251,76 +196,25 @@ namespace DeuxCentsCardGame.Managers
             return true;
         }
 
-        private List<Player> GetActivePlayers()
-        {
-            return _players.Where(player => !player.HasPassed).ToList();
-        }
-
-        private bool CheckIfOnlyOnePlayerRemains(List<Player> activePlayers)
-        {
-            return activePlayers.Count == 1;
-        }
-
         private void HandleSingleActivePlayer(Player player)
         {
-            if (NoBetsPlaced())
+            if (_bettingLogic.NoBetsPlaced(_players))
             {
-                ForceMinimumBet(player);
+                _bettingLogic.ForceMinimumBet(player);
+                RaiseBettingActionEvent(player, _gameConfig.MinimumBet, isPassed: false, hasBet: true);
             }
             else if (!player.HasBet)
             {
-                ForcePlayerToPass(player);
+                _bettingLogic.ForcePlayerToPass(player);
+                RaiseBettingActionEvent(player, -1, isPassed: true, hasBet: false);
             }
         }
 
-        private bool NoBetsPlaced()
+        private void SetWinningBid()
         {
-            return !_players.Any(p => p.HasBet && p.CurrentBid > 0);
-        }
-
-        private void ForceMinimumBet(Player player)
-        {
-            player.HasBet = true;
-            player.CurrentBid = _gameConfig.MinimumBet;
-            RaiseBettingActionEvent(player, _gameConfig.MinimumBet, isPassed: false, hasBet: true);
-        }
-        
-        private void ForcePlayerToPass(Player player)
-        {
-            player.HasPassed = true;
-            player.CurrentBid = -1;
-            RaiseBettingActionEvent(player, -1, isPassed: true, hasBet: false);    
-        }
-
-        private void DetermineWinningBid()
-        {
-            var validBids = GetValidBids();
-
-            if (validBids.Any())
-            {
-                SetWinningBid(validBids);
-            }
-            else
-            {          
-                ClearWinningBid();
-            }
-        }
-
-        private IEnumerable<Player> GetValidBids()
-        {
-            return _players.Where(player => player.CurrentBid > 0);
-        }
-
-        private void SetWinningBid(IEnumerable<Player> validBids)
-        {
-            CurrentWinningBid = validBids.Max(player => player.CurrentBid);
-            CurrentWinningBidIndex = _players.FindIndex(player => player.CurrentBid == CurrentWinningBid);
-        }
-        
-        private void ClearWinningBid()
-        {
-            CurrentWinningBid = 0;
-            CurrentWinningBidIndex = -1;
+            var (winningBid, winningBidIndex) = _bettingLogic.DetermineWinningBid(_players);
+            CurrentWinningBid = winningBid;
+            CurrentWinningBidIndex = winningBidIndex;
         }
 
         private void RaiseBettingCompletedEvent()
@@ -329,7 +223,6 @@ namespace DeuxCentsCardGame.Managers
             {
                 Player winningBidder = _players[CurrentWinningBidIndex];
                 var allBids = _players.ToDictionary(player => player, player => player.CurrentBid);
-
                 _eventManager.RaiseBettingCompleted(winningBidder, CurrentWinningBid, allBids);
             }
         }

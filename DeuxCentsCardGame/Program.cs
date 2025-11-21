@@ -67,6 +67,17 @@ namespace DeuxCentsCardGame
             // Register card logic components
             services.AddSingleton<CardLogic>();
 
+            // Register betting logic and validators
+            services.AddSingleton<BettingLogic>();
+            services.AddSingleton<BettingValidator>(sp =>
+            {
+                var gameConfig = sp.GetRequiredService<IGameConfig>();
+                var playerManager = sp.GetRequiredService<IPlayerManager>();
+                return new BettingValidator(gameConfig, playerManager.Players.ToList());
+            });
+
+            services.AddSingleton<ScoringLogic>(); // NEW: Register ScoringLogic
+
             // Register validators
             services.AddSingleton<CardValidator>();
             services.AddSingleton<CardPlayValidator>();
@@ -98,11 +109,15 @@ namespace DeuxCentsCardGame
                 var playerManager = sp.GetRequiredService<IPlayerManager>();
                 var eventManager = sp.GetRequiredService<IGameEventManager>();
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
+                var bettingValidator = sp.GetRequiredService<BettingValidator>();
+                var bettingLogic = sp.GetRequiredService<BettingLogic>();
                 return new BettingManager(
                     playerManager.Players.ToList(),
                     gameConfig.InitialDealerIndex,
                     eventManager,
-                    gameConfig);
+                    gameConfig,
+                    bettingValidator,
+                    bettingLogic);
             });
             services.AddSingleton<ITrumpSelectionManager, TrumpSelectionManager>();
             services.AddSingleton<IScoringManager>(sp =>
@@ -110,12 +125,12 @@ namespace DeuxCentsCardGame
                 var eventManager = sp.GetRequiredService<IGameEventManager>();
                 var playerManager = sp.GetRequiredService<IPlayerManager>();
                 var teamManager = sp.GetRequiredService<ITeamManager>();
-                var gameConfig = sp.GetRequiredService<IGameConfig>();
+                var scoringLogic = sp.GetRequiredService<ScoringLogic>();
                 return new ScoringManager(
                     eventManager,
                     playerManager.Players.ToList(),
                     teamManager,
-                    gameConfig);
+                    scoringLogic);
             });
 
             // Register orchestrators
