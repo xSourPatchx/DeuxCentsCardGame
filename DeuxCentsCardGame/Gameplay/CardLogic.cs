@@ -1,8 +1,9 @@
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Gameplay
 {
-    public class CardLogic
+    public class CardLogic : ICardLogic
     {
         public bool WinsAgainst(Card thisCard, Card otherCard, CardSuit? trumpSuit, CardSuit? leadingSuit)
         {

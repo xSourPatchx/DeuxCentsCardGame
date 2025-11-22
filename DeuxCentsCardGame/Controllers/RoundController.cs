@@ -1,10 +1,11 @@
+using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Controllers
 {
-    public class RoundController
+    public class RoundController : IRoundController
     {
         private readonly IGameEventManager _eventManager;
         private readonly IPlayerManager _playerManager;

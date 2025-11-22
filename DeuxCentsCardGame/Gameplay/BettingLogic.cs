@@ -1,9 +1,10 @@
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Gameplay
 {
-    public class BettingLogic
+    public class BettingLogic : IBettingLogic
     {
         private readonly IGameConfig _gameConfig;
 

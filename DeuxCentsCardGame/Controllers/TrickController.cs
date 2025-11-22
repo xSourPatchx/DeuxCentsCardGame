@@ -1,4 +1,5 @@
 using DeuxCentsCardGame.Gameplay;
+using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
@@ -6,7 +7,7 @@ using DeuxCentsCardGame.Validators;
 
 namespace DeuxCentsCardGame.Controllers
 {
-    public class TrickController
+    public class TrickController : ITrickController
     {
         private readonly IGameEventManager _eventManager;
         private readonly IPlayerManager _playerManager;

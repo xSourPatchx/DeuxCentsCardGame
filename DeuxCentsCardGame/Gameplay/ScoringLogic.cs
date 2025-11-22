@@ -1,9 +1,9 @@
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.GameConfig;
-using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Gameplay
 {
-    public class ScoringLogic
+    public class ScoringLogic : IScoringLogic
     {
         private readonly IGameConfig _gameConfig;
 
