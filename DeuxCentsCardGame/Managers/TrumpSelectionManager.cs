@@ -1,7 +1,7 @@
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
-using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.Interfaces.Services;
+using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Managers
 {
@@ -19,7 +19,6 @@ namespace DeuxCentsCardGame.Managers
         {
             string trumpSuitInput = _eventManager.RaiseTrumpSelectionInput(winningBidder);
             CardSuit trumpSuit = _cardUtility.StringToCardSuit(trumpSuitInput);
-
             _eventManager.RaiseTrumpSelected(trumpSuit, winningBidder);
 
             return trumpSuit;
