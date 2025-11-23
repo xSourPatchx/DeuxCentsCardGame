@@ -1,6 +1,7 @@
 using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using Microsoft.Extensions.Configuration;
+using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.GameConfig
 {
@@ -14,6 +15,13 @@ namespace DeuxCentsCardGame.GameConfig
         public int TeamTwoPlayer2 { get; set; } = GameConstants.TEAM_TWO_PLAYER_2;
         public int TotalPlayers { get; set; } = GameConstants.TOTAL_PLAYERS;
         public int PlayersPerTeam { get; set; } = GameConstants.PLAYERS_PER_TEAM;
+        public PlayerType[] PlayerTypes { get; set; } = new[]
+        {
+            PlayerType.Human,
+            PlayerType.Human,
+            PlayerType.Human,
+            PlayerType.Human
+        };
 
         // Scoring Configuration
         public int WinningScore { get; set; } = GameConstants.WINNING_SCORE;
@@ -45,7 +53,7 @@ namespace DeuxCentsCardGame.GameConfig
         public int HandDisplaySeparatorLength { get; set; } = GameConstants.HAND_DISPLAY_SEPARATOR_LENGTH;
         public int AllHandsSeparatorLength { get; set; } = GameConstants.ALL_HANDS_SEPARATOR_LENGTH;
         public int GameOverSeparatorLength { get; set; } = GameConstants.GAME_OVER_SEPARATOR_LENGTH;
-
+        public PlayerType[] GetPlayerTypes() => PlayerTypes;
         public static IGameConfig CreateDefault()
         {
             return new GameConfig();
@@ -64,6 +72,16 @@ namespace DeuxCentsCardGame.GameConfig
             gameConfig.PlayersPerTeam = teamConfig.GetValue<int>("PlayersPerTeam", GameConstants.PLAYERS_PER_TEAM);
             gameConfig.TotalPlayers = teamConfig.GetValue<int>("TotalPlayers", GameConstants.TOTAL_PLAYERS);
 
+            // Load AI configuration
+            var aiConfig = configuration.GetSection("GameSettings:AI");
+            var playerTypesConfig = aiConfig.GetSection("PlayerTypes").Get<string[]>();
+            
+            if (playerTypesConfig != null && playerTypesConfig.Length == 4)
+            {
+                gameConfig.PlayerTypes = playerTypesConfig
+                    .Select(typeString => Enum.Parse<PlayerType>(typeString))
+                    .ToArray();
+            }
             // Load scoring configuration
             var scoringConfig = configuration.GetSection("GameSettings:Scoring");
             gameConfig.WinningScore = scoringConfig.GetValue<int>("WinningScore", GameConstants.WINNING_SCORE);

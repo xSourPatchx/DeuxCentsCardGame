@@ -1,4 +1,4 @@
-using DeuxCentsCardGame.Interfaces.GameConfig;
+using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Interfaces.GameConfig
 {
@@ -11,6 +11,8 @@ namespace DeuxCentsCardGame.Interfaces.GameConfig
         int TeamTwoPlayer2 { get; set; }
         int TotalPlayers { get; set; }
         int PlayersPerTeam { get; set; }
+        PlayerType[] GetPlayerTypes();
+
 
         // Scoring Configuration
         int WinningScore { get; set; }

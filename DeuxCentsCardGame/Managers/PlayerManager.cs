@@ -1,5 +1,6 @@
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
+using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Managers
@@ -7,12 +8,14 @@ namespace DeuxCentsCardGame.Managers
     public class PlayerManager : IPlayerManager
     {
         private readonly IGameEventManager _eventManager;
+        private readonly IGameConfig _gameConfig;
         private readonly List<Player> _players;
         public IReadOnlyList<Player> Players => _players.AsReadOnly();
 
-        public PlayerManager(IGameEventManager eventManager)
+        public PlayerManager(IGameEventManager eventManager, IGameConfig gameConfig)
         {
             _eventManager = eventManager;
+            _gameConfig = gameConfig;
             _players = InitializePlayers();
         }
 
@@ -20,13 +23,19 @@ namespace DeuxCentsCardGame.Managers
         /// Default type: All human players
         private List<Player> InitializePlayers()
         {
-            return new List<Player>
+            var playerTypes = _gameConfig.GetPlayerTypes();
+            var players = new List<Player>();
+            
+            for (int i = 0; i < playerTypes.Length; i++)
             {
-                new("Player 1", PlayerType.Human),
-                new("Player 2", PlayerType.Human),
-                new("Player 3", PlayerType.Human),
-                new("Player 4", PlayerType.Human)
-            };
+                string playerName = playerTypes[i] == PlayerType.AI 
+                    ? $"CPU {i + 1}" 
+                    : $"Player {i + 1}";
+                
+                players.Add(new Player(playerName, playerTypes[i]));
+            }
+            
+            return players;
         }
 
         // Initialize players with specific types

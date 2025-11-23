@@ -1,14 +1,14 @@
-Can you review my code to add any supporting helper classes to separated concerns, note that this will be later ported over into a Unity mulitplayer game, so I'd like to use Unity best practices.
+Can you help me make a Helper Classes called GameStateTransitions, Located in DeuxCentsCardGame/GameStates/GameStateTransitions.cs. The Purpose is to Encapsulate valid state transition logic so that Unity multiplayer has strict state validation, Prevents desync between clients and Centralizes transition rules.
 
----
-
-For my AI/CPU player, I have 3 places where I can select the player types. The program class is the ultimate truth, however i'd like to only have one centralize place to configure this. So far there is "playerManager.InitializePlayersWithTypes(PlayerType.Human, PlayerType.AI, PlayerType.Human, PlayerType.AI);" in Program class, ""PlayerTypes": ["Human", "Human", "Human", "Human"]," in appsettings.json and "return new List<Player>
+It should look something like this: 
+"public class GameStateTransitions
 {
-    new("Player 1", PlayerType.Human),
-    new("Player 2", PlayerType.Human),
-    new("Player 3", PlayerType.Human),
-    new("Player 4", PlayerType.Human)
-};" in PlayerManager. Can you suggest the best way to move forward with this?
+    private readonly Dictionary<GameState, List<GameState>> _validTransitions;
+    
+    public bool IsValidTransition(GameState from, GameState to);
+    public List<GameState> GetValidNextStates(GameState current);
+    public void ValidateTransition(GameState from, GameState to);
+}"
 
 ---
 
