@@ -10,19 +10,6 @@ It should look something like this:
 
 ---
 
-Can you help me create a class called HandEvaluator(Located in DeuxCentsCardGame/Gameplay/HandEvaluator.cs) to Extract from BaseAIPlayer. The Purpose is to Analyze hand strength and composition, Both AI and UI can use same logic, it can Show hints to human players and its Reusable for analytics/statistics
-
-It should look something like this:
-"public class HandEvaluator
-{
-    public int CalculateHandStrength(List<Card> hand);
-    public Dictionary<CardSuit, int> GetSuitCounts(List<Card> hand);
-    public CardSuit GetStrongestSuit(List<Card> hand);
-    public int CountHighCards(List<Card> hand, int threshold);
-    public bool HasVoid(List<Card> hand, CardSuit suit);
-}"
-
----
 
 Can you help me create a class called TrickAnalyzer (Located in DeuxCentsCardGame/Gameplay/TrickAnalyzer.cs) to Extract from HardAIPlayer.
 
@@ -46,17 +33,35 @@ It should look something like this:
 public class GameSnapshot
 {
     public GameState CurrentState { get; set; }
-    public int RoundNumber { get; set; }
-    public int DealerIndex { get; set; }
-    public CardSuit? TrumpSuit { get; set; }
-    public List<PlayerSnapshot> Players { get; set; }
-    public ScoreSnapshot Scores { get; set; }
-    
-    public byte[] Serialize();
-    public static GameSnapshot Deserialize(byte[] data);
-}"
+        public int RoundNumber { get; set; }
+            public int DealerIndex { get; set; }
+                public CardSuit? TrumpSuit { get; set; }
+                    public List<PlayerSnapshot> Players { get; set; }
+                        public ScoreSnapshot Scores { get; set; }
+                            
+                                public byte[] Serialize();
+                                    public static GameSnapshot Deserialize(byte[] data);
+                                    }"
 
 ---
+
+Can you help me create a class called CardCollectionHelper (Utility for Card Lists) located in DeuxCentsCardGame/Utilities/CardCollectionHelper.cs. The Purpose is to have Common card collection operations, Reduce code duplication, have Consistent card manipulation across codebase and Unity UI can use for hand display.
+
+It should look something along the the line:
+"
+public class CardCollectionHelper
+{
+    public List<Card> FilterBysuit(List<Card> cards, CardSuit suit);
+    public List<Card> FilterByTrump(List<Card> cards, CardSuit? trump);
+    public List<Card> SortBySuit(List<Card> cards);
+    public List<Card> SortByValue(List<Card> cards);
+    public Card GetHighestCard(List<Card> cards);
+    public Card GetLowestCard(List<Card> cards);
+}
+"
+
+---
+
 
 Can you ensure my code does not use any Static UI References.
 

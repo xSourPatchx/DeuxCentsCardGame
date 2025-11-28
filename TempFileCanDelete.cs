@@ -1,3 +1,14 @@
+### Medium Priority
+
+5. *TurnOrderCalculator* - Clean up PlayerTurnManager
+6. *BettingRangeCalculator* - Simplify BettingManager
+7. *InputParser* - Reduce GameEventHandler size
+8. *GameStateTransitions* - Better state management
+
+
+-----
+
+
 ### 6. *CardPlayStrategyFactory* (Strategy Pattern for AI)
 
 *Location:* DeuxCentsCardGame/AI/Strategies/CardPlayStrategyFactory.cs
@@ -49,31 +60,6 @@ public class BettingRangeCalculator
 
 -----
 
-### 8. *CardCollectionHelper* (Utility for Card Lists)
-
-*Location:* DeuxCentsCardGame/Utilities/CardCollectionHelper.cs
-
-*Purpose:* Common card collection operations
-
-csharp
-public class CardCollectionHelper
-{
-    public List<Card> FilterBysuit(List<Card> cards, CardSuit suit);
-    public List<Card> FilterByTrump(List<Card> cards, CardSuit? trump);
-    public List<Card> SortBySuit(List<Card> cards);
-    public List<Card> SortByValue(List<Card> cards);
-    public Card GetHighestCard(List<Card> cards);
-    public Card GetLowestCard(List<Card> cards);
-}
-
-
-*Why:*
-
-- Reduce code duplication
-- Consistent card manipulation across codebase
-- Unity UI can use for hand display
-
------
 
 ### 10. *InputParser* (Separate from GameEventHandler)
 
@@ -158,85 +144,3 @@ public class AnimationEventMapper
 1. *AudioEventMapper* - Add with Unity integration
 1. *AnimationEventMapper* - Add with Unity integration
 
------
-
-## Example Refactor: HandEvaluator
-
-*Before (in BaseAIPlayer):*
-
-csharp
-protected int CalculateHandStrength(List<Card> hand)
-{
-    return hand.Sum(card => card.CardPointValue + card.CardFaceValue);
-}
-
-
-*After (in HandEvaluator):*
-
-csharp
-public class HandEvaluator
-{
-    public int CalculateBasicStrength(List<Card> hand)
-    {
-        return hand.Sum(card => card.CardPointValue + card.CardFaceValue);
-    }
-    
-    public int CalculateAdvancedStrength(List<Card> hand)
-    {
-        int strength = CalculateBasicStrength(hand);
-        strength += CountHighCards(hand, 8) * 3;
-        strength += GetSuitDistributionBonus(hand);
-        return strength;
-    }
-    
-    public int CountHighCards(List<Card> hand, int threshold)
-    {
-        return hand.Count(c => c.CardFaceValue >= threshold);
-    }
-    
-    private int GetSuitDistributionBonus(List<Card> hand)
-    {
-        var suitCounts = GetSuitCounts(hand);
-        return suitCounts.Values.Sum(count => count >= 4 ? 5 : count >= 3 ? 2 : 0);
-    }
-}
-
-
-*Usage in BaseAIPlayer:*
-
-csharp
-public abstract class BaseAIPlayer : IAIPlayer
-{
-    protected readonly HandEvaluator _handEvaluator;
-    
-    protected BaseAIPlayer(IRandomService randomService, ICardUtility cardUtility, 
-                          HandEvaluator handEvaluator, AIDifficulty difficulty)
-    {
-        _handEvaluator = handEvaluator;
-        // ...
-    }
-}
-
-
------
-
-## Benefits for Unity Multiplayer
-
-1. *State Synchronization*: GameSnapshot and NetworkSyncValidator
-1. *Client Prediction*: Pure calculation classes (TurnOrderCalculator, BettingRangeCalculator)
-1. *Server Authority*: Validators can run on server to prevent cheating
-1. *Bandwidth Optimization*: Send minimal state, recalculate derived values
-1. *Testability*: All helpers are unit-testable without Unity dependencies
-1. *Separation of Concerns*: Game logic separate from Unity-specific code
-
------
-
-## Next Steps
-
-1. Create HandEvaluator and refactor AI classes
-1. Create TrickAnalyzer and extract from HardAIPlayer
-1. Create GameSnapshot for state serialization
-1. Plan network architecture with Unity Netcode/Mirror
-1. Create interface layer between game logic and Unity
-
-Would you like me to provide full implementation for any of these helper classes?
