@@ -1,3 +1,4 @@
+using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.AI;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
@@ -8,12 +9,18 @@ namespace DeuxCentsCardGame.AI
     {
         protected readonly IRandomService _randomService;
         protected readonly ICardUtility _cardUtility;
+        protected readonly HandEvaluator _handEvaluator;
         protected readonly AIDifficulty _difficulty;
 
-        protected BaseAIPlayer(IRandomService randomService, ICardUtility cardUtility, AIDifficulty difficulty)
+        protected BaseAIPlayer(
+            IRandomService randomService, 
+            ICardUtility cardUtility, 
+            HandEvaluator handEvaluator,
+            AIDifficulty difficulty)
         {
             _randomService = randomService ?? throw new ArgumentNullException(nameof(randomService));
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
+            _handEvaluator = handEvaluator ?? throw new ArgumentNullException(nameof(handEvaluator));
             _difficulty = difficulty;
         }
 
@@ -26,21 +33,17 @@ namespace DeuxCentsCardGame.AI
         // Helper methods for all AI implementations
         protected int CalculateHandStrength(List<Card> hand)
         {
-            return hand.Sum(card => card.CardPointValue + card.CardFaceValue);
+            return _handEvaluator.CalculateHandStrength(hand);
         }
 
         protected Dictionary<CardSuit, int> GetSuitCounts(List<Card> hand)
         {
-            return hand.GroupBy(card => card.CardSuit)
-                       .ToDictionary(g => g.Key, g => g.Count());
+            return _handEvaluator.GetSuitCounts(hand);
         }
 
         protected CardSuit GetStrongestSuit(List<Card> hand)
         {
-            return hand.GroupBy(card => card.CardSuit)
-                       .OrderByDescending(g => g.Sum(c => c.CardFaceValue))
-                       .First()
-                       .Key;
+            return _handEvaluator.GetStrongestSuit(hand);
         }
 
         protected List<Card> GetPlayableCards(List<Card> hand, CardSuit? leadingSuit)

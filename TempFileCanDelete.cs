@@ -1,85 +1,9 @@
-
------
-
-### 3. *NetworkSyncValidator* (Future-proofing for Unity Netcode)
-
-*Location:* DeuxCentsCardGame/Network/NetworkSyncValidator.cs
-
-*Purpose:* Validate game state consistency
-
-csharp
-public class NetworkSyncValidator
-{
-    public bool ValidateGameState(GameStateSnapshot local, GameStateSnapshot remote);
-    public bool ValidatePlayerAction(PlayerAction action, GameState currentState);
-    public List<ValidationError> GetSyncErrors();
-}
-
-
-*Why:*
-
-- Essential for multiplayer game integrity
-- Detects cheating/desync early
-- Separates network concerns from game logic
-
------
-
-### 4. *HandEvaluator* (Extract from BaseAIPlayer)
-
-*Location:* DeuxCentsCardGame/Gameplay/HandEvaluator.cs
-
-*Purpose:* Analyze hand strength and composition
-
-csharp
-public class HandEvaluator
-{
-    public int CalculateHandStrength(List<Card> hand);
-    public Dictionary<CardSuit, int> GetSuitCounts(List<Card> hand);
-    public CardSuit GetStrongestSuit(List<Card> hand);
-    public int CountHighCards(List<Card> hand, int threshold);
-    public bool HasVoid(List<Card> hand, CardSuit suit);
-}
-
-
-*Why:*
-
-- Both AI and UI can use same logic
-- Show hints to human players
-- Reusable for analytics/statistics
-
------
-
-### 5. *TrickAnalyzer* (Extract from HardAIPlayer)
-
-*Location:* DeuxCentsCardGame/Gameplay/TrickAnalyzer.cs
-
-*Purpose:* Analyze current trick state
-
-csharp
-public class TrickAnalyzer
-{
-    public Card GetCurrentWinningCard(List<(Card, Player)> trick, CardSuit? trump, CardSuit? leading);
-    public int CalculateTrickValue(List<(Card, Player)> trick);
-    public bool IsPartnerWinning(List<(Card, Player)> trick, int playerIndex, ITeamManager teamManager);
-    public List<Card> GetWinningCards(List<Card> hand, Card currentWinner, CardSuit? trump, CardSuit? leading);
-}
-
-
-*Why:*
-
-- Shared between all AI difficulties
-- Can power UI hints/animations
-- Testable in isolation
-
------
-
 ### 6. *CardPlayStrategyFactory* (Strategy Pattern for AI)
 
 *Location:* DeuxCentsCardGame/AI/Strategies/CardPlayStrategyFactory.cs
 
 *Purpose:* Create strategy objects instead of inheritance
 
-csharp
 public interface ICardPlayStrategy
 {
     Card ChooseCard(List<Card> hand, CardSuit? leading, CardSuit? trump, List<(Card, Player)> trick);
@@ -148,36 +72,6 @@ public class CardCollectionHelper
 - Reduce code duplication
 - Consistent card manipulation across codebase
 - Unity UI can use for hand display
-
------
-
-### 9. *GameSnapshot* (State Serialization Helper)
-
-*Location:* DeuxCentsCardGame/Models/GameSnapshot.cs
-
-*Purpose:* Capture game state for save/load/network
-
-csharp
-[Serializable]
-public class GameSnapshot
-{
-    public GameState CurrentState { get; set; }
-    public int RoundNumber { get; set; }
-    public int DealerIndex { get; set; }
-    public CardSuit? TrumpSuit { get; set; }
-    public List<PlayerSnapshot> Players { get; set; }
-    public ScoreSnapshot Scores { get; set; }
-    
-    public byte[] Serialize();
-    public static GameSnapshot Deserialize(byte[] data);
-}
-
-
-*Why:*
-
-- Essential for Unity multiplayer state sync
-- Save/load functionality
-- Replay/spectator mode
 
 -----
 
