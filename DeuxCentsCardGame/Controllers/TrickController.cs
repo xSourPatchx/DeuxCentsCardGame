@@ -1,6 +1,7 @@
 using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 using DeuxCentsCardGame.Validators;
@@ -13,7 +14,7 @@ namespace DeuxCentsCardGame.Controllers
         private readonly IPlayerManager _playerManager;
         private readonly IPlayerTurnManager _playerTurnManager;
         private readonly IScoringManager _scoringManager;
-        private readonly CardLogic _cardComparer;
+        private readonly ICardLogic _cardComparer;
         private readonly CardPlayValidator _cardPlayValidator;
 
         public TrickController(
@@ -21,7 +22,7 @@ namespace DeuxCentsCardGame.Controllers
             IPlayerManager playerManager,
             IPlayerTurnManager playerTurnManager,
             IScoringManager scoringManager,
-            CardLogic cardComparer,
+            ICardLogic cardComparer,
             CardPlayValidator cardPlayValidator)
         {
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));

@@ -63,26 +63,27 @@ namespace DeuxCentsCardGame
                 GameConfig.GameConfig.CreateFromConfiguration(configuration));
 
             // Register services
+            services.AddSingleton<IRandomService, RandomService>();
             services.AddSingleton<CardCollectionHelper>();
             services.AddSingleton<ICardUtility, CardUtility>();
-            services.AddSingleton<IRandomService, RandomService>();
 
             // Register gameplay logic components
-            services.AddSingleton<IBettingLogic, BettingLogic>();
-            services.AddSingleton<ICardLogic, CardLogic>();
+            services.AddSingleton<CardLogic>();
+            services.AddSingleton<ICardLogic>(sp => sp.GetRequiredService<CardLogic>());
+            services.AddSingleton<BettingLogic>();
+            services.AddSingleton<ScoringLogic>();
             services.AddSingleton<HandEvaluator>();
-            services.AddSingleton<IScoringLogic, ScoringLogic>();
             services.AddSingleton<TrickAnalyzer>();
 
             // Register validators
+            services.AddSingleton<CardValidator>();
+            services.AddSingleton<CardPlayValidator>();
             services.AddSingleton<BettingValidator>(sp =>
             {
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
                 var playerManager = sp.GetRequiredService<IPlayerManager>();
                 return new BettingValidator(gameConfig, playerManager.Players.ToList());
             });
-            services.AddSingleton<CardPlayValidator>();
-            services.AddSingleton<CardValidator>();
 
             // Register AI service
             services.AddSingleton<IAIService, AIService>();
@@ -135,7 +136,7 @@ namespace DeuxCentsCardGame
                     scoringLogic);
             });
 
-            // Register orchestrators
+            // Register controllers
             services.AddSingleton<RoundController>(sp =>
             {
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
@@ -152,7 +153,7 @@ namespace DeuxCentsCardGame
             });
             services.AddSingleton<TrickController>();
 
-            // Register controller
+            // Register game controller
             services.AddSingleton<IGameController, GameController>();
 
             return services.BuildServiceProvider();

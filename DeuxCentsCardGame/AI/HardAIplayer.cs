@@ -9,7 +9,7 @@ namespace DeuxCentsCardGame.AI
     public class HardAIPlayer : BaseAIPlayer
     {
         private readonly CardLogic _cardComparer;
-        private readonly TrickAnalyzer _trickAnalyzer;
+        // private readonly TrickAnalyzer _trickAnalyzer;
 
 
         public HardAIPlayer(
@@ -22,7 +22,7 @@ namespace DeuxCentsCardGame.AI
             : base(randomService, cardUtility, handEvaluator, trickAnalyzer, cardHelper, AIDifficulty.Hard)
         {
             _cardComparer = cardComparer ?? throw new ArgumentNullException(nameof(cardComparer));
-            _trickAnalyzer = trickAnalyzer ?? throw new ArgumentNullException(nameof(trickAnalyzer));  
+            // _trickAnalyzer = trickAnalyzer ?? throw new ArgumentNullException(nameof(trickAnalyzer));  
         }
 
         public override int DecideBet(List<Card> hand, int minBet, int maxBet, int betIncrement, 

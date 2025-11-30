@@ -377,7 +377,7 @@ namespace DeuxCentsCardGame.Events
                 _ui.DisplayFormattedMessage("Leading suit: {0}", leadingSuit);
             }
 
-            string trumpSuitInfo = trumpSuit.HasValue ? trumpSuit.ToString() : "Not yet set.";
+            string trumpSuitInfo = trumpSuit?.ToString() ?? "Not yet set.";
             _ui.DisplayFormattedMessage("Trump suit: {0}", trumpSuitInfo);
         }
 
