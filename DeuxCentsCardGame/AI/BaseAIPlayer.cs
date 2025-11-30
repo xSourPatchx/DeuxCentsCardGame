@@ -2,6 +2,7 @@ using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.AI;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.AI
 {
@@ -10,17 +11,23 @@ namespace DeuxCentsCardGame.AI
         protected readonly IRandomService _randomService;
         protected readonly ICardUtility _cardUtility;
         protected readonly HandEvaluator _handEvaluator;
+        protected readonly TrickAnalyzer _trickAnalyzer;
+        protected readonly CardCollectionHelper _cardHelper;
         protected readonly AIDifficulty _difficulty;
 
         protected BaseAIPlayer(
             IRandomService randomService, 
             ICardUtility cardUtility, 
             HandEvaluator handEvaluator,
+            TrickAnalyzer trickAnalyzer,
+            CardCollectionHelper cardHelper,
             AIDifficulty difficulty)
         {
             _randomService = randomService ?? throw new ArgumentNullException(nameof(randomService));
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
             _handEvaluator = handEvaluator ?? throw new ArgumentNullException(nameof(handEvaluator));
+            _trickAnalyzer = trickAnalyzer ?? throw new ArgumentNullException(nameof(trickAnalyzer));
+            _cardHelper = cardHelper ?? throw new ArgumentNullException(nameof(cardHelper));
             _difficulty = difficulty;
         }
 
@@ -47,12 +54,9 @@ namespace DeuxCentsCardGame.AI
         }
 
         protected List<Card> GetPlayableCards(List<Card> hand, CardSuit? leadingSuit)
-        {
-            if (!leadingSuit.HasValue)
-                return new List<Card>(hand);
-
-            var cardsOfLeadingSuit = hand.Where(c => c.CardSuit == leadingSuit.Value).ToList();
-            return cardsOfLeadingSuit.Any() ? cardsOfLeadingSuit : new List<Card>(hand);
+        {         
+            // return _trickAnalyzer.GetPlayableCards(hand, leadingSuit);
+            return _cardHelper.GetPlayableCards(hand, leadingSuit);
         }
 
         protected int GetRandomValidBet(int minBet, int maxBet, int betIncrement, List<int> takenBids)

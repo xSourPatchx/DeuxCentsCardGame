@@ -9,9 +9,26 @@ namespace DeuxCentsCardGame.Gameplay
     public class TrickAnalyzer
     {
         private readonly ICardLogic _cardLogic;
+
         public TrickAnalyzer(ICardLogic cardLogic)
         {
             _cardLogic = cardLogic ?? throw new ArgumentNullException(nameof(cardLogic));
+        }
+
+        // Gets cards from hand that can legally be played based on leading suit rules.
+        public List<Card> GetPlayableCards(List<Card> hand, CardSuit? leadingSuit)
+        {
+            if (hand == null || hand.Count == 0)
+                return new List<Card>();
+
+            // If no leading suit, all cards are playable
+            if (!leadingSuit.HasValue)
+                return new List<Card>(hand);
+
+            // Must follow suit if possible
+            var cardsOfLeadingSuit = hand.Where(c => c.CardSuit == leadingSuit.Value).ToList();
+            
+            return cardsOfLeadingSuit.Any() ? cardsOfLeadingSuit : new List<Card>(hand);
         }
 
         // Determines which card is currently winning the trick.
@@ -137,22 +154,6 @@ namespace DeuxCentsCardGame.Gameplay
                 .Where(card => _cardLogic.WinsAgainst(card, currentWinner, trumpSuit, leadingSuit))
                 .OrderBy(card => card.CardFaceValue)
                 .ToList();
-        }
-
-        // Gets cards from hand that can legally be played based on leading suit rules.
-        public List<Card> GetPlayableCards(List<Card> hand, CardSuit? leadingSuit)
-        {
-            if (hand == null || hand.Count == 0)
-                return new List<Card>();
-
-            // If no leading suit, all cards are playable
-            if (!leadingSuit.HasValue)
-                return new List<Card>(hand);
-
-            // Must follow suit if possible
-            var cardsOfLeadingSuit = hand.Where(c => c.CardSuit == leadingSuit.Value).ToList();
-            
-            return cardsOfLeadingSuit.Any() ? cardsOfLeadingSuit : new List<Card>(hand);
         }
 
         // Determines if the trick is worth trying to win based on point value.

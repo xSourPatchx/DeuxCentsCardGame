@@ -10,55 +10,7 @@ It should look something like this:
 
 ---
 
-
-Can you help me create a class called TrickAnalyzer (Located in DeuxCentsCardGame/Gameplay/TrickAnalyzer.cs) to Extract from HardAIPlayer.
-
-The Purpose is to Analyze current trick state, can be Shared between all AI difficulties, Can power UI hints/animations and is Testable in isolation
-
-It should look something like this:
-"public class TrickAnalyzer
-{
-    public Card GetCurrentWinningCard(List<(Card, Player)> trick, CardSuit? trump, CardSuit? leading);
-    public int CalculateTrickValue(List<(Card, Player)> trick);
-    public bool IsPartnerWinning(List<(Card, Player)> trick, int playerIndex, ITeamManager teamManager);
-    public List<Card> GetWinningCards(List<Card> hand, Card currentWinner, CardSuit? trump, CardSuit? leading);
-}"
-
----
-
-Can you help me create a class called GameSnapshot (State Serialization Helper) Located in DeuxCentsCardGame/Models/GameSnapshot.cs. the Purpose is to Capture game state for save/load/network which is Essential for Unity multiplayer state sync, can Save/load functionality and can Replay/spectator mode.
-
-It should look something like this:
-"[Serializable]
-public class GameSnapshot
-{
-    public GameState CurrentState { get; set; }
-        public int RoundNumber { get; set; }
-            public int DealerIndex { get; set; }
-                public CardSuit? TrumpSuit { get; set; }
-                    public List<PlayerSnapshot> Players { get; set; }
-                        public ScoreSnapshot Scores { get; set; }
-                            
-                                public byte[] Serialize();
-                                    public static GameSnapshot Deserialize(byte[] data);
-                                    }"
-
----
-
-Can you help me create a class called CardCollectionHelper (Utility for Card Lists) located in DeuxCentsCardGame/Utilities/CardCollectionHelper.cs. The Purpose is to have Common card collection operations, Reduce code duplication, have Consistent card manipulation across codebase and Unity UI can use for hand display.
-
-It should look something along the the line:
-"
-public class CardCollectionHelper
-{
-    public List<Card> FilterBysuit(List<Card> cards, CardSuit suit);
-    public List<Card> FilterByTrump(List<Card> cards, CardSuit? trump);
-    public List<Card> SortBySuit(List<Card> cards);
-    public List<Card> SortByValue(List<Card> cards);
-    public Card GetHighestCard(List<Card> cards);
-    public Card GetLowestCard(List<Card> cards);
-}
-"
+I've recently added CardCollectionHelper and TrickAnalyzer. Can you briefly clean up my AI classes, it looks like _cardComparer isnt doing much here, for my HardAIplayer and MediumAIplayer. Ultimitely i'd like to keep it as simple as possible to not repeat or have any redundant code.
 
 ---
 

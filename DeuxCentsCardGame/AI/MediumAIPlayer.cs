@@ -1,17 +1,27 @@
 using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.AI
 {
     // Medium AI - Uses basic strategy with some randomness
     public class MediumAIPlayer : BaseAIPlayer
-    {
+    {   
         private readonly CardLogic _cardComparer;
-        
-        public MediumAIPlayer(IRandomService randomService, ICardUtility cardUtility, CardLogic cardComparer) : base(randomService, cardUtility, AIDifficulty.Medium)
+        private readonly TrickAnalyzer _trickAnalyzer;   
+
+        public MediumAIPlayer(
+            IRandomService randomService, 
+            ICardUtility cardUtility, 
+            HandEvaluator handEvaluator,
+            CardCollectionHelper cardHelper,
+            CardLogic cardComparer,
+            TrickAnalyzer trickAnalyzer) 
+            : base(randomService, cardUtility, handEvaluator, trickAnalyzer, cardHelper, AIDifficulty.Medium)
         {
             _cardComparer = cardComparer ?? throw new ArgumentNullException(nameof(cardComparer));
+            _trickAnalyzer = trickAnalyzer ?? throw new ArgumentNullException(nameof(trickAnalyzer));
         }
 
         public override int DecideBet(List<Card> hand, int minBet, int maxBet, int betIncrement,
@@ -52,7 +62,7 @@ namespace DeuxCentsCardGame.AI
         public override CardSuit SelectTrumpSuit(List<Card> hand)
         {    
             // Select suit we have most cards in
-            var suitCounts = GetSuitCounts(hand);
+            var suitCounts = _cardHelper.CountBySuit(hand);
             return suitCounts.OrderByDescending(kvp => kvp.Value).First().Key;
         }
 
@@ -66,18 +76,16 @@ namespace DeuxCentsCardGame.AI
         if (cardsPlayedInTrick.Count == 0)
         {
             // Leading - play medium strength card
-            selectedCard = playableCards.OrderBy(c => c.CardFaceValue)
-                                       .ElementAt(playableCards.Count / 2);
+            selectedCard = _cardHelper.GetMiddleCard(playableCards)!;
         }
         else
         {
-            var currentWinningCard = GetCurrentWinningCard(cardsPlayedInTrick, trumpSuit, leadingSuit);
+            var currentWinningCard = _trickAnalyzer.GetCurrentWinningCard(
+                cardsPlayedInTrick, trumpSuit, leadingSuit);
             
             // Try to win with lowest card possible
-            var winningCards = playableCards
-                .Where(c => _cardComparer.WinsAgainst(c, currentWinningCard, trumpSuit, leadingSuit))
-                .OrderBy(c => c.CardFaceValue)
-                .ToList();
+            var winningCards = _trickAnalyzer.GetWinningCards(
+                playableCards, currentWinningCard, trumpSuit, leadingSuit);
 
             if (winningCards.Any())
             {
@@ -86,27 +94,11 @@ namespace DeuxCentsCardGame.AI
             else
             {
                 // Can't win - play lowest card
-                selectedCard = playableCards.OrderBy(c => c.CardFaceValue).First();
+                selectedCard = _cardHelper.GetLowestCard(playableCards)!;
             }
         }
 
         return hand.IndexOf(selectedCard);
-    }
-
-    private Card GetCurrentWinningCard(List<(Card card, Player player)> cardsPlayed, 
-                                      CardSuit? trumpSuit, CardSuit? leadingSuit)
-    {
-        var winningCard = cardsPlayed[0].card;
-        
-        for (int i = 1; i < cardsPlayed.Count; i++)
-        {
-            if (_cardComparer.WinsAgainst(cardsPlayed[i].card, winningCard, trumpSuit, leadingSuit))
-            {
-                winningCard = cardsPlayed[i].card;
-            }
         }
-        
-        return winningCard;
-        }  
     }
 }

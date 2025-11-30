@@ -11,21 +11,42 @@ namespace DeuxCentsCardGame.Services
         private readonly IRandomService _randomService;
         private readonly ICardUtility _cardUtility;
         private readonly CardLogic _cardComparer;
+        private readonly HandEvaluator _handEvaluator;
+        private readonly CardCollectionHelper _cardHelper;
+        private readonly TrickAnalyzer _trickAnalyzer;
         private readonly Dictionary<AIDifficulty, IAIPlayer> _aiPlayers;
 
 
-        public AIService(IRandomService randomService, ICardUtility cardUtility, CardLogic cardComparer)
+        public AIService(
+            IRandomService randomService, 
+            ICardUtility cardUtility, 
+            CardLogic cardComparer,
+            HandEvaluator handEvaluator,
+            CardCollectionHelper cardHelper,
+            TrickAnalyzer trickAnalyzer)
         {
             _randomService = randomService ?? throw new ArgumentNullException(nameof(randomService));
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
-            _cardComparer = cardComparer ?? throw new ArgumentNullException(nameof(cardComparer));           
+            _cardComparer = cardComparer ?? throw new ArgumentNullException(nameof(cardComparer));
+            _handEvaluator = handEvaluator ?? throw new ArgumentNullException(nameof(handEvaluator));
+            _cardHelper = cardHelper ?? throw new ArgumentNullException(nameof(cardHelper));
+            _trickAnalyzer = trickAnalyzer ?? throw new ArgumentNullException(nameof(trickAnalyzer));
             
             // Initialize AI players for each difficulty
             _aiPlayers = new Dictionary<AIDifficulty, IAIPlayer>
             {
-                { AIDifficulty.Easy, new EasyAIPlayer(_randomService, _cardUtility) },
-                { AIDifficulty.Medium, new MediumAIPlayer(_randomService, _cardUtility, _cardComparer) },
-                { AIDifficulty.Hard, new HardAIPlayer(_randomService, _cardUtility, _cardComparer) }
+                { 
+                    AIDifficulty.Easy, 
+                    new EasyAIPlayer(_randomService, _cardUtility, _handEvaluator, _trickAnalyzer, _cardHelper) 
+                },
+                { 
+                    AIDifficulty.Medium, 
+                    new MediumAIPlayer(_randomService, _cardUtility, _handEvaluator, _cardHelper, _cardComparer, _trickAnalyzer) 
+                },
+                { 
+                    AIDifficulty.Hard, 
+                    new HardAIPlayer(_randomService, _cardUtility, _handEvaluator, _cardHelper, _cardComparer, _trickAnalyzer) 
+                }
             };
         }
 

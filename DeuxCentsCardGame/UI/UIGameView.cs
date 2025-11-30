@@ -1,16 +1,20 @@
 ﻿using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Interfaces.UI;
 using DeuxCentsCardGame.Interfaces.Models;
+using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.UI
 {
     public class UIGameView : IUIGameView
     {
         private readonly IConsoleWrapper _console;
+        private readonly CardCollectionHelper _cardHelper;
 
-        public UIGameView(IConsoleWrapper console)
+        public UIGameView(IConsoleWrapper console, CardCollectionHelper cardHelper)
         {
             _console = console ?? throw new ArgumentNullException(nameof(console));
+            _cardHelper = cardHelper ?? throw new ArgumentNullException(nameof(cardHelper));
         }
 
         public void ClearScreen()
@@ -83,11 +87,16 @@ namespace DeuxCentsCardGame.UI
             _console.WriteLine($"\n{player.Name}'s hand:");
             _console.WriteLine(new string('#', GameConstants.HAND_DISPLAY_SEPARATOR_LENGTH));
 
+            var sortedHand = _cardHelper.SortBySuit(player.Hand);
+
             for (int cardIndex = 0; cardIndex < player.Hand.Count; cardIndex++)
             {
-                _console.WriteLine($"{cardIndex}: {player.Hand[cardIndex]}");
+                int originalIndex = player.Hand.IndexOf(sortedHand[cardIndex]);
+                _console.WriteLine($"{originalIndex}: {sortedHand[cardIndex]}");
             }
+
             _console.WriteLine(new string('#', GameConstants.HAND_DISPLAY_SEPARATOR_LENGTH));
+            DisplayHandStatistics(player.Hand);
         }
 
         public void DisplayAllHands(List<IPlayer> players, int dealerIndex)
@@ -103,14 +112,62 @@ namespace DeuxCentsCardGame.UI
                 
                 string dealerIndicator = playerIndex == dealerIndex ? " (Dealer)" : "";
                 _console.WriteLine($"\n{player.Name}{dealerIndicator}:");
+
+                var sortedHand = _cardHelper.SortBySuit(player.Hand);   
                 
                 for (int cardIndex = 0; cardIndex < player.Hand.Count; cardIndex++)
                 {
-                    _console.WriteLine($"  {cardIndex}: {player.Hand[cardIndex]}");
+                    int originalIndex = player.Hand.IndexOf(sortedHand[cardIndex]);
+                    _console.WriteLine($"  {originalIndex}: {sortedHand[cardIndex]}");
                 }
+
+                DisplayHandStatistics(player.Hand);
             }
 
             _console.WriteLine("\n" + new string('-', GameConstants.ALL_HANDS_SEPARATOR_LENGTH));
+        }
+
+        private void DisplayHandStatistics(List<Card> hand)
+        {
+            if (hand == null || hand.Count == 0)
+                return;
+
+            // Use CardCollectionHelper for statistics
+            int totalPoints = _cardHelper.CalculateTotalPoints(hand);
+            var suitCounts = _cardHelper.CountBySuit(hand);
+            int highCards = _cardHelper.GetHighValueCards(hand, 8).Count;
+            
+            _console.WriteLine($"  Stats: {totalPoints} pts | High cards: {highCards}");
+            
+            // Display suit distribution
+            var suitDisplay = string.Join(" | ", 
+                suitCounts.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
+            _console.WriteLine($"  Suits: {suitDisplay}");
+        }
+
+        public void DisplayHandGroupedBySuit(IPlayer player)
+        {
+            _console.WriteLine($"\n{player.Name}'s hand (grouped by suit):");
+            _console.WriteLine(new string('#', GameConstants.HAND_DISPLAY_SEPARATOR_LENGTH));
+
+            // Use CardCollectionHelper to group by suit
+            var grouped = _cardHelper.GroupBySuit(player.Hand);
+            
+            foreach (var suitGroup in grouped.OrderBy(g => g.Key))
+            {
+                _console.WriteLine($"\n{suitGroup.Key}:");
+                
+                // Sort cards within suit by value
+                var sortedCards = _cardHelper.SortByValue(suitGroup.Value);
+                
+                foreach (var card in sortedCards)
+                {
+                    int originalIndex = player.Hand.IndexOf(card);
+                    _console.WriteLine($"  {originalIndex}: {card}");
+                }
+            }
+            
+            _console.WriteLine(new string('#', GameConstants.HAND_DISPLAY_SEPARATOR_LENGTH));
         }
 
         public static void DisplayBettingResults()

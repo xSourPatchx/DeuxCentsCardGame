@@ -1,12 +1,20 @@
+using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.AI
 {
     // Easy AI - Makes mostly random decisions with minimal strategy
     public class EasyAIPlayer : BaseAIPlayer
     {
-        public EasyAIPlayer(IRandomService randomService, ICardUtility cardUtility) : base(randomService, cardUtility, AIDifficulty.Easy)
+        public EasyAIPlayer(
+            IRandomService randomService, 
+            ICardUtility cardUtility,
+            HandEvaluator handEvaluator,
+            TrickAnalyzer trickAnalyzer,
+            CardCollectionHelper cardHelper) 
+            : base(randomService, cardUtility, handEvaluator, trickAnalyzer, cardHelper, AIDifficulty.Easy)
         { 
         }
 
@@ -34,8 +42,8 @@ namespace DeuxCentsCardGame.AI
             var playableCards = GetPlayableCards(hand, leadingSuit);
 
             // Play random valid card
-            var randomCard = playableCards[_randomService.Next(0, playableCards.Count)];
-            return hand.IndexOf(randomCard);
+            var randomCard = _cardHelper.GetRandomCard(playableCards, new Random());
+            return hand.IndexOf(randomCard!);
         }  
     }
 }

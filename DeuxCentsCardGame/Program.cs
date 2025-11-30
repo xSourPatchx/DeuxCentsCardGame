@@ -4,6 +4,7 @@ using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Interfaces.UI;
@@ -13,6 +14,7 @@ using DeuxCentsCardGame.UI;
 using DeuxCentsCardGame.Validators;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DeuxCentsCardGame
 {
@@ -61,26 +63,26 @@ namespace DeuxCentsCardGame
                 GameConfig.GameConfig.CreateFromConfiguration(configuration));
 
             // Register services
-            services.AddSingleton<IRandomService, RandomService>();
+            services.AddSingleton<CardCollectionHelper>();
             services.AddSingleton<ICardUtility, CardUtility>();
+            services.AddSingleton<IRandomService, RandomService>();
 
-            // Register card logic components
-            services.AddSingleton<CardLogic>();
+            // Register gameplay logic components
+            services.AddSingleton<IBettingLogic, BettingLogic>();
+            services.AddSingleton<ICardLogic, CardLogic>();
+            services.AddSingleton<HandEvaluator>();
+            services.AddSingleton<IScoringLogic, ScoringLogic>();
+            services.AddSingleton<TrickAnalyzer>();
 
-            // Register betting logic and validators
-            services.AddSingleton<BettingLogic>();
+            // Register validators
             services.AddSingleton<BettingValidator>(sp =>
             {
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
                 var playerManager = sp.GetRequiredService<IPlayerManager>();
                 return new BettingValidator(gameConfig, playerManager.Players.ToList());
             });
-
-            services.AddSingleton<ScoringLogic>(); // NEW: Register ScoringLogic
-
-            // Register validators
-            services.AddSingleton<CardValidator>();
             services.AddSingleton<CardPlayValidator>();
+            services.AddSingleton<CardValidator>();
 
             // Register AI service
             services.AddSingleton<IAIService, AIService>();

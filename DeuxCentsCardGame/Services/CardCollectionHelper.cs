@@ -232,5 +232,24 @@ namespace DeuxCentsCardGame.Services
 
             return new List<Card>(cards);
         }
+
+        // Gets playable cards based on leading suit rules.
+        // If no leading suit, all cards are playable.
+        // If leading suit exists, must follow suit if possible.
+
+        public List<Card> GetPlayableCards(List<Card> hand, CardSuit? leadingSuit)
+        {
+            if (hand == null || hand.Count == 0)
+                return new List<Card>();
+
+            // If no leading suit, all cards are playable
+            if (!leadingSuit.HasValue)
+                return new List<Card>(hand);
+
+            // Must follow suit if possible
+            var cardsOfLeadingSuit = FilterBySuit(hand, leadingSuit.Value);
+            
+            return cardsOfLeadingSuit.Any() ? cardsOfLeadingSuit : new List<Card>(hand);
+        }
     }
 }
