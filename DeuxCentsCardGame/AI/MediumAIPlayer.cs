@@ -8,20 +8,14 @@ namespace DeuxCentsCardGame.AI
     // Medium AI - Uses basic strategy with some randomness
     public class MediumAIPlayer : BaseAIPlayer
     {   
-        private readonly CardLogic _cardComparer;
-        // private readonly TrickAnalyzer _trickAnalyzer;  
-
         public MediumAIPlayer(
             IRandomService randomService, 
             ICardUtility cardUtility, 
             HandEvaluator handEvaluator,
             CardCollectionHelper cardHelper,
-            CardLogic cardComparer,
             TrickAnalyzer trickAnalyzer) 
             : base(randomService, cardUtility, handEvaluator, trickAnalyzer, cardHelper, AIDifficulty.Medium)
         {
-            _cardComparer = cardComparer ?? throw new ArgumentNullException(nameof(cardComparer));
-            // _trickAnalyzer = trickAnalyzer ?? throw new ArgumentNullException(nameof(trickAnalyzer));
         }
 
         public override int DecideBet(List<Card> hand, int minBet, int maxBet, int betIncrement,

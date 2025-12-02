@@ -8,21 +8,14 @@ namespace DeuxCentsCardGame.AI
     // Hard AI - Uses advanced strategy and optimal play
     public class HardAIPlayer : BaseAIPlayer
     {
-        private readonly CardLogic _cardComparer;
-        // private readonly TrickAnalyzer _trickAnalyzer;
-
-
         public HardAIPlayer(
             IRandomService randomService, 
             ICardUtility cardUtility, 
             HandEvaluator handEvaluator, 
             CardCollectionHelper cardHelper, 
-            CardLogic cardComparer,
             TrickAnalyzer trickAnalyzer) 
             : base(randomService, cardUtility, handEvaluator, trickAnalyzer, cardHelper, AIDifficulty.Hard)
         {
-            _cardComparer = cardComparer ?? throw new ArgumentNullException(nameof(cardComparer));
-            // _trickAnalyzer = trickAnalyzer ?? throw new ArgumentNullException(nameof(trickAnalyzer));  
         }
 
         public override int DecideBet(List<Card> hand, int minBet, int maxBet, int betIncrement, 
@@ -165,9 +158,6 @@ namespace DeuxCentsCardGame.AI
             var currentWinningCard = _trickAnalyzer.GetCurrentWinningCard(
                 cardsPlayedInTrick, trumpSuit, leadingSuit);
             
-            // Calculate if winning is worth it
-            int trickValue = _trickAnalyzer.CalculateTrickValue(cardsPlayedInTrick);
-            
             // Try to win if trick has value
             if (_trickAnalyzer.IsTrickValuable(cardsPlayedInTrick, 10))
             {
@@ -189,7 +179,6 @@ namespace DeuxCentsCardGame.AI
         {
             var currentWinningCard = _trickAnalyzer.GetCurrentWinningCard(
                 cardsPlayedInTrick, trumpSuit, leadingSuit);
-            
             
             // If trick is valuable, try to win
             if (_trickAnalyzer.IsTrickValuable(cardsPlayedInTrick, 10))
