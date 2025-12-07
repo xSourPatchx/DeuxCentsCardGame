@@ -17,28 +17,28 @@ namespace DeuxCentsCardGame.UI
             _cardHelper = cardHelper ?? throw new ArgumentNullException(nameof(cardHelper));
         }
 
-        public void ClearScreen()
+        public async Task ClearScreen()
         {
             _console.Clear();
         }
 
-        public void DisplayMessage(string message)
+        public async Task DisplayMessage(string message)
         {
             _console.WriteLine(message);
         }
 
-        public void DisplayFormattedMessage(string format, params object[] args)
+        public async Task DisplayFormattedMessage(string format, params object[] args)
         {
             _console.WriteLine(format, args);
         }
 
-        public string GetUserInput(string prompt)
+        public async Task<string> GetUserInput(string prompt)
         {
             _console.WriteLine(prompt);
             return _console.ReadLine() ?? string.Empty;
         }
 
-        public int GetIntInput(string prompt, int min, int max)
+        public async Task GetIntInput(string prompt, int min, int max)
         {
             int result;
             bool isValid;
@@ -57,7 +57,7 @@ namespace DeuxCentsCardGame.UI
             return result;
         }
 
-        public string GetOptionInput(string prompt, string[] options)
+        public async Task<string> GetOptionInput(string prompt, string[] options)
         {
             string result;
             bool isValid;
@@ -76,13 +76,13 @@ namespace DeuxCentsCardGame.UI
             return result;
         }
 
-        public void WaitForUser(string message = "Press any key to continue...")
+        public async Task WaitForUser(string message = "Press any key to continue...")
         {
             DisplayMessage(message);
             _console.ReadKey();
         }
 
-        public void DisplayHand(IPlayer player)
+        public async Task DisplayHand(IPlayer player)
         {
             _console.WriteLine($"\n{player.Name}'s hand:");
             _console.WriteLine(new string('#', GameConstants.HAND_DISPLAY_SEPARATOR_LENGTH));
@@ -99,7 +99,7 @@ namespace DeuxCentsCardGame.UI
             DisplayHandStatistics(player.Hand);
         }
 
-        public void DisplayAllHands(List<IPlayer> players, int dealerIndex)
+        public async Task DisplayAllHands(List<IPlayer> players, int dealerIndex)
         {
             _console.WriteLine("\n" + new string('-', GameConstants.ALL_HANDS_SEPARATOR_LENGTH));
             _console.WriteLine("All player hands");

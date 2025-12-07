@@ -4,6 +4,7 @@ namespace DeuxCentsCardGame.Interfaces.Controllers
 {
     public interface ITrickController
     {
-        void PlayAllTricks(int startingPlayerIndex, CardSuit? trumpSuit);
+        Task PlayAllTricks(int startingPlayerIndex, CardSuit? trumpSuit);
+        Task ExecuteSingleTrick(int trickNumber, CardSuit? trumpSuit);
     }
 }

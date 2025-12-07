@@ -61,7 +61,7 @@ namespace DeuxCentsCardGame.Managers
             return _players[index];
         }
 
-        public void ResetAllPlayerBettingStates()
+        public async Task ResetAllPlayerBettingStates()
         {
             foreach (var player in _players)
             {
@@ -69,7 +69,7 @@ namespace DeuxCentsCardGame.Managers
             }
         }
 
-        public void ClearAllPlayerHands()
+        public async Task ClearAllPlayerHands()
         { 
             foreach (var player in _players)
             {

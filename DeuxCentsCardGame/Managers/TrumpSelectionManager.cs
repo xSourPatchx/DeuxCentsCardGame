@@ -15,11 +15,11 @@ namespace DeuxCentsCardGame.Managers
             _cardUtility = cardUtility;
         }
 
-        public CardSuit SelectTrumpSuit(Player winningBidder)
+        public Task<CardSuit> SelectTrumpSuit(Player winningBidder)
         {
-            string trumpSuitInput = _eventManager.RaiseTrumpSelectionInput(winningBidder);
+            string trumpSuitInput = await _eventManager.RaiseTrumpSelectionInput(winningBidder);
             CardSuit trumpSuit = _cardUtility.StringToCardSuit(trumpSuitInput);
-            _eventManager.RaiseTrumpSelected(trumpSuit, winningBidder);
+            await _eventManager.RaiseTrumpSelected(trumpSuit, winningBidder);
 
             return trumpSuit;
         }   

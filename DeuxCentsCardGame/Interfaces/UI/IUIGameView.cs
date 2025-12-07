@@ -4,14 +4,14 @@ namespace DeuxCentsCardGame.Interfaces.UI
 {
     public interface IUIGameView
     {
-        void ClearScreen();
-        void DisplayMessage(string message);
-        void DisplayFormattedMessage(string format, params object[] args);
-        string GetUserInput(string prompt);
-        int GetIntInput(string prompt, int min, int max);
-        string GetOptionInput(string prompt, string[] options);
-        void WaitForUser(string message = "Press any key to continue...");
-        void DisplayHand(IPlayer player);
-        void DisplayAllHands(List<IPlayer> players, int dealerIndex);
+        Task ClearScreen();
+        Task DisplayMessage(string message);
+        Task DisplayFormattedMessage(string format, params object[] args);
+        Task<string> GetUserInput(string prompt);
+        Task<int> GetIntInput(string prompt, int min, int max);
+        Task<string> GetOptionInput(string prompt, string[] options);
+        Task WaitForUser(string message = "Press any key to continue...");
+        Task DisplayHand(IPlayer player);
+        Task DisplayAllHands(List<IPlayer> players, int dealerIndex);
     }
 }

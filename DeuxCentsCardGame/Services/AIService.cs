@@ -41,11 +41,11 @@ namespace DeuxCentsCardGame.Services
                 },
                 { 
                     AIDifficulty.Medium, 
-                    new MediumAIPlayer(_randomService, _cardUtility, _handEvaluator, _cardHelper, _cardComparer, _trickAnalyzer) 
+                    new MediumAIPlayer(_randomService, _cardUtility, _handEvaluator, _cardHelper, _trickAnalyzer) 
                 },
                 { 
                     AIDifficulty.Hard, 
-                    new HardAIPlayer(_randomService, _cardUtility, _handEvaluator, _cardHelper, _cardComparer, _trickAnalyzer) 
+                    new HardAIPlayer(_randomService, _cardUtility, _handEvaluator, _cardHelper, _trickAnalyzer) 
                 }
             };
         }
@@ -55,7 +55,7 @@ namespace DeuxCentsCardGame.Services
             return _aiPlayers[difficulty];
         }
 
-        public int MakeAIBettingDecision(Player player, AIDifficulty difficulty, int minBet, 
+        public async Task<int> MakeAIBettingDecision(Player player, AIDifficulty difficulty, int minBet, 
                                         int maxBet, int betIncrement, int currentHighestBid, 
                                         List<int> takenBids)
         {
@@ -64,13 +64,13 @@ namespace DeuxCentsCardGame.Services
                                     currentHighestBid, takenBids);
         }
 
-        public CardSuit MakeAITrumpSelection(Player player, AIDifficulty difficulty)
+        public async Task<CardSuit> MakeAITrumpSelection(Player player, AIDifficulty difficulty)
         {
             var aiPlayer = GetAIPlayer(difficulty);
             return aiPlayer.SelectTrumpSuit(player.Hand);
         }
 
-        public int MakeAICardSelection(Player player, AIDifficulty difficulty, CardSuit? leadingSuit, 
+        public async Task<int> MakeAICardSelection(Player player, AIDifficulty difficulty, CardSuit? leadingSuit, 
                                     CardSuit? trumpSuit, List<(Card card, Player player)> cardsPlayedInTrick)
         {
             var aiPlayer = GetAIPlayer(difficulty);

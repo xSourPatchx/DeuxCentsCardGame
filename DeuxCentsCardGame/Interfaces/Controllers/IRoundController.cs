@@ -6,11 +6,11 @@ namespace DeuxCentsCardGame.Interfaces.Controllers
     {
         int DealerIndex { get; }
         CardSuit? TrumpSuit { get; }
-        void InitializeRound(int roundNumber);
-        void PrepareRound();
-        void ExecuteBettingPhase();
-        void SelectTrump();
-        void FinalizeRound(int roundNumber);
+        Task InitializeRound(int roundNumber);
+        Task PrepareRound();
+        Task ExecuteBettingPhase();
+        Task SelectTrump();
+        Task FinalizeRound(int roundNumber);
         int GetStartingPlayerIndex();
     }
 }

@@ -13,7 +13,7 @@ namespace DeuxCentsCardGame.Managers
             _eventManager = eventManager;
         }
 
-        public void DealCards(Deck deck, List<Player> players)
+        public async Task DealCards(Deck deck, List<Player> players)
         {
             foreach (Player player in players)
             {
@@ -23,10 +23,12 @@ namespace DeuxCentsCardGame.Managers
             for (int cardIndex = 0; cardIndex < deck.Cards.Count; cardIndex++)
             {
                 players[cardIndex % players.Count].AddCard(deck.Cards[cardIndex]);
+
+                await Task.Delay(10); // 10ms per card for smooth dealing animation
             }
         }
 
-        public void RaiseCardsDealtEvent(List<Player> players, int dealerIndex)
+        public async Task RaiseCardsDealtEvent(List<Player> players, int dealerIndex)
         {
             _eventManager.RaiseCardsDealt(players, dealerIndex);
         }

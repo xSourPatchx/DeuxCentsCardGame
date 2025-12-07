@@ -6,7 +6,7 @@ namespace DeuxCentsCardGame.Interfaces.Managers
     {
         IReadOnlyList<Player> Players { get; }
         Player GetPlayer(int index);
-        void ResetAllPlayerBettingStates();
-        void ClearAllPlayerHands();
+        Task ResetAllPlayerBettingStates();
+        Task ClearAllPlayerHands();
     }
 }

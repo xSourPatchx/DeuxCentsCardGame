@@ -4,14 +4,14 @@ namespace DeuxCentsCardGame.Interfaces.Controllers
 {
     public interface IGameController
     {
-        void TransitionToState(GameState newState);
+        Task TransitionToState(GameState newState);
         GameState GetCurrentState();
         int GetCurrentRound();
         int GetCurrentTrick();
-        void PauseGame();
-        void ResumeGame();
+        Task PauseGame();
+        Task ResumeGame();
         bool IsPaused();
-        void StartGame();
-        void NewRound();
+        Task StartGame();
+        Task NewRound();
     }
 }

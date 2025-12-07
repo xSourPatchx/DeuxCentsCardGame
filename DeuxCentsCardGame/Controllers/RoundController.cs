@@ -42,38 +42,38 @@ namespace DeuxCentsCardGame.Controllers
             DealerIndex = initialDealerIndex;
         }
 
-        public void InitializeRound(int roundNumber)
+        public async Task InitializeRound(int roundNumber)
         {
-            _eventManager.RaiseRoundStarted(roundNumber, _playerManager.GetPlayer(DealerIndex));
-            ResetRound();
+            await _eventManager.RaiseRoundStarted(roundNumber, _playerManager.GetPlayer(DealerIndex));
+            await ResetRound();
         }
 
-        public void PrepareRound()
+        public async Task PrepareRound()
         {
-            ShuffleDeck();
-            CutDeck();
-            DealCards();
+            await ShuffleDeck();
+            await CutDeck();
+            await DealCards();
         }
 
-        public void ExecuteBettingPhase()
+        public async Task ExecuteBettingPhase()
         {
             _bettingManager.UpdateDealerIndex(DealerIndex);
-            _bettingManager.ExecuteBettingRound();
+            await _bettingManager.ExecuteBettingRound();
         }
 
-        public void SelectTrump()
+        public async Task SelectTrump()
         {
-            TrumpSuit = _trumpSelectionManager.SelectTrumpSuit(_playerManager.GetPlayer(_bettingManager.CurrentWinningBidIndex));
+            TrumpSuit = await _trumpSelectionManager.SelectTrumpSuit(_playerManager.GetPlayer(_bettingManager.CurrentWinningBidIndex));
         }
 
-        public void FinalizeRound(int roundNumber)
+        public async Task FinalizeRound(int roundNumber)
         {
             ScoreRound();
-            RaiseRoundEndedEvent(roundNumber);
+            await RaiseRoundEndedEvent(roundNumber);
 
             if (!_scoringManager.IsGameOver())
             {
-                _eventManager.RaiseNextRoundPrompt();
+                await _eventManager.RaiseNextRoundPrompt();
             }
 
             RotateDealer();
@@ -84,36 +84,36 @@ namespace DeuxCentsCardGame.Controllers
             return _bettingManager.CurrentWinningBidIndex;
         }   
 
-        private void ResetRound()
+        private async Task ResetRound()
         {
-            _deckManager.ResetDeck();
+            await _deckManager.ResetDeck();
             TrumpSuit = null;
             _scoringManager.ResetRoundPoints();
-            _bettingManager.ResetBettingRound();
+            await _bettingManager.ResetBettingRound();
             _playerTurnManager.ResetTurnSequence();
         }
 
-        private void ShuffleDeck()
+        private async Task ShuffleDeck()
         {   
-            _deckManager.ShuffleDeck();
+            await _deckManager.ShuffleDeck();
         }
 
-        private void CutDeck()
+        private async Task CutDeck()
         {
             int cuttingPlayerIndex = _playerTurnManager.GetPlayerRightOfDealer(DealerIndex);
             Player cuttingPlayer = _playerManager.GetPlayer(cuttingPlayerIndex);
 
             int deckSize = _deckManager.CurrentDeck.Cards.Count;
-            int cutPosition = _eventManager.RaiseDeckCutInput(cuttingPlayer, deckSize);
+            int cutPosition = await _eventManager.RaiseDeckCutInput(cuttingPlayer, deckSize);
 
-            _deckManager.CutDeck(cutPosition);
-            _eventManager.RaiseDeckCut(cuttingPlayer, cutPosition);
+            await _deckManager.CutDeck(cutPosition);
+            await _eventManager.RaiseDeckCut(cuttingPlayer, cutPosition);
         }
 
-        private void DealCards()
+        private async Task DealCards()
         {
-            _dealingManager.DealCards(_deckManager.CurrentDeck, _playerManager.Players.ToList());
-            _dealingManager.RaiseCardsDealtEvent(_playerManager.Players.ToList(), DealerIndex);
+            await _dealingManager.DealCards(_deckManager.CurrentDeck, _playerManager.Players.ToList());
+            await _dealingManager.RaiseCardsDealtEvent(_playerManager.Players.ToList(), DealerIndex);
         }
 
         private void ScoreRound()
@@ -121,9 +121,9 @@ namespace DeuxCentsCardGame.Controllers
             _scoringManager.ScoreRound(_bettingManager.CurrentWinningBidIndex, _bettingManager.CurrentWinningBid);
         }
 
-        private void RaiseRoundEndedEvent(int roundNumber)
+        private async Task RaiseRoundEndedEvent(int roundNumber)
         {       
-            _eventManager.RaiseRoundEnded(
+            await _eventManager.RaiseRoundEnded(
                 roundNumber,
                 _scoringManager.TeamOneRoundPoints,
                 _scoringManager.TeamTwoRoundPoints,

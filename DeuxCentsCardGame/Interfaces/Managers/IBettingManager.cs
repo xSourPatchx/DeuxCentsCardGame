@@ -5,8 +5,8 @@ namespace DeuxCentsCardGame.Interfaces.Managers
         int CurrentWinningBid { get; }
         int CurrentWinningBidIndex { get; }
         bool IsBettingRoundComplete { get; }
-        void ExecuteBettingRound();
-        void ResetBettingRound();
-        void UpdateDealerIndex(int newDealerIndex);
+        Task ExecuteBettingRound();
+        Task ResetBettingRound();
+        Task UpdateDealerIndex(int newDealerIndex);
     }
 }

@@ -4,6 +4,9 @@ namespace DeuxCentsCardGame.Interfaces.Validators
 {
     public interface ICardPlayValidator
     {
-        Card GetValidCardFromPlayer(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit);
+        Task<Card> GetValidCardFromPlayer(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit);
+        List<Card> GetValidCards(List<Card> hand, CardSuit? leadingSuit);
+        List<int> GetValidCardIndices(List<Card> hand, CardSuit? leadingSuit);
+        bool IsCardIndexValid(List<Card> hand, int cardIndex, CardSuit? leadingSuit);
     }
 }

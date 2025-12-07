@@ -28,18 +28,19 @@ namespace DeuxCentsCardGame.Managers
             _currentDeck = new Deck(_cardUtility, _cardValidator);
         }
 
-        public void ResetDeck()
+        public async Task ResetDeck()
         { 
             _currentDeck = new Deck(_cardUtility, _cardValidator);
+            await Task.CompletedTask;
         }
 
-        public void ShuffleDeck()
+        public async Task ShuffleDeck()
         {
-            PerformFisherYatesShuffle();
-            RaiseDeckShuffled();
+            await PerformFisherYatesShuffle();
+            await RaiseDeckShuffled();
         }
 
-        private void PerformFisherYatesShuffle()
+        private async Task PerformFisherYatesShuffle()
         {
             var cards = _currentDeck.Cards;
 
@@ -49,15 +50,21 @@ namespace DeuxCentsCardGame.Managers
                 Card temp = cards[randomCardIndex];
                 cards[randomCardIndex] = cards[cardIndex];
                 cards[cardIndex] = temp;
+
+                // Small delay for shuffle animation in Unity
+                if (cardIndex % 5 == 0) // Every 5 cards
+                {
+                    await Task.Delay(5);
+                }
             }
         }
 
-        private void RaiseDeckShuffled()
+        private async Task RaiseDeckShuffled()
         {
-            _eventManager.RaiseDeckShuffled("Deck has been shuffled");
+            await _eventManager.RaiseDeckShuffled("Deck has been shuffled");
         }
 
-        public void CutDeck(int cutPosition)
+        public async Task CutDeck(int cutPosition)
         {
             if (cutPosition < 1 || cutPosition >= _currentDeck.Cards.Count)
             {
@@ -70,6 +77,8 @@ namespace DeuxCentsCardGame.Managers
             var bottomPortion = cards.Take(cutPosition).ToList();
 
             _currentDeck.Cards = topPortion.Concat(bottomPortion).ToList();
+
+            await Task.CompletedTask;
         }
     }
 }

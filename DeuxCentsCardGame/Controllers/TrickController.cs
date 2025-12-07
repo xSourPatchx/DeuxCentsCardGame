@@ -3,8 +3,8 @@ using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Managers;
+using DeuxCentsCardGame.Interfaces.Validators;
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Validators;
 
 namespace DeuxCentsCardGame.Controllers
 {
@@ -15,7 +15,7 @@ namespace DeuxCentsCardGame.Controllers
         private readonly IPlayerTurnManager _playerTurnManager;
         private readonly IScoringManager _scoringManager;
         private readonly ICardLogic _cardComparer;
-        private readonly CardPlayValidator _cardPlayValidator;
+        private readonly ICardPlayValidator _cardPlayValidator;
 
         public TrickController(
             IGameEventManager eventManager,
@@ -23,7 +23,7 @@ namespace DeuxCentsCardGame.Controllers
             IPlayerTurnManager playerTurnManager,
             IScoringManager scoringManager,
             ICardLogic cardComparer,
-            CardPlayValidator cardPlayValidator)
+            ICardPlayValidator cardPlayValidator)
         {
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
             _playerManager = playerManager ?? throw new ArgumentNullException(nameof(playerManager));
@@ -33,7 +33,7 @@ namespace DeuxCentsCardGame.Controllers
             _cardPlayValidator = cardPlayValidator ?? throw new ArgumentNullException(nameof(cardPlayValidator));
         }
 
-        public void PlayAllTricks(int startingPlayerIndex, CardSuit? trumpSuit)
+        public async Task PlayAllTricks(int startingPlayerIndex, CardSuit? trumpSuit)
         {
             var startingPlayer = _playerManager.GetPlayer(startingPlayerIndex);
             int totalTricks = startingPlayer.Hand.Count;
@@ -42,25 +42,25 @@ namespace DeuxCentsCardGame.Controllers
 
             for (int trickNumber = 0; trickNumber < totalTricks; trickNumber++)
             {
-                ExecuteSingleTrick(trickNumber, trumpSuit);
+                await ExecuteSingleTrick(trickNumber, trumpSuit);
             }
         }
 
-        private void ExecuteSingleTrick(int trickNumber, CardSuit? trumpSuit)
+        public async Task ExecuteSingleTrick(int trickNumber, CardSuit? trumpSuit)
         {
             CardSuit? leadingSuit = null;
-            List<(Card card, Player player)> currentTrick = [];
+            List<(Card card, Player player)> currentTrick = new();
 
-            PlayTrickCards(ref leadingSuit, currentTrick, trickNumber, trumpSuit);
+            await PlayTrickCards(leadingSuit, currentTrick, trickNumber, trumpSuit);
 
             var (trickWinningCard, trickWinner) = DetermineTrickWinner(currentTrick, trumpSuit, leadingSuit);
             int trickPoints = CalculateTrickPoints(currentTrick);
-            int trickWinnerIndex = AwardTrickPointsAndNotify(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
+            int trickWinnerIndex = await AwardTrickPointsAndNotify(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
 
             _playerTurnManager.SetCurrentPlayer(trickWinnerIndex);
         }
 
-        private void PlayTrickCards(ref CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick, 
+        private async Task PlayTrickCards(CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick, 
                                     int trickNumber, CardSuit? trumpSuit)
         {
             var turnOrder = _playerTurnManager.GetTurnOrder();
@@ -68,41 +68,44 @@ namespace DeuxCentsCardGame.Controllers
             foreach (int playerIndex in turnOrder)
             {
                 Player currentPlayer = _playerManager.GetPlayer(playerIndex);
-                ExecutePlayerTurn(currentPlayer, ref leadingSuit, trickNumber, currentTrick, trumpSuit);
+                leadingSuit = await ExecutePlayerTurn(currentPlayer, leadingSuit, trickNumber, currentTrick, trumpSuit);
             }
         }
 
-        private void ExecutePlayerTurn(Player currentPlayer, ref CardSuit? leadingSuit, int trickNumber, 
+        private async Task<CardSuit?> ExecutePlayerTurn(Player currentPlayer, CardSuit? leadingSuit, int trickNumber, 
                                     List<(Card card, Player player)> currentTrick, CardSuit? trumpSuit)
         {
-            RaisePlayerTurnEvent(currentPlayer, leadingSuit, trumpSuit, trickNumber);
+            await RaisePlayerTurnEvent(currentPlayer, leadingSuit, trumpSuit, trickNumber);
             
-            Card playedCard = _cardPlayValidator.GetValidCardFromPlayer(currentPlayer, leadingSuit, trumpSuit);
+            Card playedCard = await _cardPlayValidator.GetValidCardFromPlayer(currentPlayer, leadingSuit, trumpSuit);
             
             currentPlayer.RemoveCard(playedCard);
-            UpdateLeadingSuit(playedCard, ref leadingSuit, currentTrick);
+            leadingSuit = UpdateLeadingSuit(playedCard, leadingSuit, currentTrick);
             currentTrick.Add((playedCard, currentPlayer));
             
-            RaiseCardPlayedEvent(currentPlayer, playedCard, trickNumber, leadingSuit, trumpSuit);
+            await RaiseCardPlayedEvent(currentPlayer, playedCard, trickNumber, leadingSuit, trumpSuit);
+
+            return leadingSuit;
         }
 
-        private void RaisePlayerTurnEvent(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit, int trickNumber)
+        private async Task RaisePlayerTurnEvent(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit, int trickNumber)
         {
-            _eventManager.RaisePlayerTurn(currentPlayer, leadingSuit, trumpSuit, trickNumber);
+            await _eventManager.RaisePlayerTurn(currentPlayer, leadingSuit, trumpSuit, trickNumber);
         }
 
-        private void UpdateLeadingSuit(Card playedCard, ref CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick)
+        private CardSuit? UpdateLeadingSuit(Card playedCard, CardSuit? leadingSuit, List<(Card card, Player player)> currentTrick)
         {
             if (currentTrick.Count == 0)
             {
-                leadingSuit = playedCard.CardSuit;
+                return playedCard.CardSuit;
             }
+            return leadingSuit;
         }
 
-        private void RaiseCardPlayedEvent(Player currentPlayer, Card playedCard, int trickNumber, 
+        private async Task RaiseCardPlayedEvent(Player currentPlayer, Card playedCard, int trickNumber, 
                                         CardSuit? leadingSuit, CardSuit? trumpSuit)
         {
-            _eventManager.RaiseCardPlayed(currentPlayer, playedCard, trickNumber, leadingSuit, trumpSuit);
+            await _eventManager.RaiseCardPlayed(currentPlayer, playedCard, trickNumber, leadingSuit, trumpSuit);
         }
 
         private (Card winningCard, Player winningPlayer) DetermineTrickWinner(
@@ -127,12 +130,12 @@ namespace DeuxCentsCardGame.Controllers
             return trick.Sum(t => t.card.CardPointValue);
         }
 
-        private int AwardTrickPointsAndNotify(int trickNumber, Player trickWinner, Card trickWinningCard, 
+        private async Task<int> AwardTrickPointsAndNotify(int trickNumber, Player trickWinner, Card trickWinningCard, 
                                             List<(Card card, Player player)> currentTrick, int trickPoints)
         {
             int winnerIndex = _playerManager.Players.ToList().IndexOf(trickWinner);
             _scoringManager.AwardTrickPoints(winnerIndex, trickPoints);
-            _eventManager.RaiseTrickCompleted(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
+            await _eventManager.RaiseTrickCompleted(trickNumber, trickWinner, trickWinningCard, currentTrick, trickPoints);
             return winnerIndex;
         }
     }

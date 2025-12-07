@@ -12,7 +12,7 @@ namespace DeuxCentsCardGame.Controllers
 
         // State management
         private readonly GameStateData _gameStateData;
-        private readonly Dictionary<GameState, Action> _gameStateHandlers;
+        private readonly Dictionary<GameState, Func<Task>> _gameStateHandlers;
 
         // Controllers
         private readonly RoundController _roundController;
@@ -46,7 +46,7 @@ namespace DeuxCentsCardGame.Controllers
             _gameStateData = new GameStateData();
 
             // Map states to handlers
-            _gameStateHandlers = new Dictionary<GameState, Action>
+            _gameStateHandlers = new Dictionary<GameState, Func<Task>>
             {
                 { GameState.Initialization, HandleInitialization },
                 { GameState.RoundStart, HandleRoundStart },
@@ -61,7 +61,7 @@ namespace DeuxCentsCardGame.Controllers
   
         #region State Management
 
-        public void TransitionToState(GameState newState)
+        public async Task TransitionToState(GameState newState)
         {
             if (_gameStateData.IsPaused)
             {
@@ -73,12 +73,12 @@ namespace DeuxCentsCardGame.Controllers
             _gameStateData.CurrentState = newState;
 
             // Raise event for UI/logging
-            _eventManager.RaiseStateChanged(_gameStateData.PreviousState, newState);
+            await _eventManager.RaiseStateChanged(_gameStateData.PreviousState, newState);
 
             // Execute state handler
             if (_gameStateHandlers.TryGetValue(newState, out var handler))
             {
-                handler.Invoke();
+                await handler.Invoke();
             }
         }
 
@@ -92,27 +92,27 @@ namespace DeuxCentsCardGame.Controllers
         public int GetCurrentTrick() => _gameStateData.CurrentTrick;
 
         // Pauses the game (preserves current state)
-        public void PauseGame()
+        public async Task PauseGame()
         {
             if (!_gameStateData.IsPaused)
             {
                 _gameStateData.IsPaused = true;
                 _gameStateData.StateBeforePause = _gameStateData.CurrentState;
-                _eventManager.RaiseGamePaused(_gameStateData.CurrentState);
+                await _eventManager.RaiseGamePaused(_gameStateData.CurrentState);
             }
         }
 
         // Resumes the game from pause
-        public void ResumeGame()
+        public async Task ResumeGame()
         {
             if (_gameStateData.IsPaused)
             {
                 _gameStateData.IsPaused = false;
                 GameState resumeToState = _gameStateData.StateBeforePause;
-                _eventManager.RaiseGameResumed(resumeToState);
+                await _eventManager.RaiseGameResumed(resumeToState);
 
                 // Continue from where we left off
-                TransitionToState(resumeToState);
+                await TransitionToState(resumeToState);
             }
         }
 
@@ -122,10 +122,10 @@ namespace DeuxCentsCardGame.Controllers
 
         #region Game Flow
 
-        public void StartGame()
+        public async Task StartGame()
         {
             // Begin initialization state
-            TransitionToState(GameState.Initialization);
+            await TransitionToState(GameState.Initialization);
 
             // Wait for game to end
             // In Unity, this loop would be replaced with Update() calls
@@ -133,96 +133,98 @@ namespace DeuxCentsCardGame.Controllers
             while (!_isGameEnded)
             {
                 // NewRound(); // This would be triggered by events in a real game loop
+                await Task.Delay(100); // Prevent tight loop in  context
             }
 
             _eventHandler.UnsubscribeFromEvents();
         }
 
-        public void NewRound()
+        public async Task NewRound()
         {
             // Start a new round
-            TransitionToState(GameState.RoundStart);
+            await TransitionToState(GameState.RoundStart);
         }
 
         #endregion
 
         #region State Handlers
 
-        private void HandleInitialization()
+        private async Task HandleInitialization()
         {
             // First-time setup
             _gameStateData.CurrentRound = 1;
             _currentRoundNumber = 1;
 
             // Automatically move to first round
-            TransitionToState(GameState.RoundStart);
+            await TransitionToState(GameState.RoundStart);
         }
 
-        private void HandleRoundStart()
+        private async Task HandleRoundStart()
         {
             _gameStateData.CurrentRound = _currentRoundNumber;
-            _roundController.InitializeRound(_currentRoundNumber);
+            await _roundController.InitializeRound(_currentRoundNumber);
 
             // Move to deck preparation
-            TransitionToState(GameState.DeckPreparation);
+            await TransitionToState(GameState.DeckPreparation);
         }
 
-        private void HandleDeckPreparation()
+        private async Task HandleDeckPreparation()
         {
-            _roundController.PrepareRound();
+            await _roundController.PrepareRound();
 
             // Move to betting phase
-            TransitionToState(GameState.Betting);
+            await TransitionToState(GameState.Betting);
         }
 
-        private void HandleBetting()
+        private async Task HandleBetting()
         {
-            _roundController.ExecuteBettingPhase();
+            await _roundController.ExecuteBettingPhase();
 
             // Move to trump selection
-            TransitionToState(GameState.TrumpSelection);
+            await TransitionToState(GameState.TrumpSelection);
         }
 
-        private void HandleTrumpSelection()
+        private async Task HandleTrumpSelection()
         {
-            _roundController.SelectTrump();
+            await _roundController.SelectTrump();
 
             // Reset trick counter for new round
             _gameStateData.CurrentTrick = 0;
 
             // Move to playing phase
-            TransitionToState(GameState.Playing);
+            await TransitionToState(GameState.Playing);
         }
 
-        private void HandlePlaying()
+        private async Task HandlePlaying()
         {
             int startingPlayerIndex = _roundController.GetStartingPlayerIndex();
-            _trickController.PlayAllTricks(startingPlayerIndex, _roundController.TrumpSuit);
+            await _trickController.PlayAllTricks(startingPlayerIndex, _roundController.TrumpSuit);
 
             // Move to round end
-            TransitionToState(GameState.RoundEnd);
+            await TransitionToState(GameState.RoundEnd);
         }
 
-        private void HandleRoundEnd()
+        private async Task HandleRoundEnd()
         {
-            _roundController.FinalizeRound(_currentRoundNumber);
+            await _roundController.FinalizeRound(_currentRoundNumber);
 
             // Check for game over
             if (_scoringManager.IsGameOver())
             {
-                TransitionToState(GameState.GameOver);
+                await TransitionToState(GameState.GameOver);
             }
             else
             {
                 _currentRoundNumber++;
-                TransitionToState(GameState.RoundStart);
+                await TransitionToState(GameState.RoundStart);
             }
         }
         
-        private void HandleGameOver()
+        private async Task HandleGameOver()
         {
             _scoringManager.RaiseGameOverEvent();
             _isGameEnded = true;
+            await Task.CompletedTask;
         }
 
         #endregion

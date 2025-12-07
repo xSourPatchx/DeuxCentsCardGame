@@ -4,6 +4,6 @@ namespace DeuxCentsCardGame.Interfaces.Managers
 {
     public interface ITrumpSelectionManager
     {
-        CardSuit SelectTrumpSuit(Player winningBidder);
+        Task<CardSuit> SelectTrumpSuit(Player winningBidder);
     }
 }

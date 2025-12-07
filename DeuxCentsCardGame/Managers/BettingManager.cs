@@ -8,7 +8,7 @@ using DeuxCentsCardGame.Validators;
 
 namespace DeuxCentsCardGame.Managers
 {
-    public class BettingManager : IBettingManager
+    public class BettingManager// : IBettingManager
     {
         // Public betting state properties
         public int CurrentWinningBid { get; set; }
@@ -39,35 +39,35 @@ namespace DeuxCentsCardGame.Managers
             _bettingLogic = bettingLogic ?? throw new ArgumentNullException(nameof(bettingLogic));
         }
 
-        public void ExecuteBettingRound()
+        public async Task ExecuteBettingRound()
         {
-            StartBettingRound();
-            ProcessBettingRound();
-            CompleteBettingRound();
+            await StartBettingRound();
+            await ProcessBettingRound();
+            await CompleteBettingRound();
         }
 
-        private void StartBettingRound()
+        private async Task StartBettingRound()
         {
-            _eventManager.RaiseBettingRoundStarted("Betting round begins!\n");
+            await _eventManager.RaiseBettingRoundStarted("Betting round begins!\n");
         }
 
-        private void ProcessBettingRound()
+        private async Task ProcessBettingRound()
         {
             int startingIndex = (_dealerIndex + 1) % _players.Count;
 
             while (!IsBettingRoundComplete)
             {
-                IsBettingRoundComplete = ProcessSingleBettingRound(startingIndex);
+                IsBettingRoundComplete = await ProcessSingleBettingRound(startingIndex);
             }
         }
 
-        private void CompleteBettingRound()
+        private async Task CompleteBettingRound()
         {
             SetWinningBid();
-            RaiseBettingCompletedEvent();
+            await RaiseBettingCompletedEvent();
         }
 
-        private bool ProcessSingleBettingRound(int startingIndex)
+        private async Task<bool> ProcessSingleBettingRound(int startingIndex)
         {
             for (int i = 0; i < _players.Count; i++)
             {
@@ -79,38 +79,38 @@ namespace DeuxCentsCardGame.Managers
                     continue;
 
                 // Parse and handle user input
-                if (ProcessPlayerBid(currentPlayerIndex))
+                if (await ProcessPlayerBid(currentPlayerIndex))
                     return true;
 
                 // Check if three or more players have passed
                 if (_bettingValidator.HasMinimumPlayersPassed())
-                    return HandleThreePassesScenario();
+                    return await HandleThreePassesScenario();
             }
             return false;
         }
 
-        private bool ProcessPlayerBid(int currentPlayerIndex)
+        private async Task<bool> ProcessPlayerBid(int currentPlayerIndex)
         {
             while (true)
             {
-                string betInput = RequestBetInput(currentPlayerIndex);
+                string betInput = await RequestBetInput(currentPlayerIndex);
 
                 if (_bettingValidator.IsPassInput(betInput))
                 {
-                    HandlePassInput(currentPlayerIndex);
+                    await HandlePassInput(currentPlayerIndex);
                     return false;
                 }
 
                 if (TryParseBet(betInput, out int bet) && _bettingValidator.IsValidBet(bet))
                 {
-                    return HandleValidBet(currentPlayerIndex, bet);
+                    return await HandleValidBet(currentPlayerIndex, bet);
                 }
 
-                RaiseInvalidBetEvent(currentPlayerIndex);
+                await RaiseInvalidBetEvent(currentPlayerIndex);
             }
         }
 
-        private string RequestBetInput(int playerIndex)
+        private async Task<string> RequestBetInput(int playerIndex)
         {
             // Get list of already taken bids
             var takenBids = _players
@@ -122,7 +122,7 @@ namespace DeuxCentsCardGame.Managers
             int currentHighestBid = takenBids.Any() ? takenBids.Max() : 0;
 
             // Raise event with enhanced information for AI
-            return _eventManager.RaiseBetInput(
+            return await _eventManager.RaiseBetInput(
                 _players[playerIndex],
                 _gameConfig.MinimumBet,
                 _gameConfig.MaximumBet,
@@ -137,38 +137,38 @@ namespace DeuxCentsCardGame.Managers
             return int.TryParse(betInput, out bet);
         }
 
-        private void RaiseInvalidBetEvent(int playerIndex)
+        private async Task RaiseInvalidBetEvent(int playerIndex)
         {
-            _eventManager.RaiseInvalidMove(
+            await _eventManager.RaiseInvalidMove(
             _players[playerIndex],
             "Invalid bet, please try again.",
             InvalidMoveType.InvalidBet
             );
         }
 
-        private void HandlePassInput(int currentPlayerIndex)
+        private async Task HandlePassInput(int currentPlayerIndex)
         {
             Player player = _players[currentPlayerIndex];
             _bettingLogic.MarkPlayerAsPassed(player);
-            RaiseBettingActionEvent(player, player.CurrentBid, isPassed: true, player.HasBet);
+            await RaiseBettingActionEvent(player, player.CurrentBid, isPassed: true, player.HasBet);
         }
 
-        private bool HandleValidBet(int currentPlayerIndex, int bet)
+        private async Task<bool> HandleValidBet(int currentPlayerIndex, int bet)
         {
             Player player = _players[currentPlayerIndex];
             _bettingLogic.RecordPlayerBet(player, bet);
-            RaiseBettingActionEvent(player, bet, isPassed: false, hasBet: true);
+            await RaiseBettingActionEvent(player, bet, isPassed: false, hasBet: true);
 
             if (_bettingValidator.IsMaximumBet(bet))
             {
                 // End round immediately
-                return HandleMaximumBetScenario(currentPlayerIndex);
+                return await HandleMaximumBetScenario(currentPlayerIndex);
             }
 
             return false;
         }
 
-        private bool HandleMaximumBetScenario(int playerIndex)
+        private async Task<bool> HandleMaximumBetScenario(int playerIndex)
         {
             _bettingLogic.ForceOtherPlayersToPass(_players, playerIndex);
 
@@ -177,36 +177,36 @@ namespace DeuxCentsCardGame.Managers
             {
                 if (i != playerIndex && _players[i].HasPassed)
                 {
-                    RaiseBettingActionEvent(_players[i], _players[i].CurrentBid, isPassed: true, _players[i].HasBet);
+                    await RaiseBettingActionEvent(_players[i], _players[i].CurrentBid, isPassed: true, _players[i].HasBet);
                 }
             }   
 
             return true;
         }
 
-        private bool HandleThreePassesScenario()
+        private async Task<bool> HandleThreePassesScenario()
         {
             List<Player> activePlayers = _bettingLogic.GetActivePlayers(_players);
 
             if (_bettingLogic.CheckIfOnlyOnePlayerRemains(activePlayers))
             {
-                HandleSingleActivePlayer(activePlayers[0]);
+                await HandleSingleActivePlayer(activePlayers[0]);
             }
 
             return true;
         }
 
-        private void HandleSingleActivePlayer(Player player)
+        private async Task HandleSingleActivePlayer(Player player)
         {
             if (_bettingLogic.NoBetsPlaced(_players))
             {
                 _bettingLogic.ForceMinimumBet(player);
-                RaiseBettingActionEvent(player, _gameConfig.MinimumBet, isPassed: false, hasBet: true);
+                await RaiseBettingActionEvent(player, _gameConfig.MinimumBet, isPassed: false, hasBet: true);
             }
             else if (!player.HasBet)
             {
                 _bettingLogic.ForcePlayerToPass(player);
-                RaiseBettingActionEvent(player, -1, isPassed: true, hasBet: false);
+                await RaiseBettingActionEvent(player, -1, isPassed: true, hasBet: false);
             }
         }
 
@@ -217,22 +217,22 @@ namespace DeuxCentsCardGame.Managers
             CurrentWinningBidIndex = winningBidIndex;
         }
 
-        private void RaiseBettingCompletedEvent()
+        private async Task RaiseBettingCompletedEvent()
         {
             if (CurrentWinningBid > 0)
             {
                 Player winningBidder = _players[CurrentWinningBidIndex];
                 var allBids = _players.ToDictionary(player => player, player => player.CurrentBid);
-                _eventManager.RaiseBettingCompleted(winningBidder, CurrentWinningBid, allBids);
+                await _eventManager.RaiseBettingCompleted(winningBidder, CurrentWinningBid, allBids);
             }
         }
 
-        private void RaiseBettingActionEvent(Player player, int bid, bool isPassed, bool hasBet)
+        private async Task RaiseBettingActionEvent(Player player, int bid, bool isPassed, bool hasBet)
         {
-            _eventManager.RaiseBettingAction(player, bid, isPassed, hasBet);
+            await _eventManager.RaiseBettingAction(player, bid, isPassed, hasBet);
         }
 
-        public void ResetBettingRound()
+        public async Task ResetBettingRound()
         {
             foreach (var player in _players)
             {
@@ -242,6 +242,8 @@ namespace DeuxCentsCardGame.Managers
             CurrentWinningBid = 0;
             CurrentWinningBidIndex = 0;
             IsBettingRoundComplete = false;
+
+            await Task.CompletedTask;
         }
         
         public void UpdateDealerIndex(int newDealerIndex)
