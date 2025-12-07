@@ -2,15 +2,15 @@
 1. **Refactoring**
    - [x] Simplify Complex Methods and break down large methods into smaller, focused ones: 
        - [x] `UpdateTeamPoints`: Extract team logic into helper methods.
-   - [ ] Consider adding GetValidCards Helper Method, could be useful for Unity implementation where you might want to highlight valid cards in the UI.
+   - [x] Consider adding GetValidCards Helper Method, could be useful for Unity implementation where you might want to highlight valid cards in the UI.
    - [ ] Add supporting helper classes to separated concerns, such as BettingAction, BetValidationResult and BettingActionType. Have in seperate .cs class file, view helperclassesexample.cs.
    - [ ] Do the same as above point, but in the Game.cs class.
    - [ ] Improve Team Logic by creating proper team management system with Team enum with `TeamHelper` class with `GetPlayerTeam`  and `GetTeamPlayerIndices` methods.
    - [x] Review files organization structure and class names
    
    **(For later)**
-   - [ ] Extract Game Data from Game Logic by creating separate `GameData` class to hold state that Unity can serialize: DealerIndex, WinningBidIndex, WinningBid, TrumpSuit, TeamOneTotalPoints, TeamTwoTotalPoints, other state data
-   - [ ] Remove Static UI References, replace `UIConsoleGameView.DisplayAllHands(_players, _dealerIndex)` with instance calls through the injected interface.
+   - [x] Extract Game Data from Game Logic by creating separate `GameData` class to hold state that Unity can serialize: DealerIndex, WinningBidIndex, WinningBid, TrumpSuit, TeamOneTotalPoints, TeamTwoTotalPoints, other state data
+   - [x] Remove Static UI References, replace `UIConsoleGameView.DisplayAllHands(_players, _dealerIndex)` with instance calls through the injected interface.
    - [ ] Simplify Method Signatures by reducing complex parameter lists. Consider creating small data classes called TrickData to handle CardsPlayed, LeadingSuit, TrickNumber.
    - [ ] Simplify Complex Methods, `ProcessPlayerBets` method returns a tuple and has side effects, split it into ProcessPlayerBet method and BetResult class
    - [ ] Remove Nested Loops and Complex Logic, betting round logic is too complex. Break it into smaller, testable methods: ProcessBettingRound(), SetWinningBid(bettingState.GetWinningBid())
@@ -57,7 +57,7 @@
 7. **Player System**
    - [x] Implement player turn manager system to encapsulate turn rotation logic and current player management
    - [x] Add player types (Human vs AI) and add basic AI strategies now to prepare for eventual CPU players in Unity
-   - [ ] Create base AI class for Unity adaptation
+   - [x] Create base AI class for Unity adaptation
 
 8. **Scoring System**
    - [ ] Extract scoring logic to separate class
