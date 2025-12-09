@@ -181,145 +181,170 @@ namespace DeuxCentsCardGame.Events
 
         // Public methods to trigger events from game logic //
         // Round events
-        public void RaiseRoundStarted(int roundNumber, Player dealer)
+        public async Task RaiseRoundStarted(int roundNumber, Player dealer)
         {
             OnRoundStarted(new RoundStartedEventArgs(roundNumber, dealer));
+            await Task.CompletedTask;
         }
 
-        public void RaiseRoundEnded(int roundNumber, int teamOneRoundPoints, int teamTwoRoundPoints, Player winningBidder, int winningBid)
+        public async Task RaiseRoundEnded(int roundNumber, int teamOneRoundPoints, int teamTwoRoundPoints, Player winningBidder, int winningBid)
         {
             OnRoundEnded(new RoundEndedEventArgs(roundNumber, teamOneRoundPoints, teamTwoRoundPoints, winningBidder, winningBid));
+            await Task.CompletedTask;
         }
 
-        public void RaiseDeckShuffled(string message)
+        public async Task RaiseDeckShuffled(string message)
         {
             OnDeckShuffled(new DeckShuffledEventArgs(message));
+            await Task.CompletedTask;
         }
 
-        public int RaiseDeckCutInput(Player cuttingPlayer, int deckSize)
+        public async Task<int> RaiseDeckCutInput(Player cuttingPlayer, int deckSize)
         {
             var args = new DeckCutInputEventArgs(cuttingPlayer, deckSize);
             OnDeckCutInput(args);
+            await Task.CompletedTask;
             return args.Response;
         }
 
-        public void RaiseDeckCut(Player cuttingPlayer, int cutPosition)
+        public async Task RaiseDeckCut(Player cuttingPlayer, int cutPosition)
         {
             OnDeckCut(new DeckCutEventArgs(cuttingPlayer, cutPosition));
+            await Task.CompletedTask;
         }
 
-        public void RaiseCardsDealt(List<Player> players, int dealerIndex)
+        public async Task RaiseCardsDealt(List<Player> players, int dealerIndex)
         {
             OnCardsDealt(new CardsDealtEventArgs(players, dealerIndex));
+            await Task.CompletedTask;
         }
 
-        public void RaiseInvalidMove(Player player, string message, InvalidMoveType moveType)
+        public async Task RaiseInvalidMove(Player player, string message, InvalidMoveType moveType)
         {
             OnInvalidMove(new InvalidMoveEventArgs(player, message, moveType));
+            await Task.CompletedTask;
         }
 
         // Game state change events
-        public void RaiseStateChanged(GameState previousState, GameState newState)
+        public async Task RaiseStateChanged(GameState previousState, GameState newState)
         {
             OnStateChanged(new StateChangedEventArgs(previousState, newState));
+            await Task.CompletedTask;
         }
 
-        public void RaiseGamePaused(GameState currentState)
+        public async Task RaiseGamePaused(GameState currentState)
         {
             OnGamePaused(new GamePausedEventArgs(currentState));
+            await Task.CompletedTask;
         }
 
-        public void RaiseGameResumed(GameState resumingToState)
+        public async Task RaiseGameResumed(GameState resumingToState)
         {
             OnGameResumed(new GameResumedEventArgs(resumingToState));
+            await Task.CompletedTask;
         }
 
         // Betting events
-        public void RaiseBettingRoundStarted(string message)
+        public async Task RaiseBettingRoundStarted(string message)
         {
             OnBettingRoundStarted(new BettingRoundStartedEventArgs(message));
+            await Task.CompletedTask;
         }
         
         // here im using event to return response, might not be used in Unity
-        public string RaiseBetInput(Player currentPlayer, int minBet, int maxBet, int betIncrement, 
+        public async Task<string> RaiseBetInput(Player currentPlayer, int minBet, int maxBet, int betIncrement, 
             List<int> takenBids, int currentHighestBid)
         {
             var args = new BetInputEventArgs(currentPlayer, minBet, maxBet, betIncrement, takenBids, currentHighestBid);
             OnBetInput(args);
+            await Task.CompletedTask;
             return args.Response;
         }
 
-        public void RaiseBettingAction(Player player, int bet, bool hasPassed = false, bool hasBet = false)
+        public async Task RaiseBettingAction(Player player, int bet, bool hasPassed = false, bool hasBet = false)
         {
             OnBettingAction(new BettingActionEventArgs(player, bet, hasPassed, hasBet));
+            await Task.CompletedTask;
         }
 
-        public void RaiseBettingCompleted(Player winningBidder, int winningBid, Dictionary<Player, int> allBids)
+        public async Task RaiseBettingCompleted(Player winningBidder, int winningBid, Dictionary<Player, int> allBids)
         {
             OnBettingCompleted(new BettingCompletedEventArgs(winningBidder, winningBid, allBids));
+            await Task.CompletedTask;
         }
 
         // Trump selection events
-        public string RaiseTrumpSelectionInput(Player selectingPlayer)
+        public async Task<string> RaiseTrumpSelectionInput(Player selectingPlayer)
         {
             var args = new TrumpSelectionInputEventArgs(selectingPlayer);
             OnTrumpSelectionInput(args);
+            await Task.CompletedTask;
             return args.Response;
         }
 
-        public void RaiseTrumpSelected(CardSuit trumpSuit, Player selectedBy)
+        public async Task RaiseTrumpSelected(CardSuit trumpSuit, Player selectedBy)
         {
             OnTrumpSelected(new TrumpSelectedEventArgs(trumpSuit, selectedBy));
+            await Task.CompletedTask;
         }
 
         // Card playing events
-        public void RaisePlayerTurn(Player player, CardSuit? leadingSuit, CardSuit? trumpSuit, int trickNumber)
+        public async Task RaisePlayerTurn(Player player, CardSuit? leadingSuit, CardSuit? trumpSuit, int trickNumber)
         {
             OnPlayerTurn(new PlayerTurnEventArgs(player, leadingSuit, trumpSuit, trickNumber));
+            await Task.CompletedTask;
         }
 
-        public int RaiseCardSelectionInput(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit, List<Card> hand)
+        public async Task<int> RaiseCardSelectionInput(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit, List<Card> hand)
         {
             var args = new CardSelectionInputEventArgs(currentPlayer, leadingSuit, trumpSuit, hand);
             OnCardSelectionInput(args);
+            await Task.CompletedTask;
             return args.Response;
         }
 
-        public void RaiseCardPlayed(Player player, Card card, int trickNumber, CardSuit? leadingSuit, CardSuit? trumpSuit)
+        public async Task RaiseCardPlayed(Player player, Card card, int trickNumber, CardSuit? leadingSuit, CardSuit? trumpSuit)
         {
             OnCardPlayed(new CardPlayedEventArgs(player, card, trickNumber, leadingSuit, trumpSuit));
+            await Task.CompletedTask;
         }
 
-        public void RaiseTrickCompleted(int trickNumber, Player winningPlayer, Card winningCard, List<(Card card, Player player)> playedCards, int trickPoints)
+        public async Task RaiseTrickCompleted(int trickNumber, Player winningPlayer, Card winningCard, List<(Card card, Player player)> playedCards, int trickPoints)
         {
             OnTrickCompleted(new TrickCompletedEventArgs(trickNumber, winningPlayer, winningCard, playedCards, trickPoints));
+            await Task.CompletedTask;
         }
 
         // Scoring events
-        public void RaiseScoreUpdated(int teamOneRoundPoints, int teamTwoRoundPoints, int teamOneTotalPoints, int teamTwoTotalPoints, bool isBidWinnerTeamOne, int winningBid)
+        public async Task RaiseScoreUpdated(int teamOneRoundPoints, int teamTwoRoundPoints, int teamOneTotalPoints, int teamTwoTotalPoints, bool isBidWinnerTeamOne, int winningBid)
         {
             OnScoreUpdated(new ScoreUpdatedEventArgs(teamOneRoundPoints, teamTwoRoundPoints, teamOneTotalPoints, teamTwoTotalPoints, isBidWinnerTeamOne, winningBid));
+            await Task.CompletedTask;
         }
 
-        public void RaiseTeamScoring(string teamName, int roundPoints, int winningBid, bool madeBid, bool cannotScore, int awardedPoints)
+        public async Task RaiseTeamScoring(string teamName, int roundPoints, int winningBid, bool madeBid, bool cannotScore, int awardedPoints)
         {
             OnTeamScoring(new TeamScoringEventArgs(teamName, roundPoints, winningBid, madeBid, cannotScore, awardedPoints));
+            await Task.CompletedTask;
         }
 
-        public void RaiseTrickPointsAwarded(Player player, int trickPoints, string teamName)
+        public async Task RaiseTrickPointsAwarded(Player player, int trickPoints, string teamName)
         {
             OnTrickPointsAwarded(new TrickPointsAwardedEventArgs(player, trickPoints, teamName));
+            await Task.CompletedTask;
         }
 
         // Game end events
-        public void RaiseGameOver(int teamOneFinalScore, int teamTwoFinalScore)
+        public async Task RaiseGameOver(int teamOneFinalScore, int teamTwoFinalScore)
         {
             OnGameOver(new GameOverEventArgs(teamOneFinalScore, teamTwoFinalScore));
+            await Task.CompletedTask;
         }
 
-        public void RaiseNextRoundPrompt(string message = "Press any key to start the next round...")
+        public async Task RaiseNextRoundPrompt(string message = "Press any key to start the next round...")
         {
             OnNextRoundPrompt(new NextRoundEventArgs(message));
+            await Task.CompletedTask;
         }
     }
 }

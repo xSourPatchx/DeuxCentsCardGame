@@ -67,6 +67,7 @@ namespace DeuxCentsCardGame.Managers
             {
                 player.ResetBettingState();
             }
+            await Task.CompletedTask;
         }
 
         public async Task ClearAllPlayerHands()
@@ -75,6 +76,7 @@ namespace DeuxCentsCardGame.Managers
             {
                 player.Hand.Clear();
             }
+            await Task.CompletedTask;
         }
     }
 }

@@ -57,7 +57,7 @@ namespace DeuxCentsCardGame.Controllers
 
         public async Task ExecuteBettingPhase()
         {
-            _bettingManager.UpdateDealerIndex(DealerIndex);
+            await _bettingManager.UpdateDealerIndex(DealerIndex);
             await _bettingManager.ExecuteBettingRound();
         }
 

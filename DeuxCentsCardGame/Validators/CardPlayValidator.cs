@@ -21,11 +21,11 @@ namespace DeuxCentsCardGame.Validators
             _cardValidator = cardValidator ?? throw new ArgumentNullException(nameof(cardValidator));
         }
 
-        public Card GetValidCardFromPlayer(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit)
+        public async Task<Card> GetValidCardFromPlayer(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit)
         {
             while (true)
             {
-                int cardIndex = RequestCardSelection(currentPlayer, leadingSuit, trumpSuit);
+                int cardIndex = await RequestCardSelection(currentPlayer, leadingSuit, trumpSuit);
                 Card selectedCard = currentPlayer.Hand[cardIndex];
 
                 if (IsCardValid(selectedCard, leadingSuit, currentPlayer.Hand))
@@ -33,7 +33,7 @@ namespace DeuxCentsCardGame.Validators
                     return selectedCard;
                 }
 
-                DisplayInvalidCardMessage(currentPlayer, leadingSuit);
+                await DisplayInvalidCardMessage(currentPlayer, leadingSuit);
             }
         }
 
@@ -90,9 +90,9 @@ namespace DeuxCentsCardGame.Validators
             return IsCardValid(selectedCard, leadingSuit, hand);
         }
 
-        private int RequestCardSelection(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit)
+        private async Task<int> RequestCardSelection(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit)
         {
-            return _eventManager.RaiseCardSelectionInput(currentPlayer, leadingSuit, trumpSuit, currentPlayer.Hand);
+            return await _eventManager.RaiseCardSelectionInput(currentPlayer, leadingSuit, trumpSuit, currentPlayer.Hand);
         }
 
         private bool IsCardValid(Card selectedCard, CardSuit? leadingSuit, List<Card> hand)
@@ -100,7 +100,7 @@ namespace DeuxCentsCardGame.Validators
             return _cardValidator.IsPlayableCard(selectedCard, leadingSuit, hand);
         }
 
-        private void DisplayInvalidCardMessage(Player currentPlayer, CardSuit? leadingSuit)
+        private async Task DisplayInvalidCardMessage(Player currentPlayer, CardSuit? leadingSuit)
         {
             string leadingSuitString = leadingSuit.HasValue 
                 ? _cardUtility.CardSuitToString(leadingSuit.Value) 
@@ -108,7 +108,7 @@ namespace DeuxCentsCardGame.Validators
             
             string message = $"You must play the suit of {leadingSuitString} since it's in your deck, try again.";
 
-            _eventManager.RaiseInvalidMove(currentPlayer, message, InvalidMoveType.InvalidCard);
+            await _eventManager.RaiseInvalidMove(currentPlayer, message, InvalidMoveType.InvalidCard);
         }
     }
 }

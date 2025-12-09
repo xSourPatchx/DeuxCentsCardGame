@@ -15,7 +15,7 @@ namespace DeuxCentsCardGame.Managers
             _cardUtility = cardUtility;
         }
 
-        public Task<CardSuit> SelectTrumpSuit(Player winningBidder)
+        public async Task<CardSuit> SelectTrumpSuit(Player winningBidder)
         {
             string trumpSuitInput = await _eventManager.RaiseTrumpSelectionInput(winningBidder);
             CardSuit trumpSuit = _cardUtility.StringToCardSuit(trumpSuitInput);

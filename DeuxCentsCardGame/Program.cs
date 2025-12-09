@@ -20,7 +20,7 @@ namespace DeuxCentsCardGame
 {
     class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             // Build configuration
             var configuration = new ConfigurationBuilder()
@@ -48,7 +48,7 @@ namespace DeuxCentsCardGame
 
             // Get the game controller and start the game
             var game = serviceProvider.GetRequiredService<IGameController>();
-            game.StartGame();
+            await game.StartGame();
 
             Console.ReadKey();
         }
@@ -114,7 +114,7 @@ namespace DeuxCentsCardGame
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
                 var bettingValidator = sp.GetRequiredService<BettingValidator>();
                 var bettingLogic = sp.GetRequiredService<BettingLogic>();
-                return new BettingManager(
+                return (IBettingManager)new BettingManager(
                     playerManager.Players.ToList(),
                     gameConfig.InitialDealerIndex,
                     eventManager,

@@ -60,21 +60,27 @@ namespace DeuxCentsCardGame.Services
                                         List<int> takenBids)
         {
             var aiPlayer = GetAIPlayer(difficulty);
-            return aiPlayer.DecideBet(player.Hand, minBet, maxBet, betIncrement, 
+            int result = aiPlayer.DecideBet(player.Hand, minBet, maxBet, betIncrement, 
                                     currentHighestBid, takenBids);
+            await Task.CompletedTask;
+            return result;
         }
 
         public async Task<CardSuit> MakeAITrumpSelection(Player player, AIDifficulty difficulty)
         {
             var aiPlayer = GetAIPlayer(difficulty);
-            return aiPlayer.SelectTrumpSuit(player.Hand);
+            CardSuit result = aiPlayer.SelectTrumpSuit(player.Hand);
+            await Task.CompletedTask;
+            return result;
         }
 
         public async Task<int> MakeAICardSelection(Player player, AIDifficulty difficulty, CardSuit? leadingSuit, 
                                     CardSuit? trumpSuit, List<(Card card, Player player)> cardsPlayedInTrick)
         {
             var aiPlayer = GetAIPlayer(difficulty);
-            return aiPlayer.ChooseCard(player.Hand, leadingSuit, trumpSuit, cardsPlayedInTrick);
+            int result = aiPlayer.ChooseCard(player.Hand, leadingSuit, trumpSuit, cardsPlayedInTrick);
+            await Task.CompletedTask;
+            return result;
         }
     }
 }

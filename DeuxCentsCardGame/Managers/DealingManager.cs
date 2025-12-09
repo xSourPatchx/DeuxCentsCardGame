@@ -30,7 +30,7 @@ namespace DeuxCentsCardGame.Managers
 
         public async Task RaiseCardsDealtEvent(List<Player> players, int dealerIndex)
         {
-            _eventManager.RaiseCardsDealt(players, dealerIndex);
+            await _eventManager.RaiseCardsDealt(players, dealerIndex);
         }
 
         // not used yet

@@ -1,202 +1,162 @@
+using DeuxCentsCardGame.Controllers;
+using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
+using DeuxCentsCardGame.Interfaces.GameConfig;
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Managers;
-using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Interfaces.Services;
+using DeuxCentsCardGame.Interfaces.UI;
+using DeuxCentsCardGame.Managers;
+using DeuxCentsCardGame.Services;
+using DeuxCentsCardGame.UI;
+using DeuxCentsCardGame.Validators;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
-namespace DeuxCentsCardGame.Controllers
+namespace DeuxCentsCardGame
 {
-public class RoundController : IRoundController
+class Program
 {
-private readonly IGameEventManager _eventManager;
-private readonly IPlayerManager _playerManager;
-private readonly IPlayerTurnManager _playerTurnManager;
-private readonly IDeckManager _deckManager;
-private readonly IDealingManager _dealingManager;
-private readonly IBettingManager _bettingManager;
-private readonly ITrumpSelectionManager _trumpSelectionManager;
-private readonly IScoringManager _scoringManager;
+static async Task Main(string[] args)
+{
+// Build configuration
+var configuration = new ConfigurationBuilder()
+.SetBasePath(AppContext.BaseDirectory)
+.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
+.Build();
 
+        // Setup dependency injection
+        var serviceProvider = ConfigureServices(configuration);
 
-    public int DealerIndex { get; private set; }
-    public CardSuit? TrumpSuit { get; private set; }
-
-    public RoundController(
-        IGameEventManager eventManager,
-        IPlayerManager playerManager,
-        IPlayerTurnManager playerTurnManager,
-        IDeckManager deckManager,
-        IDealingManager dealingManager,
-        IBettingManager bettingManager,
-        ITrumpSelectionManager trumpSelectionManager,
-        IScoringManager scoringManager,
-        int initialDealerIndex)
-    {
-        _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
-        _playerManager = playerManager ?? throw new ArgumentNullException(nameof(playerManager));
-        _playerTurnManager = playerTurnManager ?? throw new ArgumentNullException(nameof(playerTurnManager));
-        _deckManager = deckManager ?? throw new ArgumentNullException(nameof(deckManager));
-        _dealingManager = dealingManager ?? throw new ArgumentNullException(nameof(dealingManager));
-        _bettingManager = bettingManager ?? throw new ArgumentNullException(nameof(bettingManager));
-        _trumpSelectionManager = trumpSelectionManager ?? throw new ArgumentNullException(nameof(trumpSelectionManager));
-        _scoringManager = scoringManager ?? throw new ArgumentNullException(nameof(scoringManager));
+        // Players are now automatically configured from appsettings.json
+        // Configure player types (example: 2 humans vs 2 AI)
+        // var playerManager = serviceProvider.GetRequiredService<IPlayerManager>() as PlayerManager;
+                    
+        // Uncomment one of these configurations:
         
-        DealerIndex = initialDealerIndex;
+        // All human players (default)
+        // playerManager.InitializePlayersWithTypes(PlayerType.Human, PlayerType.Human, PlayerType.Human, PlayerType.Human);
+        
+        // 2 humans vs 2 AI
+        // playerManager.InitializePlayersWithTypes(PlayerType.Human, PlayerType.AI, PlayerType.Human, PlayerType.AI);
+        
+        // 1 human vs 3 AI
+        // playerManager.InitializePlayersWithTypes(PlayerType.Human, PlayerType.AI, PlayerType.AI, PlayerType.AI);
+
+        // Get the game controller and start the game
+        var game = serviceProvider.GetRequiredService<IGameController>();
+        await game.StartGame();
+
+        Console.ReadKey();
     }
 
-    public void InitializeRound(int roundNumber)
+    private static ServiceProvider ConfigureServices(IConfiguration configuration)
     {
-        _eventManager.RaiseRoundStarted(roundNumber, _playerManager.GetPlayer(DealerIndex));
-        ResetRound();
-    }
+        var services = new ServiceCollection();
 
-    public async Task InitializeRoundAsync(int roundNumber, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        
-        _eventManager.RaiseRoundStarted(roundNumber, _playerManager.GetPlayer(DealerIndex));
-        ResetRound();
-        
-        await Task.Yield();
-    }
+        // Register configuration
+        services.AddSingleton<IConfiguration>(configuration);
+        services.AddSingleton<IGameConfig>(sp =>
+            GameConfig.GameConfig.CreateFromConfiguration(configuration));
 
-    public void PrepareRound()
-    {
-        ShuffleDeck();
-        CutDeck();
-        DealCards();
-    }
+        // Register services
+        services.AddSingleton<IRandomService, RandomService>();
+        services.AddSingleton<CardCollectionHelper>();
+        services.AddSingleton<ICardUtility, CardUtility>();
 
-    public async Task PrepareRoundAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        
-        ShuffleDeck();
-        await Task.Delay(500, cancellationToken).ConfigureAwait(false);
-        
-        CutDeck();
-        await Task.Delay(300, cancellationToken).ConfigureAwait(false);
-        
-        DealCards();
-        await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
-    }
+        // Register gameplay logic components
+        services.AddSingleton<CardLogic>();
+        services.AddSingleton<ICardLogic>(sp => sp.GetRequiredService<CardLogic>());
+        services.AddSingleton<BettingLogic>();
+        services.AddSingleton<ScoringLogic>();
+        services.AddSingleton<HandEvaluator>();
+        services.AddSingleton<TrickAnalyzer>();
 
-    public void ExecuteBettingPhase()
-    {
-        _bettingManager.UpdateDealerIndex(DealerIndex);
-        _bettingManager.ExecuteBettingRound();
-    }
-
-    public async Task ExecuteBettingPhaseAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        
-        _bettingManager.UpdateDealerIndex(DealerIndex);
-        await _bettingManager.ExecuteBettingRoundAsync(cancellationToken).ConfigureAwait(false);
-    }
-
-    public void SelectTrump()
-    {
-        TrumpSuit = _trumpSelectionManager.SelectTrumpSuit(_playerManager.GetPlayer(_bettingManager.CurrentWinningBidIndex));
-    }
-
-    public async Task<CardSuit> SelectTrumpAsync(CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        
-        TrumpSuit = await _trumpSelectionManager.SelectTrumpSuitAsync(
-            _playerManager.GetPlayer(_bettingManager.CurrentWinningBidIndex),
-            cancellationToken).ConfigureAwait(false);
-        
-        return TrumpSuit.Value;
-    }
-
-    public void FinalizeRound(int roundNumber)
-    {
-        ScoreRound();
-        RaiseRoundEndedEvent(roundNumber);
-
-        if (!_scoringManager.IsGameOver())
+        // Register validators
+        services.AddSingleton<CardValidator>();
+        services.AddSingleton<CardPlayValidator>();
+        services.AddSingleton<BettingValidator>(sp =>
         {
-            _eventManager.RaiseNextRoundPrompt();
-        }
+            var gameConfig = sp.GetRequiredService<IGameConfig>();
+            var playerManager = sp.GetRequiredService<IPlayerManager>();
+            return new BettingValidator(gameConfig, playerManager.Players.ToList());
+        });
 
-        RotateDealer();
-    }
+        // Register AI service
+        services.AddSingleton<IAIService, AIService>();
 
-    public async Task FinalizeRoundAsync(int roundNumber, CancellationToken cancellationToken = default)
-    {
-        cancellationToken.ThrowIfCancellationRequested();
-        
-        ScoreRound();
-        RaiseRoundEndedEvent(roundNumber);
+        // Register UI
+        services.AddSingleton<IConsoleWrapper, ConsoleWrapper>();
+        services.AddSingleton<IUIGameView, UIGameView>();
 
-        if (!_scoringManager.IsGameOver())
+        // Register event system
+        services.AddSingleton<GameEventManager>();
+        services.AddSingleton<IGameEventManager>(sp => sp.GetRequiredService<GameEventManager>());
+        services.AddSingleton<IGameEventHandler, GameEventHandler>();
+
+        // Register managers
+        services.AddSingleton<IPlayerManager, PlayerManager>();
+        services.AddSingleton<IPlayerTurnManager>(sp =>
         {
-            _eventManager.RaiseNextRoundPrompt();
-            await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
-        }
+            var gameConfig = sp.GetRequiredService<IGameConfig>();
+            return new PlayerTurnManager(gameConfig.TotalPlayers);
+        });
+        services.AddSingleton<IDeckManager, DeckManager>();
+        services.AddSingleton<IDealingManager, DealingManager>();
+        services.AddSingleton<ITeamManager, TeamManager>();
+        services.AddSingleton<IBettingManager>(sp =>
+        {
+            var playerManager = sp.GetRequiredService<IPlayerManager>();
+            var eventManager = sp.GetRequiredService<IGameEventManager>();
+            var gameConfig = sp.GetRequiredService<IGameConfig>();
+            var bettingValidator = sp.GetRequiredService<BettingValidator>();
+            var bettingLogic = sp.GetRequiredService<BettingLogic>();
+            return new BettingManager(
+                playerManager.Players.ToList(),
+                gameConfig.InitialDealerIndex,
+                eventManager,
+                gameConfig,
+                bettingValidator,
+                bettingLogic);
+        });
+        services.AddSingleton<ITrumpSelectionManager, TrumpSelectionManager>();
+        services.AddSingleton<IScoringManager>(sp =>
+        {
+            var eventManager = sp.GetRequiredService<IGameEventManager>();
+            var playerManager = sp.GetRequiredService<IPlayerManager>();
+            var teamManager = sp.GetRequiredService<ITeamManager>();
+            var scoringLogic = sp.GetRequiredService<ScoringLogic>();
+            return new ScoringManager(
+                eventManager,
+                playerManager.Players.ToList(),
+                teamManager,
+                scoringLogic);
+        });
 
-        RotateDealer();
-    }
+        // Register controllers
+        services.AddSingleton<RoundController>(sp =>
+        {
+            var gameConfig = sp.GetRequiredService<IGameConfig>();
+            return new RoundController(
+                sp.GetRequiredService<IGameEventManager>(),
+                sp.GetRequiredService<IPlayerManager>(),
+                sp.GetRequiredService<IPlayerTurnManager>(),
+                sp.GetRequiredService<IDeckManager>(),
+                sp.GetRequiredService<IDealingManager>(),
+                sp.GetRequiredService<IBettingManager>(),
+                sp.GetRequiredService<ITrumpSelectionManager>(),
+                sp.GetRequiredService<IScoringManager>(),
+                gameConfig.InitialDealerIndex);
+        });
+        services.AddSingleton<TrickController>();
 
-    public int GetStartingPlayerIndex()
-    {
-        return _bettingManager.CurrentWinningBidIndex;
-    }   
+        // Register game controller
+        services.AddSingleton<IGameController, GameController>();
 
-    private void ResetRound()
-    {
-        _deckManager.ResetDeck();
-        TrumpSuit = null;
-        _scoringManager.ResetRoundPoints();
-        _bettingManager.ResetBettingRound();
-        _playerTurnManager.ResetTurnSequence();
-    }
-
-    private void ShuffleDeck()
-    {   
-        _deckManager.ShuffleDeck();
-    }
-
-    private void CutDeck()
-    {
-        int cuttingPlayerIndex = _playerTurnManager.GetPlayerRightOfDealer(DealerIndex);
-        Player cuttingPlayer = _playerManager.GetPlayer(cuttingPlayerIndex);
-
-        int deckSize = _deckManager.CurrentDeck.Cards.Count;
-        int cutPosition = _eventManager.RaiseDeckCutInput(cuttingPlayer, deckSize);
-
-        _deckManager.CutDeck(cutPosition);
-        _eventManager.RaiseDeckCut(cuttingPlayer, cutPosition);
-    }
-
-    private void DealCards()
-    {
-        _dealingManager.DealCards(_deckManager.CurrentDeck, _playerManager.Players.ToList());
-        _dealingManager.RaiseCardsDealtEvent(_playerManager.Players.ToList(), DealerIndex);
-    }
-
-    private void ScoreRound()
-    {  
-        _scoringManager.ScoreRound(_bettingManager.CurrentWinningBidIndex, _bettingManager.CurrentWinningBid);
-    }
-
-    private void RaiseRoundEndedEvent(int roundNumber)
-    {       
-        _eventManager.RaiseRoundEnded(
-            roundNumber,
-            _scoringManager.TeamOneRoundPoints,
-            _scoringManager.TeamTwoRoundPoints,
-            _playerManager.GetPlayer(_bettingManager.CurrentWinningBidIndex),
-            _bettingManager.CurrentWinningBid
-        );
-    }
-
-    private void RotateDealer()
-    {
-        DealerIndex = _playerTurnManager.RotateDealer(DealerIndex);
+        return services.BuildServiceProvider();
     }
 }
-
-
 }

@@ -1,178 +1,114 @@
-﻿using DeuxCentsCardGame.Constants;
+﻿using DeuxCentsCardGame.Interfaces.Models;
 using DeuxCentsCardGame.Interfaces.UI;
-using DeuxCentsCardGame.Interfaces.Models;
-using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.UI
 {
     public class UIGameView : IUIGameView
     {
         private readonly IConsoleWrapper _console;
-        private readonly CardCollectionHelper _cardHelper;
 
-        public UIGameView(IConsoleWrapper console, CardCollectionHelper cardHelper)
+        public UIGameView(IConsoleWrapper console)
         {
             _console = console ?? throw new ArgumentNullException(nameof(console));
-            _cardHelper = cardHelper ?? throw new ArgumentNullException(nameof(cardHelper));
         }
 
         public async Task ClearScreen()
         {
             _console.Clear();
+            await Task.CompletedTask;
         }
 
         public async Task DisplayMessage(string message)
         {
             _console.WriteLine(message);
+            await Task.CompletedTask;
         }
 
         public async Task DisplayFormattedMessage(string format, params object[] args)
         {
             _console.WriteLine(format, args);
+            await Task.CompletedTask;
         }
 
         public async Task<string> GetUserInput(string prompt)
         {
             _console.WriteLine(prompt);
-            return _console.ReadLine() ?? string.Empty;
+            string? input = _console.ReadLine();
+            await Task.CompletedTask;
+            return input ?? string.Empty;
         }
 
-        public async Task GetIntInput(string prompt, int min, int max)
+        public async Task<int> GetIntInput(string prompt, int min, int max)
         {
-            int result;
-            bool isValid;
-
-            do
+            while (true)
             {
-                string input = GetUserInput(prompt);
-                isValid = int.TryParse(input, out result) && result >= min && result <= max;
+                _console.WriteLine(prompt);
+                string? input = _console.ReadLine();
 
-                if (!isValid)
+                if (int.TryParse(input, out int result) && result >= min && result <= max)
                 {
-                    DisplayMessage($"Invalid input. Please enter a number between {min} and {max}.");
+                    await Task.CompletedTask;
+                    return result;
                 }
-            } while (!isValid);
 
-            return result;
+                _console.WriteLine($"Invalid input. Please enter a number between {min} and {max}.");
+            }
         }
 
-        public async Task<string> GetOptionInput(string prompt, string[] options)
+        public async Task<string> GetOptionInput(string prompt, string[] validOptions)
         {
-            string result;
-            bool isValid;
-
-            do
+            while (true)
             {
-                result = GetUserInput(prompt).ToLower();
-                isValid = options.Contains(result, StringComparer.OrdinalIgnoreCase);
-                
-                if (!isValid)
-                {
-                    DisplayMessage($"Invalid input. Please enter one of: {string.Join(", ", options)}");
-                }
-            } while (!isValid);
+                _console.WriteLine(prompt);
+                string? input = _console.ReadLine()?.ToLower();
 
-            return result;
+                if (input != null && validOptions.Contains(input.ToLower()))
+                {
+                    await Task.CompletedTask;
+                    return input;
+                }
+
+                _console.WriteLine($"Invalid input. Valid options: {string.Join(", ", validOptions)}");
+            }
         }
 
         public async Task WaitForUser(string message = "Press any key to continue...")
         {
-            DisplayMessage(message);
+            _console.WriteLine(message);
             _console.ReadKey();
+            await Task.CompletedTask;
         }
 
         public async Task DisplayHand(IPlayer player)
         {
             _console.WriteLine($"\n{player.Name}'s hand:");
-            _console.WriteLine(new string('#', GameConstants.HAND_DISPLAY_SEPARATOR_LENGTH));
-
-            var sortedHand = _cardHelper.SortBySuit(player.Hand);
-
-            for (int cardIndex = 0; cardIndex < player.Hand.Count; cardIndex++)
+            for (int i = 0; i < player.Hand.Count; i++)
             {
-                int originalIndex = player.Hand.IndexOf(sortedHand[cardIndex]);
-                _console.WriteLine($"{originalIndex}: {sortedHand[cardIndex]}");
+                _console.WriteLine($"  [{i}] {player.Hand[i]}");
             }
-
-            _console.WriteLine(new string('#', GameConstants.HAND_DISPLAY_SEPARATOR_LENGTH));
-            DisplayHandStatistics(player.Hand);
+            await Task.CompletedTask;
         }
 
-        public async Task DisplayAllHands(List<IPlayer> players, int dealerIndex)
+        public async Task DisplayAllHands(List<IPlayer> players, int currentPlayerIndex)
         {
-            _console.WriteLine("\n" + new string('-', GameConstants.ALL_HANDS_SEPARATOR_LENGTH));
-            _console.WriteLine("All player hands");
-            _console.WriteLine(new string('-', GameConstants.ALL_HANDS_SEPARATOR_LENGTH));
-
+            _console.WriteLine("\nAll players' hands:");
             for (int i = 0; i < players.Count; i++)
             {
-                int playerIndex = (dealerIndex + i) % players.Count;
-                IPlayer player = players[playerIndex];
+                var player = players[i];
+                string dealerMarker = i == currentPlayerIndex ? " (Dealer)" : "";
+                _console.WriteLine($"\n{player.Name}{dealerMarker}:");
                 
-                string dealerIndicator = playerIndex == dealerIndex ? " (Dealer)" : "";
-                _console.WriteLine($"\n{player.Name}{dealerIndicator}:");
-
-                var sortedHand = _cardHelper.SortBySuit(player.Hand);   
-                
-                for (int cardIndex = 0; cardIndex < player.Hand.Count; cardIndex++)
+                for (int j = 0; j < player.Hand.Count; j++)
                 {
-                    int originalIndex = player.Hand.IndexOf(sortedHand[cardIndex]);
-                    _console.WriteLine($"  {originalIndex}: {sortedHand[cardIndex]}");
-                }
-
-                DisplayHandStatistics(player.Hand);
-            }
-
-            _console.WriteLine("\n" + new string('-', GameConstants.ALL_HANDS_SEPARATOR_LENGTH));
-        }
-
-        private void DisplayHandStatistics(List<Card> hand)
-        {
-            if (hand == null || hand.Count == 0)
-                return;
-
-            // Use CardCollectionHelper for statistics
-            int totalPoints = _cardHelper.CalculateTotalPoints(hand);
-            var suitCounts = _cardHelper.CountBySuit(hand);
-            int highCards = _cardHelper.GetHighValueCards(hand, 8).Count;
-            
-            _console.WriteLine($"  Stats: {totalPoints} pts | High cards: {highCards}");
-            
-            // Display suit distribution
-            var suitDisplay = string.Join(" | ", 
-                suitCounts.Select(kvp => $"{kvp.Key}: {kvp.Value}"));
-            _console.WriteLine($"  Suits: {suitDisplay}");
-        }
-
-        public void DisplayHandGroupedBySuit(IPlayer player)
-        {
-            _console.WriteLine($"\n{player.Name}'s hand (grouped by suit):");
-            _console.WriteLine(new string('#', GameConstants.HAND_DISPLAY_SEPARATOR_LENGTH));
-
-            // Use CardCollectionHelper to group by suit
-            var grouped = _cardHelper.GroupBySuit(player.Hand);
-            
-            foreach (var suitGroup in grouped.OrderBy(g => g.Key))
-            {
-                _console.WriteLine($"\n{suitGroup.Key}:");
-                
-                // Sort cards within suit by value
-                var sortedCards = _cardHelper.SortByValue(suitGroup.Value);
-                
-                foreach (var card in sortedCards)
-                {
-                    int originalIndex = player.Hand.IndexOf(card);
-                    _console.WriteLine($"  {originalIndex}: {card}");
+                    _console.WriteLine($"  [{j}] {player.Hand[j]}");
                 }
             }
-            
-            _console.WriteLine(new string('#', GameConstants.HAND_DISPLAY_SEPARATOR_LENGTH));
+            await Task.CompletedTask;
         }
 
         public static void DisplayBettingResults()
         { 
-            // should display result here?
+            // could display result here?
         }
     }
 }
