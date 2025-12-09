@@ -8,13 +8,13 @@ using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Interfaces.UI;
+using DeuxCentsCardGame.Interfaces.Validators;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Services;
 using DeuxCentsCardGame.UI;
 using DeuxCentsCardGame.Validators;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 namespace DeuxCentsCardGame
 {
@@ -78,6 +78,7 @@ namespace DeuxCentsCardGame
             // Register validators
             services.AddSingleton<CardValidator>();
             services.AddSingleton<CardPlayValidator>();
+            services.AddSingleton<ICardPlayValidator>(sp => sp.GetRequiredService<ICardPlayValidator>());
             services.AddSingleton<BettingValidator>(sp =>
             {
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
