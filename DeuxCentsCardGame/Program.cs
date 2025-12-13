@@ -62,15 +62,15 @@ namespace DeuxCentsCardGame
 
             // Register validators
             services.AddSingleton<CardValidator>();
-            services.AddSingleton<CardPlayValidator>();
-            services.AddSingleton<ICardPlayValidator>(sp => sp.GetRequiredService<ICardPlayValidator>());
+            // services.AddSingleton<CardPlayValidator>();
+            // services.AddSingleton<ICardPlayValidator>(sp => sp.GetRequiredService<ICardPlayValidator>());
             
-            services.AddSingleton<BettingValidator>(sp =>
-            {
-                var gameConfig = sp.GetRequiredService<IGameConfig>();
-                var playerManager = sp.GetRequiredService<IPlayerManager>();
-                return new BettingValidator(gameConfig, playerManager.Players.ToList());
-            });
+            // services.AddSingleton<BettingValidator>(sp =>
+            // {
+            //     var gameConfig = sp.GetRequiredService<IGameConfig>();
+            //     var playerManager = sp.GetRequiredService<IPlayerManager>();
+            //     return new BettingValidator(gameConfig, playerManager.Players.ToList());
+            // });
 
             // Register AI service
             services.AddSingleton<IAIService, AIService>();
@@ -97,6 +97,18 @@ namespace DeuxCentsCardGame
             services.AddSingleton<IDealingManager, DealingManager>();
             services.AddSingleton<ITeamManager, TeamManager>();
 
+            // Register validators that depend on managers - AFTER managers are registered
+            services.AddSingleton<BettingValidator>(sp =>
+            {
+                var gameConfig = sp.GetRequiredService<IGameConfig>();
+                var playerManager = sp.GetRequiredService<IPlayerManager>();
+                return new BettingValidator(gameConfig, playerManager.Players.ToList());
+            });
+
+            services.AddSingleton<CardPlayValidator>();
+            services.AddSingleton<ICardPlayValidator>(sp => sp.GetRequiredService<CardPlayValidator>());
+
+            // Register BettingManager
             services.AddSingleton<BettingManager>(sp =>
             {
                 var playerManager = sp.GetRequiredService<IPlayerManager>();
