@@ -108,14 +108,15 @@ namespace DeuxCentsCardGame
             services.AddSingleton<IDeckManager, DeckManager>();
             services.AddSingleton<IDealingManager, DealingManager>();
             services.AddSingleton<ITeamManager, TeamManager>();
-            services.AddSingleton<IBettingManager>(sp =>
+
+            services.AddSingleton<BettingManager>(sp =>
             {
                 var playerManager = sp.GetRequiredService<IPlayerManager>();
                 var eventManager = sp.GetRequiredService<IGameEventManager>();
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
                 var bettingValidator = sp.GetRequiredService<BettingValidator>();
                 var bettingLogic = sp.GetRequiredService<BettingLogic>();
-                return (IBettingManager)new BettingManager(
+                return new BettingManager(
                     playerManager.Players.ToList(),
                     gameConfig.InitialDealerIndex,
                     eventManager,
@@ -123,6 +124,8 @@ namespace DeuxCentsCardGame
                     bettingValidator,
                     bettingLogic);
             });
+            services.AddSingleton<IBettingManager>(sp => sp.GetRequiredService<BettingManager>());
+
             services.AddSingleton<ITrumpSelectionManager, TrumpSelectionManager>();
             services.AddSingleton<IScoringManager>(sp =>
             {

@@ -8,7 +8,7 @@ using DeuxCentsCardGame.Validators;
 
 namespace DeuxCentsCardGame.Managers
 {
-    public class BettingManager// : IBettingManager
+    public class BettingManager : IBettingManager
     {
         // Public betting state properties
         public int CurrentWinningBid { get; set; }
@@ -246,9 +246,10 @@ namespace DeuxCentsCardGame.Managers
             await Task.CompletedTask;
         }
         
-        public void UpdateDealerIndex(int newDealerIndex)
+        public async Task UpdateDealerIndex(int newDealerIndex)
         {
             _dealerIndex = newDealerIndex;
+            await Task.CompletedTask;
         }
     }
 }
