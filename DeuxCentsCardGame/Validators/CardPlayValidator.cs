@@ -1,11 +1,16 @@
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Services;
+using DeuxCentsCardGame.Interfaces.Validators;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Validators
 {
-    public class CardPlayValidator
+    public class CardPlayValidator : ICardPlayValidator
     {
         private readonly IGameEventManager _eventManager;
         private readonly ICardUtility _cardUtility;

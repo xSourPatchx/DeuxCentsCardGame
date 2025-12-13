@@ -31,21 +31,6 @@ namespace DeuxCentsCardGame
             // Setup dependency injection
             var serviceProvider = ConfigureServices(configuration);
 
-            // Players are now automatically configured from appsettings.json
-            // Configure player types (example: 2 humans vs 2 AI)
-            // var playerManager = serviceProvider.GetRequiredService<IPlayerManager>() as PlayerManager;
-                        
-            // Uncomment one of these configurations:
-            
-            // All human players (default)
-            // playerManager.InitializePlayersWithTypes(PlayerType.Human, PlayerType.Human, PlayerType.Human, PlayerType.Human);
-            
-            // 2 humans vs 2 AI
-            // playerManager.InitializePlayersWithTypes(PlayerType.Human, PlayerType.AI, PlayerType.Human, PlayerType.AI);
-            
-            // 1 human vs 3 AI
-            // playerManager.InitializePlayersWithTypes(PlayerType.Human, PlayerType.AI, PlayerType.AI, PlayerType.AI);
-
             // Get the game controller and start the game
             var game = serviceProvider.GetRequiredService<IGameController>();
             await game.StartGame();
@@ -79,6 +64,7 @@ namespace DeuxCentsCardGame
             services.AddSingleton<CardValidator>();
             services.AddSingleton<CardPlayValidator>();
             services.AddSingleton<ICardPlayValidator>(sp => sp.GetRequiredService<ICardPlayValidator>());
+            
             services.AddSingleton<BettingValidator>(sp =>
             {
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
@@ -100,11 +86,13 @@ namespace DeuxCentsCardGame
 
             // Register managers
             services.AddSingleton<IPlayerManager, PlayerManager>();
+
             services.AddSingleton<IPlayerTurnManager>(sp =>
             {
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
                 return new PlayerTurnManager(gameConfig.TotalPlayers);
             });
+
             services.AddSingleton<IDeckManager, DeckManager>();
             services.AddSingleton<IDealingManager, DealingManager>();
             services.AddSingleton<ITeamManager, TeamManager>();
@@ -127,6 +115,7 @@ namespace DeuxCentsCardGame
             services.AddSingleton<IBettingManager>(sp => sp.GetRequiredService<BettingManager>());
 
             services.AddSingleton<ITrumpSelectionManager, TrumpSelectionManager>();
+
             services.AddSingleton<IScoringManager>(sp =>
             {
                 var eventManager = sp.GetRequiredService<IGameEventManager>();
