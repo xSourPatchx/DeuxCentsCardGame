@@ -71,13 +71,13 @@ namespace DeuxCentsCardGame.Events
         }
 
         // Event handlers
-        public async void OnRoundStarted(object? sender, RoundStartedEventArgs e)
+        public async void OnRoundStarted(RoundStartedEventArgs e)
         {
             await _ui.ClearScreen();
             await _ui.DisplayFormattedMessage("\nRound {0} Started. Dealer: {1}\n", e.RoundNumber, e.Dealer.Name);
         }
 
-        public async void OnRoundEnded(object? sender, RoundEndedEventArgs e)
+        public async void OnRoundEnded(RoundEndedEventArgs e)
         {
             await _ui.DisplayMessage("\n=== Round Complete ===");
             await _ui.DisplayFormattedMessage("Round {0} has ended.", e.RoundNumber);
@@ -86,12 +86,12 @@ namespace DeuxCentsCardGame.Events
             await _ui.DisplayFormattedMessage("Team Two Points: {0}", e.TeamTwoRoundPoints);
         }
 
-        public async void OnDeckShuffled(object? sender, DeckShuffledEventArgs e)
+        public async void OnDeckShuffled(DeckShuffledEventArgs e)
         {
             await _ui.DisplayFormattedMessage(e.Message);
         }
 
-        public async void OnDeckCutInput(object? sender, DeckCutInputEventArgs e)
+        public async void OnDeckCutInput(DeckCutInputEventArgs e)
         {
             if (e.CuttingPlayer.IsAI())
             {
@@ -106,12 +106,12 @@ namespace DeuxCentsCardGame.Events
             }
         }
 
-        public async void OnDeckCut(object? sender, DeckCutEventArgs e)
+        public async void OnDeckCut(DeckCutEventArgs e)
         {
             await _ui.DisplayFormattedMessage("{0} cut the deck at position {1}\n", e.CuttingPlayer.Name, e.CutPosition);
         }
 
-        public async void OnCardsDealt(object? sender, CardsDealtEventArgs e)
+        public async void OnCardsDealt(CardsDealtEventArgs e)
         {
             await _ui.DisplayMessage("Dealing cards...\n");
             await _ui.DisplayFormattedMessage("\nCards dealt to all {0} players. Dealer index: {1}", e.Players.Count, e.DealerIndex);
@@ -120,18 +120,18 @@ namespace DeuxCentsCardGame.Events
             await _ui.DisplayAllHands(playersAsInterface, e.DealerIndex + 1);
         }
 
-        public async void OnInvalidMove(object? sender, InvalidMoveEventArgs e)
+        public async void OnInvalidMove(InvalidMoveEventArgs e)
         {
             string moveTypeText = FormatMoveTypeText(e.MoveType);
             await _ui.DisplayFormattedMessage("[{0}] {1}: {2}", moveTypeText, e.Player.Name, e.Message);
         }
 
-        public async void OnBettingRoundStarted(object? sender, BettingRoundStartedEventArgs e)
+        public async void OnBettingRoundStarted(BettingRoundStartedEventArgs e)
         {
             await _ui.DisplayMessage(e.Message);
         }
 
-        public async void OnBetInput(object? sender, BetInputEventArgs e)
+        public async void OnBetInput(BetInputEventArgs e)
         {
             if (e.CurrentPlayer.IsAI())
             {
@@ -169,7 +169,7 @@ namespace DeuxCentsCardGame.Events
             }
         }
 
-        public async void OnBettingAction(object? sender, BettingActionEventArgs e)
+        public async void OnBettingAction(BettingActionEventArgs e)
         {
             if (e.HasPassed)
             {
@@ -186,7 +186,7 @@ namespace DeuxCentsCardGame.Events
             }
         }
 
-        public async void OnBettingCompleted(object? sender, BettingCompletedEventArgs e)
+        public async void OnBettingCompleted(BettingCompletedEventArgs e)
         {
             await _ui.DisplayMessage("\nBetting round complete.");
             await DisplayBiddingResults(e.AllBids, e.WinningBidder);
@@ -195,7 +195,7 @@ namespace DeuxCentsCardGame.Events
             await ShowWinnerHand(e.WinningBidder);
         }
 
-        public async void OnTrumpSelectionInput(object? sender, TrumpSelectionInputEventArgs e)
+        public async void OnTrumpSelectionInput(TrumpSelectionInputEventArgs e)
         {
             if (e.SelectingPlayer.IsAI())
             {
@@ -216,12 +216,12 @@ namespace DeuxCentsCardGame.Events
             }
         }
 
-        public async void OnTrumpSelected(object? sender, TrumpSelectedEventArgs e)
+        public async void OnTrumpSelected(TrumpSelectedEventArgs e)
         {
             await _ui.DisplayFormattedMessage("\nTrump suit is {0} by {1}\n", e.TrumpSuit, e.SelectedBy.Name);
         }
 
-        public async void OnPlayerTurn(object? sender, PlayerTurnEventArgs e)
+        public async void OnPlayerTurn(PlayerTurnEventArgs e)
         {
             // Reset trick cards if this is the first player
             if (_currentTrickCards.Count == 0 || _currentTrickCards.Count == 4)
@@ -241,7 +241,7 @@ namespace DeuxCentsCardGame.Events
             await DisplayTurnInformation(e.Player, e.TrickNumber, e.LeadingSuit, e.TrumpSuit);
         }
 
-        public async void OnCardSelectionInput(object? sender, CardSelectionInputEventArgs e)
+        public async void OnCardSelectionInput(CardSelectionInputEventArgs e)
         {
             if (e.CurrentPlayer.IsAI())
             {
@@ -272,14 +272,14 @@ namespace DeuxCentsCardGame.Events
             }
         }
 
-        public async void OnCardPlayed(object? sender, CardPlayedEventArgs e)
+        public async void OnCardPlayed(CardPlayedEventArgs e)
         {
             // Track current trick cards for AI decision-making
             _currentTrickCards.Add((e.Card, e.Player));
             await _ui.DisplayFormattedMessage("{0} played {1} in trick {2}\n", e.Player.Name, e.Card, e.TrickNumber + 1);
         }
 
-        public async void OnTrickCompleted(object? sender, TrickCompletedEventArgs e)
+        public async void OnTrickCompleted(TrickCompletedEventArgs e)
         {
             await _ui.DisplayFormattedMessage("\nTrick #{0} complete.", e.TrickNumber + 1);
             await DisplayPlayedCards(e.PlayedCards);
@@ -289,24 +289,24 @@ namespace DeuxCentsCardGame.Events
             _currentTrickCards.Clear();
         }
 
-        public async void OnTrickPointsAwarded(object? sender, TrickPointsAwardedEventArgs e)
+        public async void OnTrickPointsAwarded(TrickPointsAwardedEventArgs e)
         {
             await _ui.DisplayFormattedMessage("{0} collected {1} points for {2}\n", e.Player.Name, e.TrickPoints, e.TeamName);
         }
 
-        public async void OnTeamScoring(object? sender, TeamScoringEventArgs e)
+        public async void OnTeamScoring(TeamScoringEventArgs e)
         {
             string message = FormatTeamScoringMessage(e);
             await _ui.DisplayFormattedMessage(message);
         }
 
-        public async void OnScoreUpdated(object? sender, ScoreUpdatedEventArgs e)
+        public async void OnScoreUpdated(ScoreUpdatedEventArgs e)
         {
             await DisplayRoundScoring(e);
             await DisplayRunningTotals(e.TeamOneTotalPoints, e.TeamTwoTotalPoints);
         }
 
-        public async void OnGameOver(object? sender, GameOverEventArgs e)
+        public async void OnGameOver(GameOverEventArgs e)
         {
             string winner = e.IsTeamOneWinner ? "Team One" : "Team Two";
 
@@ -319,7 +319,7 @@ namespace DeuxCentsCardGame.Events
             await _ui.DisplayMessage(new string('-', GameConstants.GAME_OVER_SEPARATOR_LENGTH));
         }
 
-        public async void OnNextRoundPrompt(object? sender, NextRoundEventArgs e)
+        public async void OnNextRoundPrompt(NextRoundEventArgs e)
         {
             await _ui.WaitForUser("\nPress any key to start the next round...");
         }

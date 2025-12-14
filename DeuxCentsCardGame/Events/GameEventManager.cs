@@ -8,268 +8,135 @@ namespace DeuxCentsCardGame.Events
     public class GameEventManager : IGameEventManager
     {
         // Round events
-        public event EventHandler<RoundStartedEventArgs>? RoundStarted;
-        public event EventHandler<RoundEndedEventArgs>? RoundEnded;
-        public event EventHandler<DeckShuffledEventArgs>? DeckShuffled;
-        public event EventHandler<DeckCutInputEventArgs>? DeckCutInput;
-        public event EventHandler<DeckCutEventArgs>? DeckCut;
-        public event EventHandler<CardsDealtEventArgs>? CardsDealt;
-        public event EventHandler<InvalidMoveEventArgs>? InvalidMove;
+        public Action<RoundStartedEventArgs> RoundStarted;
+        public Action<RoundEndedEventArgs> RoundEnded;
+        public Action<DeckShuffledEventArgs> DeckShuffled;
+        public Action<DeckCutInputEventArgs> DeckCutInput;
+        public Action<DeckCutEventArgs> DeckCut;
+        public Action<CardsDealtEventArgs> CardsDealt;
+        public Action<InvalidMoveEventArgs> InvalidMove;
 
         // Game state change events
-        public event EventHandler<StateChangedEventArgs>? StateChanged;
-        public event EventHandler<GamePausedEventArgs>? GamePaused;
-        public event EventHandler<GameResumedEventArgs>? GameResumed;
+        public Action<StateChangedEventArgs> StateChanged;
+        public Action<GamePausedEventArgs> GamePaused;
+        public Action<GameResumedEventArgs> GameResumed;
 
         // Betting events
-        public event EventHandler<BettingRoundStartedEventArgs>? BettingRoundStarted;
-        public event EventHandler<BetInputEventArgs>? BetInput;
-        public event EventHandler<BettingActionEventArgs>? BettingAction;
-        public event EventHandler<BettingCompletedEventArgs>? BettingCompleted;
+        public Action<BettingRoundStartedEventArgs> BettingRoundStarted;
+        public Action<BetInputEventArgs> BetInput;
+        public Action<BettingActionEventArgs> BettingAction;
+        public Action<BettingCompletedEventArgs> BettingCompleted;
 
         // Trump selection events
-        public event EventHandler<TrumpSelectionInputEventArgs>? TrumpSelectionInput;
-        public event EventHandler<TrumpSelectedEventArgs>? TrumpSelected;
+        public Action<TrumpSelectionInputEventArgs> TrumpSelectionInput;
+        public Action<TrumpSelectedEventArgs> TrumpSelected;
 
         // Card playing events
-        public event EventHandler<PlayerTurnEventArgs>? PlayerTurn;
-        public event EventHandler<CardSelectionInputEventArgs>? CardSelectionInput;
-        public event EventHandler<CardPlayedEventArgs>? CardPlayed;
-        public event EventHandler<TrickCompletedEventArgs>? TrickCompleted;
+        public Action<PlayerTurnEventArgs> PlayerTurn;
+        public Action<CardSelectionInputEventArgs> CardSelectionInput;
+        public Action<CardPlayedEventArgs> CardPlayed;
+        public Action<TrickCompletedEventArgs> TrickCompleted;
 
         // Scoring events
-        public event EventHandler<ScoreUpdatedEventArgs>? ScoreUpdated;
-        public event EventHandler<TeamScoringEventArgs>? TeamScoring;
-        public event EventHandler<TrickPointsAwardedEventArgs>? TrickPointsAwarded;
+        public Action<ScoreUpdatedEventArgs> ScoreUpdated;
+        public Action<TeamScoringEventArgs> TeamScoring;
+        public Action<TrickPointsAwardedEventArgs> TrickPointsAwarded;
 
         // Game end events
-        public event EventHandler<GameOverEventArgs>? GameOver;
-        public event EventHandler<NextRoundEventArgs>? NextRoundPrompt;
+        public Action<GameOverEventArgs> GameOver;
+        public Action<NextRoundEventArgs> NextRoundPrompt;
 
-        // Event raising methods //
-        // Round events
-        protected virtual void OnRoundStarted(RoundStartedEventArgs e)
-        {
-            RoundStarted?.Invoke(this, e);
-        }
-
-        protected virtual void OnRoundEnded(RoundEndedEventArgs e)
-        {
-            RoundEnded?.Invoke(this, e);
-        }
-
-        protected virtual void OnDeckShuffled(DeckShuffledEventArgs e)
-        {
-            DeckShuffled?.Invoke(this, e);
-        }
-
-        protected virtual void OnDeckCutInput(DeckCutInputEventArgs e)
-        {
-            DeckCutInput?.Invoke(this, e);
-        }
-
-        protected virtual void OnDeckCut(DeckCutEventArgs e)
-        {
-            DeckCut?.Invoke(this, e);
-        }
-
-        protected virtual void OnCardsDealt(CardsDealtEventArgs e)
-        {
-            CardsDealt?.Invoke(this, e);
-        }
-
-        protected virtual void OnInvalidMove(InvalidMoveEventArgs e)
-        {
-            InvalidMove?.Invoke(this, e);
-        }
-
-        // Game state change events
-        protected virtual void OnStateChanged(StateChangedEventArgs e)
-        {
-            StateChanged?.Invoke(this, e);
-        }
-
-        protected virtual void OnGamePaused(GamePausedEventArgs e)
-        {
-            GamePaused?.Invoke(this, e);
-        }
-
-        protected virtual void OnGameResumed(GameResumedEventArgs e)
-        {
-            GameResumed?.Invoke(this, e);
-        }
-
-        // Betting events
-        protected virtual void OnBettingRoundStarted(BettingRoundStartedEventArgs e)
-        {
-            BettingRoundStarted?.Invoke(this, e);
-        }
-
-        protected virtual void OnBetInput(BetInputEventArgs e)
-        {
-            BetInput?.Invoke(this, e);
-        }
-
-        protected virtual void OnBettingAction(BettingActionEventArgs e)
-        {
-            BettingAction?.Invoke(this, e);
-        }
-
-        protected virtual void OnBettingCompleted(BettingCompletedEventArgs e)
-        {
-            BettingCompleted?.Invoke(this, e);
-        }
-
-        // Trump selection events
-        protected virtual void OnTrumpSelectionInput(TrumpSelectionInputEventArgs e)
-        {
-            TrumpSelectionInput?.Invoke(this, e);
-        }
-
-        protected virtual void OnTrumpSelected(TrumpSelectedEventArgs e)
-        {
-            TrumpSelected?.Invoke(this, e);
-        }
-
-        // Card playing events
-        protected virtual void OnPlayerTurn(PlayerTurnEventArgs e)
-        {
-            PlayerTurn?.Invoke(this, e);
-        }
-
-        protected virtual void OnCardSelectionInput(CardSelectionInputEventArgs e)
-        {
-            CardSelectionInput?.Invoke(this, e);
-        }
-
-        protected virtual void OnCardPlayed(CardPlayedEventArgs e)
-        {
-            CardPlayed?.Invoke(this, e);
-        }
-
-        protected virtual void OnTrickCompleted(TrickCompletedEventArgs e)
-        {
-            TrickCompleted?.Invoke(this, e);
-        }
-
-        // Scoring events
-        protected virtual void OnScoreUpdated(ScoreUpdatedEventArgs e)
-        {
-            ScoreUpdated?.Invoke(this, e);
-        }
-
-        protected virtual void OnTeamScoring(TeamScoringEventArgs e)
-        {
-            TeamScoring?.Invoke(this, e);
-        }
-
-        protected virtual void OnTrickPointsAwarded(TrickPointsAwardedEventArgs e)
-        {
-            TrickPointsAwarded?.Invoke(this, e);
-        }
-
-        // Game end events
-        protected virtual void OnGameOver(GameOverEventArgs e)
-        {
-            GameOver?.Invoke(this, e);
-        }
-
-        protected virtual void OnNextRoundPrompt(NextRoundEventArgs e)
-        {
-            NextRoundPrompt?.Invoke(this, e);
-        }
 
         // Public methods to trigger events from game logic //
         // Round events
         public async Task RaiseRoundStarted(int roundNumber, Player dealer)
         {
-            OnRoundStarted(new RoundStartedEventArgs(roundNumber, dealer));
+            RoundStarted?.Invoke(new RoundStartedEventArgs(roundNumber, dealer));
             await Task.CompletedTask;
         }
 
         public async Task RaiseRoundEnded(int roundNumber, int teamOneRoundPoints, int teamTwoRoundPoints, Player winningBidder, int winningBid)
         {
-            OnRoundEnded(new RoundEndedEventArgs(roundNumber, teamOneRoundPoints, teamTwoRoundPoints, winningBidder, winningBid));
+            RoundEnded?.Invoke(new RoundEndedEventArgs(roundNumber, teamOneRoundPoints, teamTwoRoundPoints, winningBidder, winningBid));
             await Task.CompletedTask;
         }
 
         public async Task RaiseDeckShuffled(string message)
         {
-            OnDeckShuffled(new DeckShuffledEventArgs(message));
+            DeckShuffled?.Invoke(new DeckShuffledEventArgs(message));
             await Task.CompletedTask;
         }
 
         public async Task<int> RaiseDeckCutInput(Player cuttingPlayer, int deckSize)
         {
             var args = new DeckCutInputEventArgs(cuttingPlayer, deckSize);
-            OnDeckCutInput(args);
+            DeckCutInput?.Invoke(args);
             await Task.CompletedTask;
             return args.Response;
         }
 
         public async Task RaiseDeckCut(Player cuttingPlayer, int cutPosition)
         {
-            OnDeckCut(new DeckCutEventArgs(cuttingPlayer, cutPosition));
+            DeckCut?.Invoke(new DeckCutEventArgs(cuttingPlayer, cutPosition));
             await Task.CompletedTask;
         }
 
         public async Task RaiseCardsDealt(List<Player> players, int dealerIndex)
         {
-            OnCardsDealt(new CardsDealtEventArgs(players, dealerIndex));
+            CardsDealt?.Invoke(new CardsDealtEventArgs(players, dealerIndex));
             await Task.CompletedTask;
         }
 
         public async Task RaiseInvalidMove(Player player, string message, InvalidMoveType moveType)
         {
-            OnInvalidMove(new InvalidMoveEventArgs(player, message, moveType));
+            InvalidMove?.Invoke(new InvalidMoveEventArgs(player, message, moveType));
             await Task.CompletedTask;
         }
 
         // Game state change events
         public async Task RaiseStateChanged(GameState previousState, GameState newState)
         {
-            OnStateChanged(new StateChangedEventArgs(previousState, newState));
+            StateChanged?.Invoke(new StateChangedEventArgs(previousState, newState));
             await Task.CompletedTask;
         }
 
         public async Task RaiseGamePaused(GameState currentState)
         {
-            OnGamePaused(new GamePausedEventArgs(currentState));
+            GamePaused?.Invoke(new GamePausedEventArgs(currentState));
             await Task.CompletedTask;
         }
 
         public async Task RaiseGameResumed(GameState resumingToState)
         {
-            OnGameResumed(new GameResumedEventArgs(resumingToState));
+            GameResumed?.Invoke(new GameResumedEventArgs(resumingToState));
             await Task.CompletedTask;
         }
 
         // Betting events
         public async Task RaiseBettingRoundStarted(string message)
         {
-            OnBettingRoundStarted(new BettingRoundStartedEventArgs(message));
+            BettingRoundStarted?.Invoke(new BettingRoundStartedEventArgs(message));
             await Task.CompletedTask;
         }
         
-        // here im using event to return response, might not be used in Unity
         public async Task<string> RaiseBetInput(Player currentPlayer, int minBet, int maxBet, int betIncrement, 
             List<int> takenBids, int currentHighestBid)
         {
             var args = new BetInputEventArgs(currentPlayer, minBet, maxBet, betIncrement, takenBids, currentHighestBid);
-            OnBetInput(args);
+            BetInput?.Invoke(args);
             await Task.CompletedTask;
             return args.Response;
         }
 
         public async Task RaiseBettingAction(Player player, int bet, bool hasPassed = false, bool hasBet = false)
         {
-            OnBettingAction(new BettingActionEventArgs(player, bet, hasPassed, hasBet));
+            BettingAction?.Invoke(new BettingActionEventArgs(player, bet, hasPassed, hasBet));
             await Task.CompletedTask;
         }
 
         public async Task RaiseBettingCompleted(Player winningBidder, int winningBid, Dictionary<Player, int> allBids)
         {
-            OnBettingCompleted(new BettingCompletedEventArgs(winningBidder, winningBid, allBids));
+            BettingCompleted?.Invoke(new BettingCompletedEventArgs(winningBidder, winningBid, allBids));
             await Task.CompletedTask;
         }
 
@@ -277,74 +144,104 @@ namespace DeuxCentsCardGame.Events
         public async Task<string> RaiseTrumpSelectionInput(Player selectingPlayer)
         {
             var args = new TrumpSelectionInputEventArgs(selectingPlayer);
-            OnTrumpSelectionInput(args);
+            TrumpSelectionInput?.Invoke(args);
             await Task.CompletedTask;
             return args.Response;
         }
 
         public async Task RaiseTrumpSelected(CardSuit trumpSuit, Player selectedBy)
         {
-            OnTrumpSelected(new TrumpSelectedEventArgs(trumpSuit, selectedBy));
+            TrumpSelected?.Invoke(new TrumpSelectedEventArgs(trumpSuit, selectedBy));
             await Task.CompletedTask;
         }
 
         // Card playing events
         public async Task RaisePlayerTurn(Player player, CardSuit? leadingSuit, CardSuit? trumpSuit, int trickNumber)
         {
-            OnPlayerTurn(new PlayerTurnEventArgs(player, leadingSuit, trumpSuit, trickNumber));
+            PlayerTurn?.Invoke(new PlayerTurnEventArgs(player, leadingSuit, trumpSuit, trickNumber));
             await Task.CompletedTask;
         }
 
         public async Task<int> RaiseCardSelectionInput(Player currentPlayer, CardSuit? leadingSuit, CardSuit? trumpSuit, List<Card> hand)
         {
             var args = new CardSelectionInputEventArgs(currentPlayer, leadingSuit, trumpSuit, hand);
-            OnCardSelectionInput(args);
+            CardSelectionInput?.Invoke(args);
             await Task.CompletedTask;
             return args.Response;
         }
 
         public async Task RaiseCardPlayed(Player player, Card card, int trickNumber, CardSuit? leadingSuit, CardSuit? trumpSuit)
         {
-            OnCardPlayed(new CardPlayedEventArgs(player, card, trickNumber, leadingSuit, trumpSuit));
+            CardPlayed?.Invoke(new CardPlayedEventArgs(player, card, trickNumber, leadingSuit, trumpSuit));
             await Task.CompletedTask;
         }
 
         public async Task RaiseTrickCompleted(int trickNumber, Player winningPlayer, Card winningCard, List<(Card card, Player player)> playedCards, int trickPoints)
         {
-            OnTrickCompleted(new TrickCompletedEventArgs(trickNumber, winningPlayer, winningCard, playedCards, trickPoints));
+            TrickCompleted?.Invoke(new TrickCompletedEventArgs(trickNumber, winningPlayer, winningCard, playedCards, trickPoints));
             await Task.CompletedTask;
         }
 
         // Scoring events
         public async Task RaiseScoreUpdated(int teamOneRoundPoints, int teamTwoRoundPoints, int teamOneTotalPoints, int teamTwoTotalPoints, bool isBidWinnerTeamOne, int winningBid)
         {
-            OnScoreUpdated(new ScoreUpdatedEventArgs(teamOneRoundPoints, teamTwoRoundPoints, teamOneTotalPoints, teamTwoTotalPoints, isBidWinnerTeamOne, winningBid));
+            ScoreUpdated?.Invoke(new ScoreUpdatedEventArgs(teamOneRoundPoints, teamTwoRoundPoints, teamOneTotalPoints, teamTwoTotalPoints, isBidWinnerTeamOne, winningBid));
             await Task.CompletedTask;
         }
 
         public async Task RaiseTeamScoring(string teamName, int roundPoints, int winningBid, bool madeBid, bool cannotScore, int awardedPoints)
         {
-            OnTeamScoring(new TeamScoringEventArgs(teamName, roundPoints, winningBid, madeBid, cannotScore, awardedPoints));
+            TeamScoring?.Invoke(new TeamScoringEventArgs(teamName, roundPoints, winningBid, madeBid, cannotScore, awardedPoints));
             await Task.CompletedTask;
         }
 
         public async Task RaiseTrickPointsAwarded(Player player, int trickPoints, string teamName)
         {
-            OnTrickPointsAwarded(new TrickPointsAwardedEventArgs(player, trickPoints, teamName));
+            TrickPointsAwarded?.Invoke(new TrickPointsAwardedEventArgs(player, trickPoints, teamName));
             await Task.CompletedTask;
         }
 
         // Game end events
         public async Task RaiseGameOver(int teamOneFinalScore, int teamTwoFinalScore)
         {
-            OnGameOver(new GameOverEventArgs(teamOneFinalScore, teamTwoFinalScore));
+            GameOver?.Invoke(new GameOverEventArgs(teamOneFinalScore, teamTwoFinalScore));
             await Task.CompletedTask;
         }
 
         public async Task RaiseNextRoundPrompt(string message = "Press any key to start the next round...")
         {
-            OnNextRoundPrompt(new NextRoundEventArgs(message));
+            NextRoundPrompt?.Invoke(new NextRoundEventArgs(message));
             await Task.CompletedTask;
+        }
+
+        // Clear all event subscriptions (useful for cleanup)
+        public void ClearAllEvents()
+        {
+            RoundStarted = null;
+            RoundEnded = null;
+            DeckShuffled = null;
+            DeckCutInput = null;
+            DeckCut = null;
+            CardsDealt = null;
+            InvalidMove = null;
+            StateChanged = null;
+            GamePaused = null;
+            GameResumed = null;
+            BettingRoundStarted = null;
+            BetInput = null;
+            BettingAction = null;
+            BettingCompleted = null;
+            TrumpSelectionInput = null;
+            TrumpSelected = null;
+            PlayerTurn = null;
+            CardSelectionInput = null;
+            CardPlayed = null;
+            TrickCompleted = null;
+            ScoreUpdated = null;
+            TeamScoring = null;
+            TrickPointsAwarded = null;
+            GameOver = null;
+            NextRoundPrompt = null;
         }
     }
 }
