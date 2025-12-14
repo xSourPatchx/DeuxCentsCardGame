@@ -24,7 +24,7 @@
    - [ ] Error Handling: Add more comprehensive error handling
    - [ ] Immutability: Consider making more objects immutable
    - [ ] Should fix diplay betting results
-   - [ ] Should fix displaying hand before playing
+   - [x] Should fix displaying hand before playing
 
 2. **Deck Improvements**
    - [ ] Consider adding a `DeckBuilder` pattern for custom decks such as a kitty

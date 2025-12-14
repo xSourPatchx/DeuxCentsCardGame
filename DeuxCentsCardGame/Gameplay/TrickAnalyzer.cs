@@ -65,40 +65,6 @@ namespace DeuxCentsCardGame.Gameplay
         // Determines if the player's partner is currently winning the trick.
         public bool IsPartnerWinning(
             List<(Card card, Player player)> trick,
-            int playerIndex,
-            ITeamManager teamManager,
-            CardSuit? trumpSuit,
-            CardSuit? leadingSuit)
-        {
-            if (trick == null || trick.Count == 0)
-                return false;
-
-            if (teamManager == null)
-                throw new ArgumentNullException(nameof(teamManager));
-
-            // Get the current winning card
-            var winningCard = GetCurrentWinningCard(trick, trumpSuit, leadingSuit);
-
-            // Find who played the winning card
-            var winningPlay = trick.FirstOrDefault(t => t.card == winningCard);
-            if (winningPlay.player == null)
-                return false;
-
-            // Get player indices - need to find the index of the winning player
-            // This requires knowing all players, which we'll need to pass in
-            // For now, we'll check team membership directly
-            var playerTeam = teamManager.GetPlayerTeam(playerIndex);
-            
-            // We need to determine the winning player's index
-            // This is a limitation - we need more context
-            // For now, we'll return false as a safe default
-            // This method should be called with additional context
-            return false;
-        }
-
-        // Overload that accepts all players to properly determine partner status.
-        public bool IsPartnerWinning(
-            List<(Card card, Player player)> trick,
             Player currentPlayer,
             List<Player> allPlayers,
             ITeamManager teamManager,

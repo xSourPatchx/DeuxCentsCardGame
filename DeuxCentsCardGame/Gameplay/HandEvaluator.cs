@@ -1,4 +1,5 @@
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.Gameplay
 {
@@ -6,6 +7,13 @@ namespace DeuxCentsCardGame.Gameplay
     // Used by AI players for decision-making and can provide hints to human players.
     public class HandEvaluator
     {
+        private readonly CardCollectionHelper _cardHelper;
+
+        public HandEvaluator(CardCollectionHelper cardHelper)
+        {
+            _cardHelper = cardHelper ?? throw new ArgumentNullException(nameof(cardHelper));
+        }
+
         // Calculates overall hand strength based on face values and point values.
         public int CalculateHandStrength(List<Card> hand)
         {
@@ -30,7 +38,7 @@ namespace DeuxCentsCardGame.Gameplay
             strength += CountHighCards(hand, 8) * 3;
             
             // Bonus for having multiple cards in same suit (good for trump)
-            var suitCounts = GetSuitCounts(hand);
+            var suitCounts = _cardHelper.CountBySuit(hand);
             foreach (var count in suitCounts.Values)
             {
                 if (count >= 4)
@@ -45,11 +53,7 @@ namespace DeuxCentsCardGame.Gameplay
         // Gets the count of cards in each suit.
         public Dictionary<CardSuit, int> GetSuitCounts(List<Card> hand)
         {
-            if (hand == null || hand.Count == 0)
-                return new Dictionary<CardSuit, int>();
-
-            return hand.GroupBy(card => card.CardSuit)
-                    .ToDictionary(g => g.Key, g => g.Count());
+            return _cardHelper.CountBySuit(hand);
         }
 
         // Determines the strongest suit based on total face value.
@@ -58,10 +62,12 @@ namespace DeuxCentsCardGame.Gameplay
             if (hand == null || hand.Count == 0)
                 throw new ArgumentException("Cannot determine strongest suit from empty hand", nameof(hand));
 
-            return hand.GroupBy(card => card.CardSuit)
-                    .OrderByDescending(g => g.Sum(c => c.CardFaceValue))
-                    .First()
-                    .Key;
+            var suitGroups = _cardHelper.GroupBySuit(hand);
+
+            return suitGroups
+                .OrderByDescending(g => _cardHelper.CalculateTotalFaceValue(g.Value))
+                .First()
+                .Key;
         }
 
         // Gets detailed suit strength analysis including count, face value sum, and high cards.
@@ -70,17 +76,18 @@ namespace DeuxCentsCardGame.Gameplay
             if (hand == null || hand.Count == 0)
                 return new Dictionary<CardSuit, SuitStrength>();
 
-            return hand.GroupBy(card => card.CardSuit)
-                .ToDictionary(
-                    g => g.Key,
-                    g => new SuitStrength
-                    {
-                        Count = g.Count(),
-                        TotalFaceValue = g.Sum(c => c.CardFaceValue),
-                        TotalPointValue = g.Sum(c => c.CardPointValue),
-                        HighCardCount = g.Count(c => c.CardFaceValue >= 8),
-                        HighestCard = g.Max(c => c.CardFaceValue)
-                    });
+            var suitGroups = _cardHelper.GroupBySuit(hand);
+            
+            return suitGroups.ToDictionary(
+                g => g.Key,
+                g => new SuitStrength
+                {
+                    Count = g.Value.Count,
+                    TotalFaceValue = _cardHelper.CalculateTotalFaceValue(g.Value),
+                    TotalPointValue = _cardHelper.CalculateTotalPoints(g.Value),
+                    HighCardCount = _cardHelper.GetHighValueCards(g.Value, 8).Count,
+                    HighestCard = _cardHelper.GetHighestCard(g.Value)?.CardFaceValue ?? 0
+                });
         }
 
         // Counts cards with face value at or above threshold.
@@ -98,7 +105,7 @@ namespace DeuxCentsCardGame.Gameplay
             if (hand == null || hand.Count == 0)
                 return true;
 
-            return !hand.Any(card => card.CardSuit == suit);
+            return !_cardHelper.HasSuit(hand, suit);
         }
 
         // Checks if hand has only one card of specified suit (a singleton).
@@ -107,7 +114,7 @@ namespace DeuxCentsCardGame.Gameplay
             if (hand == null || hand.Count == 0)
                 return false;
 
-            return hand.Count(card => card.CardSuit == suit) == 1;
+            return _cardHelper.FilterBySuit(hand, suit).Count == 1;
         }
 
         // Gets all voids (suits with no cards) in the hand.
@@ -116,7 +123,7 @@ namespace DeuxCentsCardGame.Gameplay
             if (hand == null || hand.Count == 0)
                 return Enum.GetValues<CardSuit>().ToList();
 
-            var suitCounts = GetSuitCounts(hand);
+            var suitCounts = _cardHelper.CountBySuit(hand);
             var allSuits = Enum.GetValues<CardSuit>();
             
             return allSuits.Where(suit => !suitCounts.ContainsKey(suit)).ToList();
@@ -128,7 +135,7 @@ namespace DeuxCentsCardGame.Gameplay
             if (hand == null || hand.Count == 0)
                 return 0;
 
-            var cardsInSuit = hand.Where(c => c.CardSuit == suit).ToList();
+            var cardsInSuit = _cardHelper.FilterBySuit(hand, suit);
             
             if (cardsInSuit.Count == 0)
                 return 0;
@@ -139,10 +146,10 @@ namespace DeuxCentsCardGame.Gameplay
             score += cardsInSuit.Count * 10;
             
             // High cards = better
-            score += cardsInSuit.Sum(c => c.CardFaceValue);
+            score += _cardHelper.CalculateTotalFaceValue(cardsInSuit);
             
             // High cards bonus
-            score += cardsInSuit.Count(c => c.CardFaceValue >= 8) * 5;
+            score += _cardHelper.GetHighValueCards(cardsInSuit, 8).Count * 5;
             
             return score;
         }

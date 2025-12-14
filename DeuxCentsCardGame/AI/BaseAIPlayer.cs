@@ -55,7 +55,6 @@ namespace DeuxCentsCardGame.AI
 
         protected List<Card> GetPlayableCards(List<Card> hand, CardSuit? leadingSuit)
         {         
-            // return _trickAnalyzer.GetPlayableCards(hand, leadingSuit);
             return _cardHelper.GetPlayableCards(hand, leadingSuit);
         }
 
