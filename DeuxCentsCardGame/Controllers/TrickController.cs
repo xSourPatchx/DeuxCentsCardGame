@@ -1,4 +1,3 @@
-using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Gameplay;
@@ -15,7 +14,7 @@ namespace DeuxCentsCardGame.Controllers
         private readonly IPlayerTurnManager _playerTurnManager;
         private readonly IScoringManager _scoringManager;
         private readonly ICardLogic _cardComparer;
-        private readonly ICardPlayValidator _cardPlayValidator;
+        private readonly IGameValidator _gameValidator;
 
         public TrickController(
             IGameEventManager eventManager,
@@ -23,14 +22,14 @@ namespace DeuxCentsCardGame.Controllers
             IPlayerTurnManager playerTurnManager,
             IScoringManager scoringManager,
             ICardLogic cardComparer,
-            ICardPlayValidator cardPlayValidator)
+            IGameValidator cardPlayValidator)
         {
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
             _playerManager = playerManager ?? throw new ArgumentNullException(nameof(playerManager));
             _playerTurnManager = playerTurnManager ?? throw new ArgumentNullException(nameof(playerTurnManager));
             _scoringManager = scoringManager ?? throw new ArgumentNullException(nameof(scoringManager));
             _cardComparer = cardComparer ?? throw new ArgumentNullException(nameof(cardComparer));
-            _cardPlayValidator = cardPlayValidator ?? throw new ArgumentNullException(nameof(cardPlayValidator));
+            _gameValidator = cardPlayValidator ?? throw new ArgumentNullException(nameof(cardPlayValidator));
         }
 
         public async Task PlayAllTricks(int startingPlayerIndex, CardSuit? trumpSuit)
@@ -77,7 +76,7 @@ namespace DeuxCentsCardGame.Controllers
         {
             await RaisePlayerTurnEvent(currentPlayer, leadingSuit, trumpSuit, trickNumber);
             
-            Card playedCard = await _cardPlayValidator.GetValidCardFromPlayer(currentPlayer, leadingSuit, trumpSuit);
+            Card playedCard = await _gameValidator.GetValidCardFromPlayer(currentPlayer, leadingSuit, trumpSuit);
             
             currentPlayer.RemoveCard(playedCard);
             leadingSuit = UpdateLeadingSuit(playedCard, leadingSuit, currentTrick);

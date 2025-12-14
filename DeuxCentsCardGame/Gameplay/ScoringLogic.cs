@@ -1,5 +1,5 @@
-using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.GameConfig;
+using DeuxCentsCardGame.Interfaces.Gameplay;
 
 namespace DeuxCentsCardGame.Gameplay
 {

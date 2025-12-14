@@ -60,18 +60,6 @@ namespace DeuxCentsCardGame
             services.AddSingleton<HandEvaluator>();
             services.AddSingleton<TrickAnalyzer>();
 
-            // Register validators
-            services.AddSingleton<CardValidator>();
-            // services.AddSingleton<CardPlayValidator>();
-            // services.AddSingleton<ICardPlayValidator>(sp => sp.GetRequiredService<ICardPlayValidator>());
-            
-            // services.AddSingleton<BettingValidator>(sp =>
-            // {
-            //     var gameConfig = sp.GetRequiredService<IGameConfig>();
-            //     var playerManager = sp.GetRequiredService<IPlayerManager>();
-            //     return new BettingValidator(gameConfig, playerManager.Players.ToList());
-            // });
-
             // Register AI service
             services.AddSingleton<IAIService, AIService>();
 
@@ -93,35 +81,42 @@ namespace DeuxCentsCardGame
                 return new PlayerTurnManager(gameConfig.TotalPlayers);
             });
 
-            services.AddSingleton<IDeckManager, DeckManager>();
-            services.AddSingleton<IDealingManager, DealingManager>();
             services.AddSingleton<ITeamManager, TeamManager>();
 
-            // Register validators that depend on managers - AFTER managers are registered
-            services.AddSingleton<BettingValidator>(sp =>
+            // Register GameValidator - depend on managers
+            services.AddSingleton<GameValidator>(sp =>
             {
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
+                var eventManager = sp.GetRequiredService<IGameEventManager>();
+                var cardUtility = sp.GetRequiredService<ICardUtility>();
                 var playerManager = sp.GetRequiredService<IPlayerManager>();
-                return new BettingValidator(gameConfig, playerManager.Players.ToList());
+                return new GameValidator(
+                    gameConfig, 
+                    eventManager, 
+                    cardUtility,
+                    playerManager.Players.ToList());
             });
+            services.AddSingleton<IGameValidator>(sp => sp.GetRequiredService<GameValidator>());
+            services.AddSingleton<ICardPlayValidator>(sp => sp.GetRequiredService<GameValidator>());
+        
+            // Register DeckManager - depends on IGameValidator
+            services.AddSingleton<IDeckManager, DeckManager>();
+            services.AddSingleton<IDealingManager, DealingManager>();
 
-            services.AddSingleton<CardPlayValidator>();
-            services.AddSingleton<ICardPlayValidator>(sp => sp.GetRequiredService<CardPlayValidator>());
-
-            // Register BettingManager
+            // Register BettingManager - depends on GameValidator
             services.AddSingleton<BettingManager>(sp =>
             {
                 var playerManager = sp.GetRequiredService<IPlayerManager>();
                 var eventManager = sp.GetRequiredService<IGameEventManager>();
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
-                var bettingValidator = sp.GetRequiredService<BettingValidator>();
+                var gameValidator = sp.GetRequiredService<GameValidator>();
                 var bettingLogic = sp.GetRequiredService<BettingLogic>();
                 return new BettingManager(
                     playerManager.Players.ToList(),
                     gameConfig.InitialDealerIndex,
                     eventManager,
                     gameConfig,
-                    bettingValidator,
+                    gameValidator,
                     bettingLogic);
             });
             services.AddSingleton<IBettingManager>(sp => sp.GetRequiredService<BettingManager>());

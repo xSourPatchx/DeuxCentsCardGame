@@ -8,13 +8,13 @@ namespace DeuxCentsCardGame.Models
     public class Deck : IDeck
     {
         private readonly ICardUtility _cardUtility;
-        private readonly CardValidator _cardValidator;
+        private readonly GameValidator _gameValidator;
         public List<Card> Cards { get; set; }
         
-        public Deck(ICardUtility cardUtility, CardValidator cardValidator)
+        public Deck(ICardUtility cardUtility, GameValidator gameValidator)
         {
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
-            _cardValidator = cardValidator ?? throw new ArgumentNullException(nameof(cardValidator)); 
+            _gameValidator = gameValidator ?? throw new ArgumentNullException(nameof(gameValidator)); 
             Cards = [];
             InitializeCards();
         }
@@ -35,7 +35,7 @@ namespace DeuxCentsCardGame.Models
                     var faceValue = cardFaceValues[cardIndex];
                     var pointValue = cardPointValues[cardIndex];
 
-                    _cardValidator.ValidateCard(suit, face, faceValue, pointValue);
+                    _gameValidator.ValidateCard(suit, face, faceValue, pointValue);
                     Cards.Add(new Card(suit, face, faceValue, pointValue));
                 }
             }

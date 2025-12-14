@@ -19,7 +19,7 @@ namespace DeuxCentsCardGame.Managers
         private readonly IGameConfig _gameConfig;
         private readonly List<Player> _players;
         private readonly IGameEventManager _eventManager;
-        private readonly BettingValidator _bettingValidator;
+        private readonly GameValidator _gameValidator;
         private readonly BettingLogic _bettingLogic;
         private int _dealerIndex;
 
@@ -28,14 +28,14 @@ namespace DeuxCentsCardGame.Managers
             int dealerIndex,
             IGameEventManager eventManager,
             IGameConfig gameConfig,
-            BettingValidator bettingValidator,
+            GameValidator bettingValidator,
             BettingLogic bettingLogic)
         {
             _players = players ?? throw new ArgumentNullException(nameof(players));
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
             _dealerIndex = dealerIndex;
             _gameConfig = gameConfig ?? throw new ArgumentNullException(nameof(gameConfig));
-            _bettingValidator = bettingValidator ?? throw new ArgumentNullException(nameof(bettingValidator));
+            _gameValidator = bettingValidator ?? throw new ArgumentNullException(nameof(bettingValidator));
             _bettingLogic = bettingLogic ?? throw new ArgumentNullException(nameof(bettingLogic));
         }
 
@@ -75,7 +75,7 @@ namespace DeuxCentsCardGame.Managers
                 Player currentPlayer = _players[currentPlayerIndex];
 
                 // Skip players who have already passed
-                if (_bettingValidator.HasPlayerPassed(currentPlayer))
+                if (_gameValidator.HasPlayerPassed(currentPlayer))
                     continue;
 
                 // Parse and handle user input
@@ -83,7 +83,7 @@ namespace DeuxCentsCardGame.Managers
                     return true;
 
                 // Check if three or more players have passed
-                if (_bettingValidator.HasMinimumPlayersPassed())
+                if (_gameValidator.HasMinimumPlayersPassed())
                     return await HandleThreePassesScenario();
             }
             return false;
@@ -95,13 +95,13 @@ namespace DeuxCentsCardGame.Managers
             {
                 string betInput = await RequestBetInput(currentPlayerIndex);
 
-                if (_bettingValidator.IsPassInput(betInput))
+                if (_gameValidator.IsPassInput(betInput))
                 {
                     await HandlePassInput(currentPlayerIndex);
                     return false;
                 }
 
-                if (TryParseBet(betInput, out int bet) && _bettingValidator.IsValidBet(bet))
+                if (TryParseBet(betInput, out int bet) && _gameValidator.IsValidBet(bet))
                 {
                     return await HandleValidBet(currentPlayerIndex, bet);
                 }
@@ -159,7 +159,7 @@ namespace DeuxCentsCardGame.Managers
             _bettingLogic.RecordPlayerBet(player, bet);
             await RaiseBettingActionEvent(player, bet, isPassed: false, hasBet: true);
 
-            if (_bettingValidator.IsMaximumBet(bet))
+            if (_gameValidator.IsMaximumBet(bet))
             {
                 // End round immediately
                 return await HandleMaximumBetScenario(currentPlayerIndex);
