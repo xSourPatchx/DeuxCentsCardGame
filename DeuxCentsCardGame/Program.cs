@@ -12,7 +12,6 @@ using DeuxCentsCardGame.Interfaces.Validators;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Services;
 using DeuxCentsCardGame.UI;
-using DeuxCentsCardGame.Validators;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -97,7 +96,6 @@ namespace DeuxCentsCardGame
                     playerManager.Players.ToList());
             });
             services.AddSingleton<IGameValidator>(sp => sp.GetRequiredService<GameValidator>());
-            services.AddSingleton<ICardPlayValidator>(sp => sp.GetRequiredService<GameValidator>());
         
             // Register DeckManager - depends on IGameValidator
             services.AddSingleton<IDeckManager, DeckManager>();

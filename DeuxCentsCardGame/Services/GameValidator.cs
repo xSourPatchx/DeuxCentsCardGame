@@ -6,7 +6,7 @@ using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Interfaces.Validators;
 using DeuxCentsCardGame.Models;
 
-namespace DeuxCentsCardGame.Validators
+namespace DeuxCentsCardGame.Services
 {
         public class GameValidator : IGameValidator
         {

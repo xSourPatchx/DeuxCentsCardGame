@@ -4,7 +4,7 @@ using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Validators;
+using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.Managers
 {

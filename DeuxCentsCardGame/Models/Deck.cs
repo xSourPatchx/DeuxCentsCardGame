@@ -1,6 +1,6 @@
 using DeuxCentsCardGame.Interfaces.Models;
 using DeuxCentsCardGame.Interfaces.Services;
-using DeuxCentsCardGame.Validators;
+using DeuxCentsCardGame.Interfaces.Validators;
 
 namespace DeuxCentsCardGame.Models
 {
@@ -8,10 +8,10 @@ namespace DeuxCentsCardGame.Models
     public class Deck : IDeck
     {
         private readonly ICardUtility _cardUtility;
-        private readonly GameValidator _gameValidator;
+        private readonly IGameValidator _gameValidator;
         public List<Card> Cards { get; set; }
         
-        public Deck(ICardUtility cardUtility, GameValidator gameValidator)
+        public Deck(ICardUtility cardUtility, IGameValidator gameValidator)
         {
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
             _gameValidator = gameValidator ?? throw new ArgumentNullException(nameof(gameValidator)); 

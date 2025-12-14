@@ -6,7 +6,7 @@
 
 *Current:* Inline loop logic
 
-csharp
+
 private void PerformFisherYatesShuffle()
 {
     var cards = _currentDeck.Cards;
@@ -19,10 +19,8 @@ private void PerformFisherYatesShuffle()
     }
 }
 
-
 *Refactor:* Extract swap logic
 
-csharp
 private void PerformFisherYatesShuffle()
 {
     var cards = _currentDeck.Cards;
@@ -43,14 +41,13 @@ private void SwapCards(List<Card> cards, int index1, int index2)
     (cards[index1], cards[index2]) = (cards[index2], cards[index1]);
 }
 
-
 -----
 
 #### 2. *BettingManager.ProcessBettingRound()* ⚠ NESTED LOOP
 
 *Current:* While loop containing for loop (nested)
 
-csharp
+
 private void ProcessBettingRound()
 {
     int startingIndex = (_dealerIndex + 1) % _players.Count;
@@ -76,10 +73,8 @@ private bool ProcessSingleBettingRound(int startingIndex)
     return false;
 }
 
-
 *Refactor:* Extract to BettingRoundExecutor helper
 
-csharp
 public class BettingRoundExecutor
 {
     private readonly BettingValidator _validator;
@@ -119,14 +114,13 @@ public class BettingRoundExecutor
     }
 }
 
-
 -----
 
 #### 3. *TrickController.PlayAllTricks()* ⚠ NESTED LOOP
 
 *Current:* Outer loop for tricks, inner loop for players
 
-csharp
+
 public void PlayAllTricks(int startingPlayerIndex, CardSuit? trumpSuit)
 {
     var startingPlayer = _playerManager.GetPlayer(startingPlayerIndex);
@@ -150,10 +144,8 @@ private void PlayTrickCards(ref CardSuit? leadingSuit, List<(Card card, Player p
     }
 }
 
-
 *Refactor:* Extract to TrickExecutor
 
-csharp
 public class TrickExecutor
 {
     private readonly IPlayerManager _playerManager;
@@ -195,14 +187,13 @@ public class TrickExecutor
     }
 }
 
-
 -----
 
 #### 4. *HardAIPlayer.DecideBet()* - Complex Nested If/Else
 
 *Current:* Deep nesting with complex thresholds
 
-csharp
+
 public override int DecideBet(List<Card> hand, int minBet, int maxBet, int betIncrement, 
                             int currentHighestBid, List<int> takenBids)
 {
@@ -239,10 +230,8 @@ public override int DecideBet(List<Card> hand, int minBet, int maxBet, int betIn
     return availableBets.OrderBy(b => Math.Abs(b - targetBet)).First();
 }
 
-
 *Refactor:* Extract to separate methods with strategy pattern
 
-csharp
 public class BettingStrategy
 {
     private readonly HandStrengthEvaluator _evaluator;
@@ -313,7 +302,7 @@ public class BetCalculator
 
 *Current:* Multiple nested if statements
 
-csharp
+
 public bool WinsAgainst(Card thisCard, Card otherCard, CardSuit? trumpSuit, CardSuit? leadingSuit)
 {
     bool thisCardIsTrump = thisCard.IsTrump(trumpSuit);
@@ -331,7 +320,7 @@ public bool WinsAgainst(Card thisCard, Card otherCard, CardSuit? trumpSuit, Card
 
 *Refactor:* Chain of Responsibility pattern
 
-csharp
+
 public interface ICardComparisonRule
 {
     bool CanHandle(CardComparisonContext context);
@@ -389,7 +378,7 @@ public class TrumpComparisonRule : ICardComparisonRule
 
 *Current:* Nested foreach loops
 
-csharp
+
 private void InitializeCards()
 {
     var cardSuits = _cardUtility.GetAllCardSuits();
@@ -415,7 +404,7 @@ private void InitializeCards()
 
 *Refactor:* Extract CardFactory
 
-csharp
+
 public class CardFactory
 {
     private readonly ICardUtility _utility;
@@ -475,7 +464,7 @@ public class Deck : IDeck
 
 *Current:* 20+ event subscriptions in one method
 
-csharp
+
 private void SubscribeToEvents()
 {
     _eventManager.RoundStarted += OnRoundStarted;
@@ -487,7 +476,7 @@ private void SubscribeToEvents()
 
 *Refactor:* Group by category with EventSubscriber helpers
 
-csharp
+
 public class GameEventSubscriptionManager
 {
     private readonly List<IEventSubscriber> _subscribers;
@@ -549,7 +538,7 @@ public class RoundEventSubscriber : IEventSubscriber
 
 *Current:* Multiple responsibilities
 
-csharp
+
 public void ScoreRound(int winningBidIndex, int winningBid)
 {
     bool bidWinnerIsTeamOne = _teamManager.IsPlayerOnTeamOne(winningBidIndex);
@@ -590,7 +579,7 @@ private void ScoreTeam(Team team, bool isBidWinner, int winningBid)
 
 *Refactor:* Extract TeamScorer
 
-csharp
+
 public class TeamScorer
 {
     private readonly IScoringLogic _logic;
