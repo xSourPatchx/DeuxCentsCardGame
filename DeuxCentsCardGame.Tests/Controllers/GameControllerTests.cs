@@ -1,7 +1,6 @@
 using DeuxCentsCardGame.Controllers;
-using DeuxCentsCardGame.Interfaces.Controllers;
+using DeuxCentsCardGame.GameStates;
 using DeuxCentsCardGame.Interfaces.Events;
-using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 using Moq;
@@ -11,73 +10,43 @@ namespace DeuxCentsCardGame.Tests.Controllers
 {
     public class GameControllerTests
     {
-        private readonly Mock<IPlayerManager> _mockPlayerManager;
-        private readonly Mock<IDeckManager> _mockDeckManager;
-        private readonly Mock<IDealingManager> _mockDealingManager;
-        private readonly Mock<IBettingManager> _mockBettingManager;
-        private readonly Mock<ITrumpSelectionManager> _mockTrumpSelectionManager;
+        private readonly Mock<RoundController> _mockRoundController;
+        private readonly Mock<TrickController> _mockTrickController;
         private readonly Mock<IScoringManager> _mockScoringManager;
         private readonly Mock<IGameEventManager> _mockEventManager;
         private readonly Mock<IGameEventHandler> _mockEventHandler;
-        private readonly Mock<IGameConfig> _mockGameConfig;
-        private readonly IGameController _gameController;
-        private readonly List<Player> _testPlayers;
-        private readonly Deck _testDeck;
+        private readonly GameController _gameController;
 
         public GameControllerTests()
         {
-            // Initialize mocks
-            _mockPlayerManager = new Mock<IPlayerManager>();
-            _mockDeckManager = new Mock<IDeckManager>();
-            _mockDealingManager = new Mock<IDealingManager>();
-            _mockBettingManager = new Mock<IBettingManager>();
-            _mockTrumpSelectionManager = new Mock<ITrumpSelectionManager>();
+            _mockRoundController = new Mock<RoundController>();
+            _mockTrickController = new Mock<TrickController>();
             _mockScoringManager = new Mock<IScoringManager>();
             _mockEventManager = new Mock<IGameEventManager>();
             _mockEventHandler = new Mock<IGameEventHandler>();
-            _mockGameConfig = new Mock<IGameConfig>();
 
-            // Setup test data
-            _testPlayers = new List<Player>
-            {
-                new Player("Player 1"),
-                new Player("Player 2"),
-                new Player("Player 3"),
-                new Player("Player 4")
-            };
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(false);
+            _mockRoundController.Setup(m => m.GetStartingPlayerIndex()).Returns(0);
+            _mockRoundController.Setup(m => m.TrumpSuit).Returns(CardSuit.Hearts);
 
-            _testDeck = new Deck();
+            _mockRoundController.Setup(m => m.InitializeRound(It.IsAny<int>())).Returns(Task.CompletedTask);
+            _mockRoundController.Setup(m => m.PrepareRound()).Returns(Task.CompletedTask);
+            _mockRoundController.Setup(m => m.ExecuteBettingPhase()).Returns(Task.CompletedTask);
+            _mockRoundController.Setup(m => m.SelectTrump()).Returns(Task.CompletedTask);
+            _mockRoundController.Setup(m => m.FinalizeRound(It.IsAny<int>())).Returns(Task.CompletedTask);
+            
+            _mockTrickController.Setup(m => m.PlayAllTricks(It.IsAny<int>(), It.IsAny<CardSuit?>())).Returns(Task.CompletedTask);
+            
+            _mockEventManager.Setup(m => m.RaiseStateChanged(It.IsAny<GameState>(), It.IsAny<GameState>())).Returns(Task.CompletedTask);
+            _mockEventManager.Setup(m => m.RaiseGamePaused(It.IsAny<GameState>())).Returns(Task.CompletedTask);
+            _mockEventManager.Setup(m => m.RaiseGameResumed(It.IsAny<GameState>())).Returns(Task.CompletedTask);
 
-            // Setup default mock behaviors
-            _mockPlayerManager.Setup(m => m.Players).Returns(_testPlayers.AsReadOnly());
-            _mockPlayerManager.Setup(m => m.GetPlayer(It.IsAny<int>()))
-                .Returns<int>(index => _testPlayers[index]);
-            _mockDeckManager.Setup(m => m.CurrentDeck).Returns(_testDeck);
-            _mockBettingManager.Setup(m => m.CurrentWinningBidIndex).Returns(0);
-            _mockBettingManager.Setup(m => m.CurrentWinningBid).Returns(50);
-            _mockTrumpSelectionManager.Setup(m => m.SelectTrumpSuit(It.IsAny<Player>()))
-                .Returns(CardSuit.Hearts);
-                       
-            // Setup game config defaults
-            _mockGameConfig.Setup(c => c.InitialDealerIndex).Returns(3);
-            _mockGameConfig.Setup(c => c.MaximumBet).Returns(100);
-
-            // Game ends after one round by default
-            _mockScoringManager.SetupSequence(m => m.IsGameOver())
-                .Returns(false)
-                .Returns(true);
-
-            // Initialize controller
             _gameController = new GameController(
-                _mockPlayerManager.Object,
-                _mockDeckManager.Object,
-                _mockDealingManager.Object,
-                _mockBettingManager.Object,
-                _mockTrumpSelectionManager.Object,
+                _mockRoundController.Object,
+                _mockTrickController.Object,
                 _mockScoringManager.Object,
                 _mockEventManager.Object,
-                _mockEventHandler.Object,
-                _mockGameConfig.Object
+                _mockEventHandler.Object
             );
         }
 
@@ -86,450 +55,480 @@ namespace DeuxCentsCardGame.Tests.Controllers
         [Fact]
         public void Constructor_WithValidDependencies_InitializesSuccessfully()
         {
-            // Act & Assert - constructor runs in setup
             Assert.NotNull(_gameController);
         }
 
         [Fact]
-        public void Constructor_WithNullPlayerManager_ThrowsArgumentNullException()
+        public void Constructor_WithNullRoundController_ThrowsArgumentNullException()
         {
-            // Act & Assert
             Assert.Throws<ArgumentNullException>(() => new GameController(
                 null!,
-                _mockDeckManager.Object,
-                _mockDealingManager.Object,
-                _mockBettingManager.Object,
-                _mockTrumpSelectionManager.Object,
+                _mockTrickController.Object,
                 _mockScoringManager.Object,
                 _mockEventManager.Object,
-                _mockEventHandler.Object,
-                _mockGameConfig.Object
+                _mockEventHandler.Object
             ));
         }
 
         [Fact]
-        public void Constructor_WithNullDeckManager_ThrowsArgumentNullException()
+        public void Constructor_WithNullTrickController_ThrowsArgumentNullException()
         {
-            // Act & Assert
             Assert.Throws<ArgumentNullException>(() => new GameController(
-                _mockPlayerManager.Object,
+                _mockRoundController.Object,
                 null!,
-                _mockDealingManager.Object,
-                _mockBettingManager.Object,
-                _mockTrumpSelectionManager.Object,
                 _mockScoringManager.Object,
                 _mockEventManager.Object,
-                _mockEventHandler.Object,
-                _mockGameConfig.Object
+                _mockEventHandler.Object
+            ));
+        }
+
+        [Fact]
+        public void Constructor_WithNullScoringManager_ThrowsArgumentNullException()
+        {
+            Assert.Throws<ArgumentNullException>(() => new GameController(
+                _mockRoundController.Object,
+                _mockTrickController.Object,
+                null!,
+                _mockEventManager.Object,
+                _mockEventHandler.Object
             ));
         }
 
         [Fact]
         public void Constructor_WithNullEventManager_ThrowsArgumentNullException()
         {
-            // Act & Assert
             Assert.Throws<ArgumentNullException>(() => new GameController(
-                _mockPlayerManager.Object,
-                _mockDeckManager.Object,
-                _mockDealingManager.Object,
-                _mockBettingManager.Object,
-                _mockTrumpSelectionManager.Object,
+                _mockRoundController.Object,
+                _mockTrickController.Object,
                 _mockScoringManager.Object,
                 null!,
-                _mockEventHandler.Object,
-                _mockGameConfig.Object
+                _mockEventHandler.Object
             ));
         }
 
         [Fact]
-        public void Constructor_WithNullGameConfig_ThrowsArgumentNullException()
+        public void Constructor_WithNullEventHandler_ThrowsArgumentNullException()
         {
-            // Act & Assert
             Assert.Throws<ArgumentNullException>(() => new GameController(
-                _mockPlayerManager.Object,
-                _mockDeckManager.Object,
-                _mockDealingManager.Object,
-                _mockBettingManager.Object,
-                _mockTrumpSelectionManager.Object,
+                _mockRoundController.Object,
+                _mockTrickController.Object,
                 _mockScoringManager.Object,
                 _mockEventManager.Object,
-                _mockEventHandler.Object,
                 null!
             ));
         }
 
-        [Fact]
-        public void Constructor_InitializesDealerIndexToThree()
-        {
-            // Arrange
-            var controller = (GameController)_gameController;
+        #endregion
 
-            // Assert
-            Assert.Equal(3, controller.DealerIndex);
+        #region State Management Tests
+
+        [Fact]
+        public void GetCurrentState_InitiallyReturnsInitialization()
+        {
+            Assert.Equal(GameState.Initialization, _gameController.GetCurrentState());
+        }
+
+        [Fact]
+        public void GetCurrentRound_InitiallyReturnsZero()
+        {
+            Assert.Equal(0, _gameController.GetCurrentRound());
+        }
+
+        [Fact]
+        public void GetCurrentTrick_InitiallyReturnsZero()
+        {
+            Assert.Equal(0, _gameController.GetCurrentTrick());
+        }
+
+        [Fact]
+        public async Task TransitionToState_UpdatesCurrentState()
+        {
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+
+            await _gameController.TransitionToState(GameState.Betting);
+
+            Assert.Equal(GameState.Betting, _gameController.GetCurrentState());
+        }
+
+        [Fact]
+        public async Task TransitionToState_RaisesStateChangedEvent()
+        {
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+
+            await _gameController.TransitionToState(GameState.Betting);
+
+            _mockEventManager.Verify(m => m.RaiseStateChanged(
+                GameState.Initialization, 
+                GameState.Betting), Times.Once);
+        }
+
+        [Fact]
+        public async Task PauseGame_SetsPausedStateToTrue()
+        {
+            await _gameController.PauseGame();
+
+            Assert.True(_gameController.IsPaused());
+        }
+
+        [Fact]
+        public async Task PauseGame_RaisesGamePausedEvent()
+        {
+            await _gameController.PauseGame();
+
+            _mockEventManager.Verify(m => m.RaiseGamePaused(GameState.Initialization), Times.Once);
+        }
+
+        [Fact]
+        public async Task PauseGame_WhenAlreadyPaused_DoesNotRaiseEventAgain()
+        {
+            await _gameController.PauseGame();
+            await _gameController.PauseGame();
+
+            _mockEventManager.Verify(m => m.RaiseGamePaused(It.IsAny<GameState>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task ResumeGame_ClearsPausedState()
+        {
+            await _gameController.PauseGame();
+            await _gameController.ResumeGame();
+
+            Assert.False(_gameController.IsPaused());
+        }
+
+        [Fact]
+        public async Task ResumeGame_RaisesGameResumedEvent()
+        {
+            await _gameController.PauseGame();
+            await _gameController.ResumeGame();
+
+            _mockEventManager.Verify(m => m.RaiseGameResumed(GameState.Initialization), Times.Once);
+        }
+
+        [Fact]
+        public async Task TransitionToState_DoesNotTransition_WhenPaused()
+        {
+            await _gameController.PauseGame();
+            var stateBeforePause = _gameController.GetCurrentState();
+
+            await _gameController.TransitionToState(GameState.Betting);
+
+            Assert.Equal(stateBeforePause, _gameController.GetCurrentState());
+        }
+
+        [Fact]
+        public async Task IsPaused_InitiallyReturnsFalse()
+        {
+            Assert.False(_gameController.IsPaused());
         }
 
         #endregion
 
-        #region StartGame Tests
+        #region Game Flow Tests
 
         [Fact]
-        public void StartGame_RunsUntilGameEnds()
+        public async Task StartGame_UnsubscribesFromEvents_WhenGameEnds()
         {
-            // Arrange
-            _mockScoringManager.SetupSequence(m => m.IsGameOver())
-                .Returns(false)
-                .Returns(true);
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
 
-            // Act
-            _gameController.StartGame();
+            await _gameController.StartGame();
 
-            // Assert
-            _mockEventManager.Verify(m => m.RaiseRoundStarted(1, _testPlayers[3]), Times.Once);
             _mockEventHandler.Verify(m => m.UnsubscribeFromEvents(), Times.Once);
         }
 
         [Fact]
-        public void StartGame_RunsMultipleRounds_WhenGameNotOver()
+        public async Task NewRound_TransitionsToRoundStartState()
         {
-            // Arrange
-            _mockScoringManager.SetupSequence(m => m.IsGameOver())
-                .Returns(false)
-                .Returns(false)
-                .Returns(false)
-                .Returns(true);
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
 
-            // Act
-            _gameController.StartGame();
+            await _gameController.NewRound();
+            await Task.Delay(50);
 
-            // Assert
-            _mockEventManager.Verify(m => m.RaiseRoundStarted(It.IsAny<int>(), It.IsAny<Player>()), Times.Exactly(4));
-        }
-
-        [Fact]
-        public void StartGame_UnsubscribesFromEvents_WhenGameEnds()
-        {
-            // Act
-            _gameController.StartGame();
-
-            // Assert
-            _mockEventHandler.Verify(m => m.UnsubscribeFromEvents(), Times.Once);
+            _mockEventManager.Verify(m => m.RaiseStateChanged(
+                It.IsAny<GameState>(), 
+                GameState.RoundStart), Times.Once);
         }
 
         #endregion
 
-        #region NewRound Tests
+        #region State Handler Tests - Initialization
 
         [Fact]
-        public void NewRound_RaisesRoundStartedEvent()
+        public async Task HandleInitialization_SetsCurrentRoundToOne()
         {
-            // Arrange
-            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+            await _gameController.TransitionToState(GameState.Initialization);
+            await Task.Delay(50);
 
-            // Act
-            _gameController.NewRound();
-
-            // Assert
-            _mockEventManager.Verify(m => m.RaiseRoundStarted(1, _testPlayers[3]), Times.Once);
+            Assert.Equal(1, _gameController.GetCurrentRound());
         }
 
         [Fact]
-        public void NewRound_ResetsAllComponents()
+        public async Task HandleInitialization_AutomaticallyTransitionsToRoundStart()
         {
-            // Arrange
             _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
 
-            // Act
-            _gameController.NewRound();
+            await _gameController.TransitionToState(GameState.Initialization);
+            await Task.Delay(50);
 
-            // Assert
-            _mockDeckManager.Verify(m => m.ResetDeck(), Times.Once);
-            _mockScoringManager.Verify(m => m.ResetRoundPoints(), Times.Once);
-            _mockBettingManager.Verify(m => m.ResetBettingRound(), Times.Once);
+            _mockEventManager.Verify(m => m.RaiseStateChanged(
+                GameState.Initialization,
+                GameState.RoundStart), Times.Once);
+        }
+
+        #endregion
+
+        #region State Handler Tests - RoundStart
+
+        [Fact]
+        public async Task HandleRoundStart_CallsInitializeRound()
+        {
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+
+            await _gameController.TransitionToState(GameState.RoundStart);
+
+            _mockRoundController.Verify(m => m.InitializeRound(It.IsAny<int>()), Times.Once);
         }
 
         [Fact]
-        public void NewRound_ShufflesDeck()
+        public async Task HandleRoundStart_TransitionsToDeckPreparation()
         {
-            // Arrange
             _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
 
-            // Act
-            _gameController.NewRound();
+            await _gameController.TransitionToState(GameState.RoundStart);
+            await Task.Delay(50);
 
-            // Assert
-            _mockDeckManager.Verify(m => m.ShuffleDeck(), Times.Once);
+            _mockEventManager.Verify(m => m.RaiseStateChanged(
+                GameState.RoundStart,
+                GameState.DeckPreparation), Times.Once);
+        }
+
+        #endregion
+
+        #region State Handler Tests - DeckPreparation
+
+        [Fact]
+        public async Task HandleDeckPreparation_CallsPrepareRound()
+        {
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+
+            await _gameController.TransitionToState(GameState.DeckPreparation);
+
+            _mockRoundController.Verify(m => m.PrepareRound(), Times.Once);
         }
 
         [Fact]
-        public void NewRound_DealsCards()
+        public async Task HandleDeckPreparation_TransitionsToBetting()
         {
-            // Arrange
             _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
 
-            // Act
-            _gameController.NewRound();
+            await _gameController.TransitionToState(GameState.DeckPreparation);
+            await Task.Delay(50);
 
-            // Assert
-            _mockDealingManager.Verify(m => m.DealCards(_testDeck, _testPlayers), Times.Once);
-            _mockDealingManager.Verify(m => m.RaiseCardsDealtEvent(_testPlayers, 3), Times.Once);
+            _mockEventManager.Verify(m => m.RaiseStateChanged(
+                GameState.DeckPreparation,
+                GameState.Betting), Times.Once);
+        }
+
+        #endregion
+
+        #region State Handler Tests - Betting
+
+        [Fact]
+        public async Task HandleBetting_CallsExecuteBettingPhase()
+        {
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+
+            await _gameController.TransitionToState(GameState.Betting);
+
+            _mockRoundController.Verify(m => m.ExecuteBettingPhase(), Times.Once);
         }
 
         [Fact]
-        public void NewRound_ExecutesBettingRound()
+        public async Task HandleBetting_TransitionsToTrumpSelection()
         {
-            // Arrange
             _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
 
-            // Act
-            _gameController.NewRound();
+            await _gameController.TransitionToState(GameState.Betting);
+            await Task.Delay(50);
 
-            // Assert
-            _mockBettingManager.Verify(m => m.ExecuteBettingRound(), Times.Once);
+            _mockEventManager.Verify(m => m.RaiseStateChanged(
+                GameState.Betting,
+                GameState.TrumpSelection), Times.Once);
+        }
+
+        #endregion
+
+        #region State Handler Tests - TrumpSelection
+
+        [Fact]
+        public async Task HandleTrumpSelection_CallsSelectTrump()
+        {
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+
+            await _gameController.TransitionToState(GameState.TrumpSelection);
+
+            _mockRoundController.Verify(m => m.SelectTrump(), Times.Once);
         }
 
         [Fact]
-        public void NewRound_SelectsTrumpSuit()
+        public async Task HandleTrumpSelection_ResetsTrickCounterToZero()
         {
-            // Arrange
             _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
-            _mockBettingManager.Setup(m => m.CurrentWinningBidIndex).Returns(1);
 
-            // Act
-            _gameController.NewRound();
+            await _gameController.TransitionToState(GameState.TrumpSelection);
+            await Task.Delay(50);
 
-            // Assert
-            _mockTrumpSelectionManager.Verify(m => m.SelectTrumpSuit(_testPlayers[1]), Times.Once);
+            Assert.Equal(0, _gameController.GetCurrentTrick());
         }
 
         [Fact]
-        public void NewRound_ScoresRound()
+        public async Task HandleTrumpSelection_TransitionsToPlaying()
         {
-            // Arrange
             _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
-            _mockBettingManager.Setup(m => m.CurrentWinningBid).Returns(75);
 
-            // Act
-            _gameController.NewRound();
+            await _gameController.TransitionToState(GameState.TrumpSelection);
+            await Task.Delay(50);
 
-            // Assert
-            _mockScoringManager.Verify(m => m.ScoreRound(0, 75), Times.Once);
+            _mockEventManager.Verify(m => m.RaiseStateChanged(
+                GameState.TrumpSelection,
+                GameState.Playing), Times.Once);
+        }
+
+        #endregion
+
+        #region State Handler Tests - Playing
+
+        [Fact]
+        public async Task HandlePlaying_CallsPlayAllTricks()
+        {
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+
+            await _gameController.TransitionToState(GameState.Playing);
+
+            _mockTrickController.Verify(m => m.PlayAllTricks(
+                It.IsAny<int>(), 
+                It.IsAny<CardSuit?>()), Times.Once);
         }
 
         [Fact]
-        public void NewRound_ChecksIfGameIsOver()
+        public async Task HandlePlaying_PassesCorrectStartingPlayerIndex()
         {
-            // Arrange
             _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+            _mockRoundController.Setup(m => m.GetStartingPlayerIndex()).Returns(2);
 
-            // Act
-            _gameController.NewRound();
+            await _gameController.TransitionToState(GameState.Playing);
 
-            // Assert
-            _mockScoringManager.Verify(m => m.IsGameOver(), Times.Once);
+            _mockTrickController.Verify(m => m.PlayAllTricks(2, It.IsAny<CardSuit?>()), Times.Once);
         }
 
         [Fact]
-        public void NewRound_RaisesGameOverEvent_WhenGameIsOver()
+        public async Task HandlePlaying_PassesCorrectTrumpSuit()
         {
-            // Arrange
             _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+            _mockRoundController.Setup(m => m.TrumpSuit).Returns(CardSuit.Spades);
 
-            // Act
-            _gameController.NewRound();
+            await _gameController.TransitionToState(GameState.Playing);
 
-            // Assert
-            _mockScoringManager.Verify(m => m.RaiseGameOverEvent(), Times.Once);
+            _mockTrickController.Verify(m => m.PlayAllTricks(It.IsAny<int>(), CardSuit.Spades), Times.Once);
         }
 
         [Fact]
-        public void NewRound_RaisesNextRoundPrompt_WhenGameIsNotOver()
+        public async Task HandlePlaying_TransitionsToRoundEnd()
         {
-            // Arrange
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+
+            await _gameController.TransitionToState(GameState.Playing);
+            await Task.Delay(50);
+
+            _mockEventManager.Verify(m => m.RaiseStateChanged(
+                GameState.Playing,
+                GameState.RoundEnd), Times.Once);
+        }
+
+        #endregion
+
+        #region State Handler Tests - RoundEnd
+
+        [Fact]
+        public async Task HandleRoundEnd_CallsFinalizeRound()
+        {
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+
+            await _gameController.TransitionToState(GameState.RoundEnd);
+
+            _mockRoundController.Verify(m => m.FinalizeRound(It.IsAny<int>()), Times.Once);
+        }
+
+        [Fact]
+        public async Task HandleRoundEnd_ChecksIfGameIsOver()
+        {
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+
+            await _gameController.TransitionToState(GameState.RoundEnd);
+
+            _mockScoringManager.Verify(m => m.IsGameOver(), Times.AtLeastOnce);
+        }
+
+        [Fact]
+        public async Task HandleRoundEnd_TransitionsToGameOver_WhenGameIsOver()
+        {
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+
+            await _gameController.TransitionToState(GameState.RoundEnd);
+            await Task.Delay(50);
+
+            _mockEventManager.Verify(m => m.RaiseStateChanged(
+                GameState.RoundEnd,
+                GameState.GameOver), Times.Once);
+        }
+
+        [Fact]
+        public async Task HandleRoundEnd_TransitionsToRoundStart_WhenGameIsNotOver()
+        {
             _mockScoringManager.Setup(m => m.IsGameOver()).Returns(false);
 
-            // Act
-            _gameController.NewRound();
+            await _gameController.TransitionToState(GameState.RoundEnd);
+            await Task.Delay(50);
 
-            // Assert
-            _mockEventManager.Verify(m => m.RaiseNextRoundPrompt(It.IsAny<string>()), Times.Once);
+            _mockEventManager.Verify(m => m.RaiseStateChanged(
+                GameState.RoundEnd,
+                GameState.RoundStart), Times.Once);
         }
 
         [Fact]
-        public void NewRound_RotatesDealer()
+        public async Task HandleRoundEnd_IncrementsRoundNumber_WhenGameIsNotOver()
         {
-            // Arrange
-            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
-            _mockDealingManager.Setup(m => m.RotateDealerIndex(3, 4)).Returns(0);
-
-            // Act
-            _gameController.NewRound();
-
-            // Assert
-            _mockDealingManager.Verify(m => m.RotateDealerIndex(3, 4), Times.Once);
-        }
-
-        [Fact]
-        public void NewRound_IncrementsRoundNumber()
-        {
-            // Arrange
             _mockScoringManager.SetupSequence(m => m.IsGameOver())
                 .Returns(false)
                 .Returns(true);
 
-            // Act
-            _gameController.NewRound();
-            _gameController.NewRound();
+            await _gameController.TransitionToState(GameState.RoundEnd);
+            await Task.Delay(100);
 
-            // Assert
-            _mockEventManager.Verify(m => m.RaiseRoundStarted(1, It.IsAny<Player>()), Times.Once);
-            _mockEventManager.Verify(m => m.RaiseRoundStarted(2, It.IsAny<Player>()), Times.Once);
+            Assert.Equal(2, _gameController.GetCurrentRound());
+        }
+
+        [Fact]
+        public async Task HandleRoundEnd_DoesNotIncrementRoundNumber_WhenGameIsOver()
+        {
+            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
+
+            await _gameController.TransitionToState(GameState.RoundEnd);
+            await Task.Delay(100);
+
+            Assert.Equal(0, _gameController.GetCurrentRound());
         }
 
         #endregion
 
-        #region Play Round Tests
+        #region State Handler Tests - GameOver
 
         [Fact]
-        public void NewRound_PlaysAllTricks_WithCorrectNumberOfTricks()
+        public async Task HandleGameOver_RaisesGameOverEvent()
         {
-            // Arrange
-            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
-            
-            // Setup players with 10 cards each (standard deal)
-            foreach (var player in _testPlayers)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    player.AddCard(new Card(CardSuit.Hearts, CardFace.Five, 1, 5));
-                }
-            }
+            await _gameController.TransitionToState(GameState.GameOver);
 
-            _mockEventManager.Setup(m => m.RaiseCardSelectionInput(
-                It.IsAny<Player>(),
-                It.IsAny<CardSuit?>(),
-                It.IsAny<CardSuit?>(),
-                It.IsAny<List<Card>>()))
-                .Returns(0);
-
-            // Act
-            _gameController.NewRound();
-
-            // Assert - 10 tricks * 4 players = 40 card played events
-            _mockEventManager.Verify(m => m.RaiseCardPlayed(
-                It.IsAny<Player>(),
-                It.IsAny<Card>(),
-                It.IsAny<int>(),
-                It.IsAny<CardSuit?>(),
-                It.IsAny<CardSuit?>()), Times.Exactly(40));
-        }
-
-        [Fact]
-        public void NewRound_RaisesPlayerTurnEvent_ForEachPlayerInTrick()
-        {
-            // Arrange
-            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
-            
-            foreach (var player in _testPlayers)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    player.AddCard(new Card(CardSuit.Hearts, CardFace.Five, 1, 5));
-                }
-            }
-
-            _mockEventManager.Setup(m => m.RaiseCardSelectionInput(
-                It.IsAny<Player>(),
-                It.IsAny<CardSuit?>(),
-                It.IsAny<CardSuit?>(),
-                It.IsAny<List<Card>>()))
-                .Returns(0);
-
-            // Act
-            _gameController.NewRound();
-
-            // Assert - 10 tricks * 4 players = 40 player turns
-            _mockEventManager.Verify(m => m.RaisePlayerTurn(
-                It.IsAny<Player>(),
-                It.IsAny<CardSuit?>(),
-                It.IsAny<CardSuit?>(),
-                It.IsAny<int>()), Times.Exactly(40));
-        }
-
-        [Fact]
-        public void NewRound_RaisesTrickCompletedEvent_ForEachTrick()
-        {
-            // Arrange
-            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
-            
-            foreach (var player in _testPlayers)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    player.AddCard(new Card(CardSuit.Hearts, CardFace.Five, 1, 5));
-                }
-            }
-
-            _mockEventManager.Setup(m => m.RaiseCardSelectionInput(
-                It.IsAny<Player>(),
-                It.IsAny<CardSuit?>(),
-                It.IsAny<CardSuit?>(),
-                It.IsAny<List<Card>>()))
-                .Returns(0);
-
-            // Act
-            _gameController.NewRound();
-
-            // Assert - 10 tricks completed
-            _mockEventManager.Verify(m => m.RaiseTrickCompleted(
-                It.IsAny<int>(),
-                It.IsAny<Player>(),
-                It.IsAny<Card>(),
-                It.IsAny<List<(Card card, Player player)>>(),
-                It.IsAny<int>()), Times.Exactly(10));
-        }
-
-        [Fact]
-        public void NewRound_AwardsTrickPoints_ForEachTrick()
-        {
-            // Arrange
-            _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
-            
-            foreach (var player in _testPlayers)
-            {
-                for (int i = 0; i < 10; i++)
-                {
-                    player.AddCard(new Card(CardSuit.Hearts, CardFace.Five, 1, 5));
-                }
-            }
-
-            _mockEventManager.Setup(m => m.RaiseCardSelectionInput(
-                It.IsAny<Player>(),
-                It.IsAny<CardSuit?>(),
-                It.IsAny<CardSuit?>(),
-                It.IsAny<List<Card>>()))
-                .Returns(0);
-
-            // Act
-            _gameController.NewRound();
-
-            // Assert - Points awarded for each of 10 tricks
-            _mockScoringManager.Verify(m => m.AwardTrickPoints(
-                It.IsAny<int>(),
-                It.IsAny<int>()), Times.Exactly(10));
-        }
-
-        #endregion
-
-        #region ExecuteBettingRound Tests
-
-        [Fact]
-        public void ExecuteBettingRound_CallsBettingManager()
-        {
-            // Act
-            _gameController.ExecuteBettingRound();
-
-            // Assert
-            _mockBettingManager.Verify(m => m.ExecuteBettingRound(), Times.Once);
+            _mockScoringManager.Verify(m => m.RaiseGameOverEvent(), Times.Once);
         }
 
         #endregion
@@ -537,39 +536,41 @@ namespace DeuxCentsCardGame.Tests.Controllers
         #region Integration Flow Tests
 
         [Fact]
-        public void NewRound_ExecutesInCorrectOrder()
+        public async Task GameFlow_ExecutesStatesInCorrectOrder()
         {
-            // Arrange
             _mockScoringManager.Setup(m => m.IsGameOver()).Returns(true);
-            var callOrder = new List<string>();
+            var stateChanges = new List<(GameState from, GameState to)>();
 
-            _mockEventManager.Setup(m => m.RaiseRoundStarted(It.IsAny<int>(), It.IsAny<Player>()))
-                .Callback(() => callOrder.Add("RoundStarted"));
-            _mockDeckManager.Setup(m => m.ResetDeck())
-                .Callback(() => callOrder.Add("ResetDeck"));
-            _mockDeckManager.Setup(m => m.ShuffleDeck())
-                .Callback(() => callOrder.Add("ShuffleDeck"));
-            _mockDealingManager.Setup(m => m.DealCards(It.IsAny<Deck>(), It.IsAny<List<Player>>()))
-                .Callback(() => callOrder.Add("DealCards"));
-            _mockBettingManager.Setup(m => m.ExecuteBettingRound())
-                .Callback(() => callOrder.Add("ExecuteBettingRound"));
-            _mockTrumpSelectionManager.Setup(m => m.SelectTrumpSuit(It.IsAny<Player>()))
-                .Callback(() => callOrder.Add("SelectTrumpSuit"))
-                .Returns(CardSuit.Hearts);
-            _mockScoringManager.Setup(m => m.ScoreRound(It.IsAny<int>(), It.IsAny<int>()))
-                .Callback(() => callOrder.Add("ScoreRound"));
+            _mockEventManager.Setup(m => m.RaiseStateChanged(It.IsAny<GameState>(), It.IsAny<GameState>()))
+                .Callback<GameState, GameState>((from, to) => stateChanges.Add((from, to)))
+                .Returns(Task.CompletedTask);
 
-            // Act
-            _gameController.NewRound();
+            await _gameController.TransitionToState(GameState.Initialization);
+            await Task.Delay(500);
 
-            // Assert
-            Assert.Equal("RoundStarted", callOrder[0]);
-            Assert.Equal("ResetDeck", callOrder[1]);
-            Assert.Equal("ShuffleDeck", callOrder[2]);
-            Assert.Equal("DealCards", callOrder[3]);
-            Assert.Equal("ExecuteBettingRound", callOrder[4]);
-            Assert.Equal("SelectTrumpSuit", callOrder[5]);
-            Assert.Equal("ScoreRound", callOrder[^1]);
+            Assert.Contains((GameState.Initialization, GameState.RoundStart), stateChanges);
+            Assert.Contains((GameState.RoundStart, GameState.DeckPreparation), stateChanges);
+            Assert.Contains((GameState.DeckPreparation, GameState.Betting), stateChanges);
+            Assert.Contains((GameState.Betting, GameState.TrumpSelection), stateChanges);
+            Assert.Contains((GameState.TrumpSelection, GameState.Playing), stateChanges);
+            Assert.Contains((GameState.Playing, GameState.RoundEnd), stateChanges);
+            Assert.Contains((GameState.RoundEnd, GameState.GameOver), stateChanges);
+        }
+
+        [Fact]
+        public async Task GameFlow_MultipleRounds_ExecutesCorrectly()
+        {
+            _mockScoringManager.SetupSequence(m => m.IsGameOver())
+                .Returns(false)
+                .Returns(false)
+                .Returns(true);
+
+            await _gameController.TransitionToState(GameState.Initialization);
+            await Task.Delay(1000);
+
+            _mockRoundController.Verify(m => m.InitializeRound(1), Times.Once);
+            _mockRoundController.Verify(m => m.InitializeRound(2), Times.Once);
+            _mockRoundController.Verify(m => m.InitializeRound(3), Times.Once);
         }
 
         #endregion

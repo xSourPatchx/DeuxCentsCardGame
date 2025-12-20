@@ -14,7 +14,7 @@
    - [ ] Simplify Method Signatures by reducing complex parameter lists. Consider creating small data classes called TrickData to handle CardsPlayed, LeadingSuit, TrickNumber.
    - [ ] Simplify Complex Methods, `ProcessPlayerBets` method returns a tuple and has side effects, split it into ProcessPlayerBet method and BetResult class
    - [ ] Remove Nested Loops and Complex Logic, betting round logic is too complex. Break it into smaller, testable methods: ProcessBettingRound(), SetWinningBid(bettingState.GetWinningBid())
-   - [ ] Make Game Logic Async-Friendly since unity multiplayer often requires async operations. Prepare for this: `public async Task<Card> GetPlayerCardChoice(Player player, CardSuit? leadingSuit)`
+   - [x] Make Game Logic Async-Friendly since unity multiplayer often requires async operations. Prepare for this: `public async Task<Card> GetPlayerCardChoice(Player player, CardSuit? leadingSuit)`
    - [x] Avoid Console-Specific Code by remove or abstract away `Console.SetCursorPosition()` and similar console-specific methods.
    - [x] In events, Unity prefers Action/UnityEvent patterns
    - [ ] MonoBehaviour-ready components (for future Unity transition)
@@ -60,7 +60,7 @@
    - [x] Create base AI class for Unity adaptation
 
 8. **Scoring System**
-   - [ ] Extract scoring logic to separate class
+   - [x] Extract scoring logic to separate class
    - [ ] Implement proper score history tracking
    - [ ] Add validation for score calculations
 

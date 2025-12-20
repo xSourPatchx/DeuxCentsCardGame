@@ -82,6 +82,7 @@ namespace DeuxCentsCardGame.GameConfig
                     .Select(typeString => Enum.Parse<PlayerType>(typeString))
                     .ToArray();
             }
+            
             // Load scoring configuration
             var scoringConfig = configuration.GetSection("GameSettings:Scoring");
             gameConfig.WinningScore = scoringConfig.GetValue<int>("WinningScore", GameConstants.WINNING_SCORE);
