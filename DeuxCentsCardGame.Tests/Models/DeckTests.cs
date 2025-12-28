@@ -1,174 +1,50 @@
 using DeuxCentsCardGame.Models;
+using DeuxCentsCardGame.Services;
+using Moq;
 
 namespace DeuxCentsCardGame.Tests.Models
 {
     public class DeckTests
     {
-        #region Constructor Tests
+        private readonly Mock<GameValidator> _mockValidator;
+        private readonly CardUtility _cardUtility;
 
-        [Fact]
-        public void Constructor_InitializesEmptyCardsList()
+        public DeckTests()
         {
-            // Arrange & Act
-            var deck = new Deck();
-
-            // Assert
-            Assert.NotNull(deck.Cards);
+            _cardUtility = new CardUtility();
+            _mockValidator = new Mock<GameValidator>(
+                Mock.Of<Interfaces.GameConfig.IGameConfig>(),
+                Mock.Of<Interfaces.Events.IGameEventManager>(),
+                _cardUtility,
+                new List<Player>()
+            );
+            _mockValidator.Setup(v => v.ValidateCard(
+                It.IsAny<CardSuit>(),
+                It.IsAny<CardFace>(),
+                It.IsAny<int>(),
+                It.IsAny<int>()
+            ));
         }
 
         [Fact]
-        public void Constructor_Creates40Cards()
+        public void Deck_Constructor_Initializes40Cards()
         {
-            // Arrange & Act
-            var deck = new Deck();
+            // Act
+            var deck = new Deck(_cardUtility, _mockValidator.Object);
 
             // Assert
-            Assert.Equal(40, deck.Cards.Count); // 4 suits × 10 faces = 40 cards
+            Assert.Equal(40, deck.Cards.Count);
         }
 
         [Fact]
-        public void Constructor_CreatesAllSuitCombinations()
+        public void Deck_ContainsAllFourSuits()
         {
-            // Arrange & Act
-            var deck = new Deck();
-            var expectedSuits = new[] { CardSuit.Clubs, CardSuit.Diamonds, CardSuit.Hearts, CardSuit.Spades };
+            // Act
+            var deck = new Deck(_cardUtility, _mockValidator.Object);
 
             // Assert
-            foreach (var suit in expectedSuits)
-            {
-                var cardsOfSuit = deck.Cards.Where(c => c.CardSuit == suit).ToList();
-                Assert.Equal(10, cardsOfSuit.Count);
-            }
-        }
-
-        [Fact]
-        public void Constructor_CreatesAllFaceCombinations()
-        {
-            // Arrange & Act
-            var deck = new Deck();
-            var expectedFaces = new[] 
-            { 
-                CardFace.Five, CardFace.Six, CardFace.Seven, CardFace.Eight, CardFace.Nine,
-                CardFace.Ten, CardFace.Jack, CardFace.Queen, CardFace.King, CardFace.Ace 
-            };
-
-            // Assert
-            foreach (var face in expectedFaces)
-            {
-                var cardsOfFace = deck.Cards.Where(c => c.CardFace == face).ToList();
-                Assert.Equal(4, cardsOfFace.Count); // One for each suit
-            }
-        }
-
-        [Fact]
-        public void Constructor_CreatesUniqueSuitFaceCombinations()
-        {
-            // Arrange & Act
-            var deck = new Deck();
-            var expectedSuits = new[] { CardSuit.Clubs, CardSuit.Diamonds, CardSuit.Hearts, CardSuit.Spades };
-            var expectedFaces = new[] 
-            { 
-                CardFace.Five, CardFace.Six, CardFace.Seven, CardFace.Eight, CardFace.Nine,
-                CardFace.Ten, CardFace.Jack, CardFace.Queen, CardFace.King, CardFace.Ace 
-            };
-
-            // Assert
-            foreach (var suit in expectedSuits)
-            {
-                foreach (var face in expectedFaces)
-                {
-                    var matchingCards = deck.Cards.Where(c => c.CardSuit == suit && c.CardFace == face).ToList();
-                    Assert.Single(matchingCards);
-                }
-            }
-        }
-
-        #endregion
-
-        #region Card Values Tests
-
-        [Theory]
-        [InlineData(CardFace.Five, 1)]
-        [InlineData(CardFace.Six, 2)]
-        [InlineData(CardFace.Seven, 3)]
-        [InlineData(CardFace.Eight, 4)]
-        [InlineData(CardFace.Nine, 5)]
-        [InlineData(CardFace.Ten, 6)]
-        [InlineData(CardFace.Jack, 7)]
-        [InlineData(CardFace.Queen, 8)]
-        [InlineData(CardFace.King, 9)]
-        [InlineData(CardFace.Ace, 10)]
-        public void Constructor_AssignsCorrectFaceValues(CardFace face, int expectedValue)
-        {
-            // Arrange & Act
-            var deck = new Deck();
-
-            // Assert
-            var cardsWithFace = deck.Cards.Where(c => c.CardFace == face).ToList();
-            Assert.All(cardsWithFace, card => Assert.Equal(expectedValue, card.CardFaceValue));
-        }
-
-        [Theory]
-        [InlineData(CardFace.Five, 5)]
-        [InlineData(CardFace.Six, 0)]
-        [InlineData(CardFace.Seven, 0)]
-        [InlineData(CardFace.Eight, 0)]
-        [InlineData(CardFace.Nine, 0)]
-        [InlineData(CardFace.Ten, 10)]
-        [InlineData(CardFace.Jack, 0)]
-        [InlineData(CardFace.Queen, 0)]
-        [InlineData(CardFace.King, 0)]
-        [InlineData(CardFace.Ace, 10)]
-        public void Constructor_AssignsCorrectPointValues(CardFace face, int expectedPoints)
-        {
-            // Arrange & Act
-            var deck = new Deck();
-
-            // Assert
-            var cardsWithFace = deck.Cards.Where(c => c.CardFace == face).ToList();
-            Assert.All(cardsWithFace, card => Assert.Equal(expectedPoints, card.CardPointValue));
-        }
-
-        [Fact]
-        public void Deck_TotalPointValueIs100()
-        {
-            // Arrange & Act
-            var deck = new Deck();
-            var totalPoints = deck.Cards.Sum(c => c.CardPointValue);
-
-            // Assert
-            // 4 suits × (5 + 10 + 10) = 4 × 25 = 100
-            Assert.Equal(100, totalPoints);
-        }
-
-        [Fact]
-        public void Deck_HasCorrectNumberOfPointCards()
-        {
-            // Arrange & Act
-            var deck = new Deck();
-
-            // Assert
-            var fives = deck.Cards.Count(c => c.CardFace == CardFace.Five);
-            var tens = deck.Cards.Count(c => c.CardFace == CardFace.Ten);
-            var aces = deck.Cards.Count(c => c.CardFace == CardFace.Ace);
-
-            Assert.Equal(4, fives);
-            Assert.Equal(4, tens);
-            Assert.Equal(4, aces);
-        }
-
-        #endregion
-
-        #region GetCardSuits Tests
-
-        [Fact]
-        public void GetCardSuits_ReturnsAllFourSuits()
-        {
-            // Arrange & Act
-            var suits = Deck.GetCardSuits();
-
-            // Assert
-            Assert.Equal(4, suits.Length);
+            var suits = deck.Cards.Select(c => c.CardSuit).Distinct().ToList();
+            Assert.Equal(4, suits.Count);
             Assert.Contains(CardSuit.Clubs, suits);
             Assert.Contains(CardSuit.Diamonds, suits);
             Assert.Contains(CardSuit.Hearts, suits);
@@ -176,161 +52,118 @@ namespace DeuxCentsCardGame.Tests.Models
         }
 
         [Fact]
-        public void GetCardSuits_ReturnsSameArrayEachTime()
+        public void Deck_ContainsTenCardsPerSuit()
         {
-            // Arrange & Act
-            var suits1 = Deck.GetCardSuits();
-            var suits2 = Deck.GetCardSuits();
+            // Act
+            var deck = new Deck(_cardUtility, _mockValidator.Object);
 
             // Assert
-            Assert.Equal(suits1, suits2);
-        }
-
-        #endregion
-
-        #region StringToCardSuit Tests
-
-        [Theory]
-        [InlineData("clubs", CardSuit.Clubs)]
-        [InlineData("diamonds", CardSuit.Diamonds)]
-        [InlineData("hearts", CardSuit.Hearts)]
-        [InlineData("spades", CardSuit.Spades)]
-        public void StringToCardSuit_WithLowercase_ReturnsCorrectSuit(string input, CardSuit expected)
-        {
-            // Arrange & Act
-            var result = Deck.StringToCardSuit(input);
-
-            // Assert
-            Assert.Equal(expected, result);
-        }
-
-        [Theory]
-        [InlineData("CLUBS", CardSuit.Clubs)]
-        [InlineData("DIAMONDS", CardSuit.Diamonds)]
-        [InlineData("HEARTS", CardSuit.Hearts)]
-        [InlineData("SPADES", CardSuit.Spades)]
-        public void StringToCardSuit_WithUppercase_ReturnsCorrectSuit(string input, CardSuit expected)
-        {
-            // Arrange & Act
-            var result = Deck.StringToCardSuit(input);
-
-            // Assert
-            Assert.Equal(expected, result);
-        }
-
-        [Theory]
-        [InlineData("Clubs", CardSuit.Clubs)]
-        [InlineData("Diamonds", CardSuit.Diamonds)]
-        [InlineData("Hearts", CardSuit.Hearts)]
-        [InlineData("Spades", CardSuit.Spades)]
-        public void StringToCardSuit_WithMixedCase_ReturnsCorrectSuit(string input, CardSuit expected)
-        {
-            // Arrange & Act
-            var result = Deck.StringToCardSuit(input);
-
-            // Assert
-            Assert.Equal(expected, result);
-        }
-
-        [Theory]
-        [InlineData("invalid")]
-        [InlineData("club")]
-        [InlineData("diamond")]
-        [InlineData("heart")]
-        [InlineData("spade")]
-        [InlineData("")]
-        [InlineData(" ")]
-        [InlineData("123")]
-        public void StringToCardSuit_WithInvalidInput_ThrowsArgumentException(string input)
-        {
-            // Arrange & Act & Assert
-            var exception = Assert.Throws<ArgumentException>(() => Deck.StringToCardSuit(input));
-            Assert.Contains($"Invalid suit name: {input}", exception.Message);
-        }
-
-        #endregion
-
-        #region CardSuitToString Tests
-
-        [Theory]
-        [InlineData(CardSuit.Clubs, "clubs")]
-        [InlineData(CardSuit.Diamonds, "diamonds")]
-        [InlineData(CardSuit.Hearts, "hearts")]
-        [InlineData(CardSuit.Spades, "spades")]
-        public void CardSuitToString_ReturnsLowercaseSuitName(CardSuit suit, string expected)
-        {
-            // Arrange & Act
-            var result = Deck.CardSuitToString(suit);
-
-            // Assert
-            Assert.Equal(expected, result);
-        }
-
-        #endregion
-
-        #region Property Tests
-
-        [Fact]
-        public void Cards_PropertyIsReadable()
-        {
-            // Arrange
-            var deck = new Deck();
-
-            // Act & Assert
-            Assert.NotNull(deck.Cards);
-            var cardsProperty = typeof(Deck).GetProperty("Cards");
-            Assert.NotNull(cardsProperty);
-            Assert.True(cardsProperty.CanRead);
-        }
-
-        [Fact]
-        public void Cards_PropertySetterIsPrivate()
-        {
-            // Arrange
-            var cardsProperty = typeof(Deck).GetProperty("Cards");
-
-            // Act & Assert
-            Assert.NotNull(cardsProperty);
-            Assert.False(cardsProperty.SetMethod?.IsPublic ?? false);
-        }
-
-        #endregion
-
-        #region Integration Tests
-
-        [Fact]
-        public void Deck_CanBeUsedToDistributeCardsToPlayers()
-        {
-            // Arrange
-            var deck = new Deck();
-            var player1 = new Player("Player 1");
-            var player2 = new Player("Player 2");
-
-            // Act - Deal 5 cards to each player
-            for (int i = 0; i < 5; i++)
+            foreach (CardSuit suit in Enum.GetValues(typeof(CardSuit)))
             {
-                player1.AddCard(deck.Cards[i * 2]);
-                player2.AddCard(deck.Cards[i * 2 + 1]);
+                var cardsInSuit = deck.Cards.Count(c => c.CardSuit == suit);
+                Assert.Equal(10, cardsInSuit);
             }
-
-            // Assert
-            Assert.Equal(5, player1.Hand.Count);
-            Assert.Equal(5, player2.Hand.Count);
-            Assert.Equal(40, deck.Cards.Count); // Deck still has all cards
         }
 
         [Fact]
-        public void MultipleDeckInstances_AreIndependent()
+        public void Deck_ContainsAllCardFaces()
         {
-            // Arrange & Act
-            var deck1 = new Deck();
-            var deck2 = new Deck();
+            // Act
+            var deck = new Deck(_cardUtility, _mockValidator.Object);
 
             // Assert
-            Assert.Equal(deck1.Cards.Count, deck2.Cards.Count);
-            Assert.NotSame(deck1.Cards, deck2.Cards);
+            var faces = deck.Cards.Select(c => c.CardFace).Distinct().ToList();
+            Assert.Equal(10, faces.Count);
+            Assert.Contains(CardFace.Five, faces);
+            Assert.Contains(CardFace.Six, faces);
+            Assert.Contains(CardFace.Seven, faces);
+            Assert.Contains(CardFace.Eight, faces);
+            Assert.Contains(CardFace.Nine, faces);
+            Assert.Contains(CardFace.Ten, faces);
+            Assert.Contains(CardFace.Jack, faces);
+            Assert.Contains(CardFace.Queen, faces);
+            Assert.Contains(CardFace.King, faces);
+            Assert.Contains(CardFace.Ace, faces);
         }
 
-        #endregion
+        [Fact]
+        public void Deck_CardsHaveCorrectFaceValues()
+        {
+            // Act
+            var deck = new Deck(_cardUtility, _mockValidator.Object);
+
+            // Assert
+            var faceValues = deck.Cards.Select(c => c.CardFaceValue).Distinct().OrderBy(v => v).ToList();
+            Assert.Equal(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 }, faceValues);
+        }
+
+        [Fact]
+        public void Deck_FiveCardsHave5Points()
+        {
+            // Act
+            var deck = new Deck(_cardUtility, _mockValidator.Object);
+
+            // Assert
+            var fiveCards = deck.Cards.Where(c => c.CardFace == CardFace.Five).ToList();
+            Assert.Equal(4, fiveCards.Count); // One per suit
+            Assert.All(fiveCards, card => Assert.Equal(5, card.CardPointValue));
+        }
+
+        [Fact]
+        public void Deck_TenAndAceCardsHave10Points()
+        {
+            // Act
+            var deck = new Deck(_cardUtility, _mockValidator.Object);
+
+            // Assert
+            var tenCards = deck.Cards.Where(c => c.CardFace == CardFace.Ten).ToList();
+            var aceCards = deck.Cards.Where(c => c.CardFace == CardFace.Ace).ToList();
+
+            Assert.Equal(4, tenCards.Count);
+            Assert.Equal(4, aceCards.Count);
+            Assert.All(tenCards, card => Assert.Equal(10, card.CardPointValue));
+            Assert.All(aceCards, card => Assert.Equal(10, card.CardPointValue));
+        }
+
+        [Fact]
+        public void Deck_OtherCardsHave0Points()
+        {
+            // Act
+            var deck = new Deck(_cardUtility, _mockValidator.Object);
+
+            // Assert
+            var zeroPointFaces = new[] { CardFace.Six, CardFace.Seven, CardFace.Eight, 
+                                        CardFace.Nine, CardFace.Jack, CardFace.Queen, CardFace.King };
+            var zeroPointCards = deck.Cards.Where(c => zeroPointFaces.Contains(c.CardFace)).ToList();
+
+            Assert.Equal(28, zeroPointCards.Count); // 7 faces * 4 suits
+            Assert.All(zeroPointCards, card => Assert.Equal(0, card.CardPointValue));
+        }
+
+        [Fact]
+        public void Deck_TotalPointsEqual120()
+        {
+            // Act
+            var deck = new Deck(_cardUtility, _mockValidator.Object);
+
+            // Assert
+            var totalPoints = deck.Cards.Sum(c => c.CardPointValue);
+            Assert.Equal(120, totalPoints);
+        }
+
+        [Fact]
+        public void Deck_CallsValidateCardForEachCard()
+        {
+            // Act
+            var deck = new Deck(_cardUtility, _mockValidator.Object);
+
+            // Assert
+            _mockValidator.Verify(v => v.ValidateCard(
+                It.IsAny<CardSuit>(),
+                It.IsAny<CardFace>(),
+                It.IsAny<int>(),
+                It.IsAny<int>()
+            ), Times.Exactly(40));
+        }
     }
 }

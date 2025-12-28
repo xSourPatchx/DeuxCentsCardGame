@@ -1,4 +1,6 @@
+using Moq;
 using DeuxCentsCardGame.Events;
+using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
 
@@ -11,6 +13,14 @@ namespace DeuxCentsCardGame.Tests.Managers
             return new GameEventManager();
         }
 
+        private Mock<IGameConfig> CreateMockGameConfig()
+        {
+            var mockConfig = new Mock<IGameConfig>();
+            mockConfig.Setup(c => c.GetPlayerTypes())
+                .Returns(new[] { PlayerType.Human, PlayerType.Human, PlayerType.Human, PlayerType.Human });
+            return mockConfig;
+        }
+
         #region Constructor Tests
 
         [Fact]
@@ -18,7 +28,8 @@ namespace DeuxCentsCardGame.Tests.Managers
         {
             // Arrange & Act
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
 
             // Assert
             Assert.Equal(4, playerManager.Players.Count);
@@ -29,7 +40,8 @@ namespace DeuxCentsCardGame.Tests.Managers
         {
             // Arrange & Act
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
 
             // Assert
             Assert.Equal("Player 1", playerManager.Players[0].Name);
@@ -39,11 +51,31 @@ namespace DeuxCentsCardGame.Tests.Managers
         }
 
         [Fact]
+        public void Constructor_WithAIPlayers_InitializesWithCPUNames()
+        {
+            // Arrange
+            var eventManager = CreateEventManager();
+            var mockConfig = new Mock<IGameConfig>();
+            mockConfig.Setup(c => c.GetPlayerTypes())
+                .Returns(new[] { PlayerType.Human, PlayerType.AI, PlayerType.Human, PlayerType.AI });
+
+            // Act
+            var playerManager = new PlayerManager(eventManager, mockConfig.Object);
+
+            // Assert
+            Assert.Equal("Player 1", playerManager.Players[0].Name);
+            Assert.Equal("CPU 2", playerManager.Players[1].Name);
+            Assert.Equal("Player 3", playerManager.Players[2].Name);
+            Assert.Equal("CPU 4", playerManager.Players[3].Name);
+        }
+
+        [Fact]
         public void Constructor_InitializesPlayersWithEmptyHands()
         {
             // Arrange & Act
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
 
             // Assert
             foreach (var player in playerManager.Players)
@@ -57,7 +89,8 @@ namespace DeuxCentsCardGame.Tests.Managers
         {
             // Arrange & Act
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
 
             // Assert
             foreach (var player in playerManager.Players)
@@ -77,7 +110,8 @@ namespace DeuxCentsCardGame.Tests.Managers
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
 
             // Act
             var players = playerManager.Players;
@@ -91,7 +125,8 @@ namespace DeuxCentsCardGame.Tests.Managers
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
             var players = playerManager.Players;
 
             // Act & Assert
@@ -114,7 +149,8 @@ namespace DeuxCentsCardGame.Tests.Managers
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
 
             // Act
             var player = playerManager.GetPlayer(index);
@@ -131,7 +167,8 @@ namespace DeuxCentsCardGame.Tests.Managers
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
 
             // Act & Assert
             Assert.Throws<ArgumentOutOfRangeException>(() => playerManager.GetPlayer(index));
@@ -142,7 +179,8 @@ namespace DeuxCentsCardGame.Tests.Managers
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
 
             // Act
             var player1 = playerManager.GetPlayer(0);
@@ -157,11 +195,12 @@ namespace DeuxCentsCardGame.Tests.Managers
         #region ResetAllPlayerBettingStates Tests
 
         [Fact]
-        public void ResetAllPlayerBettingStates_ResetsAllPlayersBettingProperties()
+        public async Task ResetAllPlayerBettingStates_ResetsAllPlayersBettingProperties()
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
 
             // Set up players with betting states
             playerManager.GetPlayer(0).HasBet = true;
@@ -172,7 +211,7 @@ namespace DeuxCentsCardGame.Tests.Managers
             playerManager.GetPlayer(2).HasPassed = true;
 
             // Act
-            playerManager.ResetAllPlayerBettingStates();
+            await playerManager.ResetAllPlayerBettingStates();
 
             // Assert
             foreach (var player in playerManager.Players)
@@ -184,11 +223,12 @@ namespace DeuxCentsCardGame.Tests.Managers
         }
 
         [Fact]
-        public void ResetAllPlayerBettingStates_DoesNotAffectPlayerHands()
+        public async Task ResetAllPlayerBettingStates_DoesNotAffectPlayerHands()
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
             var card = new Card(CardSuit.Hearts, CardFace.Ace, 10, 10);
             
             playerManager.GetPlayer(0).AddCard(card);
@@ -196,7 +236,7 @@ namespace DeuxCentsCardGame.Tests.Managers
             playerManager.GetPlayer(0).CurrentBid = 100;
 
             // Act
-            playerManager.ResetAllPlayerBettingStates();
+            await playerManager.ResetAllPlayerBettingStates();
 
             // Assert
             Assert.Single(playerManager.GetPlayer(0).Hand);
@@ -204,19 +244,20 @@ namespace DeuxCentsCardGame.Tests.Managers
         }
 
         [Fact]
-        public void ResetAllPlayerBettingStates_CanBeCalledMultipleTimes()
+        public async Task ResetAllPlayerBettingStates_CanBeCalledMultipleTimes()
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
 
             playerManager.GetPlayer(0).HasBet = true;
             playerManager.GetPlayer(0).CurrentBid = 100;
 
             // Act
-            playerManager.ResetAllPlayerBettingStates();
-            playerManager.ResetAllPlayerBettingStates();
-            playerManager.ResetAllPlayerBettingStates();
+            await playerManager.ResetAllPlayerBettingStates();
+            await playerManager.ResetAllPlayerBettingStates();
+            await playerManager.ResetAllPlayerBettingStates();
 
             // Assert
             Assert.False(playerManager.GetPlayer(0).HasBet);
@@ -228,11 +269,12 @@ namespace DeuxCentsCardGame.Tests.Managers
         #region ClearAllPlayerHands Tests
 
         [Fact]
-        public void ClearAllPlayerHands_RemovesAllCardsFromAllPlayers()
+        public async Task ClearAllPlayerHands_RemovesAllCardsFromAllPlayers()
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
             var deck = new Deck();
 
             // Add cards to all players
@@ -243,7 +285,7 @@ namespace DeuxCentsCardGame.Tests.Managers
             }
 
             // Act
-            playerManager.ClearAllPlayerHands();
+            await playerManager.ClearAllPlayerHands();
 
             // Assert
             foreach (var player in playerManager.Players)
@@ -253,11 +295,12 @@ namespace DeuxCentsCardGame.Tests.Managers
         }
 
         [Fact]
-        public void ClearAllPlayerHands_DoesNotAffectBettingState()
+        public async Task ClearAllPlayerHands_DoesNotAffectBettingState()
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
             var card = new Card(CardSuit.Hearts, CardFace.Ace, 10, 10);
 
             playerManager.GetPlayer(0).AddCard(card);
@@ -266,7 +309,7 @@ namespace DeuxCentsCardGame.Tests.Managers
             playerManager.GetPlayer(1).HasPassed = true;
 
             // Act
-            playerManager.ClearAllPlayerHands();
+            await playerManager.ClearAllPlayerHands();
 
             // Assert
             Assert.True(playerManager.GetPlayer(0).HasBet);
@@ -275,14 +318,16 @@ namespace DeuxCentsCardGame.Tests.Managers
         }
 
         [Fact]
-        public void ClearAllPlayerHands_CanBeCalledWhenHandsAlreadyEmpty()
+        public async Task ClearAllPlayerHands_CanBeCalledWhenHandsAlreadyEmpty()
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
 
             // Act & Assert
-            var exception = Record.Exception(() => playerManager.ClearAllPlayerHands());
+            var exception = await Record.ExceptionAsync(async () => 
+                await playerManager.ClearAllPlayerHands());
             Assert.Null(exception);
             
             foreach (var player in playerManager.Players)
@@ -293,14 +338,54 @@ namespace DeuxCentsCardGame.Tests.Managers
 
         #endregion
 
-        #region Integration Tests
+        #region InitializePlayersWithTypes Tests
 
         [Fact]
-        public void PlayerManager_CompleteGameRoundScenario()
+        public void InitializePlayersWithTypes_CreatesCorrectPlayerTypes()
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
+
+            // Act
+            playerManager.InitializePlayersWithTypes(
+                PlayerType.Human, 
+                PlayerType.AI, 
+                PlayerType.AI, 
+                PlayerType.Human);
+
+            // Assert
+            Assert.Equal(PlayerType.Human, playerManager.GetPlayer(0).Type);
+            Assert.Equal(PlayerType.AI, playerManager.GetPlayer(1).Type);
+            Assert.Equal(PlayerType.AI, playerManager.GetPlayer(2).Type);
+            Assert.Equal(PlayerType.Human, playerManager.GetPlayer(3).Type);
+        }
+
+        [Fact]
+        public void InitializePlayersWithTypes_WithWrongCount_ThrowsException()
+        {
+            // Arrange
+            var eventManager = CreateEventManager();
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
+
+            // Act & Assert
+            Assert.Throws<ArgumentException>(() => 
+                playerManager.InitializePlayersWithTypes(PlayerType.Human, PlayerType.AI));
+        }
+
+        #endregion
+
+        #region Integration Tests
+
+        [Fact]
+        public async Task PlayerManager_CompleteGameRoundScenario()
+        {
+            // Arrange
+            var eventManager = CreateEventManager();
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
             var deck = new Deck();
 
             // Act - Simulate a complete round
@@ -321,8 +406,8 @@ namespace DeuxCentsCardGame.Tests.Managers
             var player0Cards = playerManager.GetPlayer(0).Hand.Count;
 
             // 4. Reset for next round
-            playerManager.ResetAllPlayerBettingStates();
-            playerManager.ClearAllPlayerHands();
+            await playerManager.ResetAllPlayerBettingStates();
+            await playerManager.ClearAllPlayerHands();
 
             // Assert
             Assert.False(playerManager.GetPlayer(0).HasBet);
@@ -335,8 +420,9 @@ namespace DeuxCentsCardGame.Tests.Managers
         {
             // Arrange
             var eventManager = CreateEventManager();
-            var playerManager = new PlayerManager(eventManager);
-
+            var gameConfig = CreateMockGameConfig();
+            var playerManager = new PlayerManager(eventManager, gameConfig.Object);
+            
             // Act - Get same player multiple times and modify
             var player1a = playerManager.GetPlayer(0);
             player1a.HasBet = true;

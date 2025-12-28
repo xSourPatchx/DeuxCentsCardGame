@@ -3,6 +3,7 @@ using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
 
+
 namespace DeuxCentsCardGame.Tests.Managers
 {
     public class DealingManagerTests
@@ -17,7 +18,7 @@ namespace DeuxCentsCardGame.Tests.Managers
         }
 
         [Fact]
-        public void DealCards_ClearsPlayerHandsBeforeDealing()
+        public async Task DealCards_ClearsPlayerHandsBeforeDealing()
         {
             // Arrange
             var deck = new Deck(); // Assuming Deck constructor creates 40-card deck
@@ -34,7 +35,7 @@ namespace DeuxCentsCardGame.Tests.Managers
             players[1].AddCard(new Card(CardSuit.Spades, CardFace.King, 9, 0));
 
             // Act
-            _dealingManager.DealCards(deck, players);
+            await _dealingManager.DealCards(deck, players);
 
             // Assert - 40 cards / 4 players = 10 cards each
             Assert.Equal(10, players[0].Hand.Count);
@@ -44,7 +45,7 @@ namespace DeuxCentsCardGame.Tests.Managers
         }
 
         [Fact]
-        public void DealCards_DistributesAllCardsEvenly()
+        public async Task DealCards_DistributesAllCardsEvenly()
         {
             // Arrange
             var deck = new Deck(); // 40 cards for modified deck
@@ -57,14 +58,14 @@ namespace DeuxCentsCardGame.Tests.Managers
             };
 
             // Act
-            _dealingManager.DealCards(deck, players);
+            await _dealingManager.DealCards(deck, players);
 
             // Assert - Each player should have 10 cards (40 / 4)
             Assert.All(players, player => Assert.Equal(10, player.Hand.Count));
         }
 
         [Fact]
-        public void DealCards_DistributesCardsInRoundRobinFashion()
+        public async Task DealCards_DistributesCardsInRoundRobinFashion()
         {
             // Arrange
             var deck = new Deck();
@@ -77,7 +78,7 @@ namespace DeuxCentsCardGame.Tests.Managers
             };
 
             // Act
-            _dealingManager.DealCards(deck, players);
+            await _dealingManager.DealCards(deck, players);
 
             // Assert - Cards should be distributed alternately
             Assert.Equal(deck.Cards[0], players[0].Hand[0]);
@@ -117,7 +118,7 @@ namespace DeuxCentsCardGame.Tests.Managers
         }
 
         [Fact]
-        public void RaiseCardsDealtEvent_CallsEventManager()
+        public async Task RaiseCardsDealtEvent_CallsEventManager()
         {
             // Arrange
             var players = new List<Player>
@@ -128,7 +129,7 @@ namespace DeuxCentsCardGame.Tests.Managers
             int dealerIndex = 1;
 
             // Act
-            _dealingManager.RaiseCardsDealtEvent(players, dealerIndex);
+            await _dealingManager.RaiseCardsDealtEvent(players, dealerIndex);
 
             // Assert
             _mockEventManager.Verify(x => x.RaiseCardsDealt(players, dealerIndex), Times.Once);
