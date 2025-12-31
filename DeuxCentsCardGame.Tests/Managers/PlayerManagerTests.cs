@@ -1,6 +1,8 @@
 using Moq;
 using DeuxCentsCardGame.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
+using DeuxCentsCardGame.Interfaces.Services;
+using DeuxCentsCardGame.Interfaces.Validators;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
 
@@ -8,6 +10,26 @@ namespace DeuxCentsCardGame.Tests.Managers
 {
     public class PlayerManagerTests
     {
+        private readonly Mock<ICardUtility> _mockCardUtility;
+        private readonly Mock<IGameValidator> _mockGameValidator;
+
+        public PlayerManagerTests()
+        {
+            _mockCardUtility = new Mock<ICardUtility>();
+            _mockGameValidator = new Mock<IGameValidator>();
+
+            // Setup card utility to return standard card game values
+            _mockCardUtility.Setup(x => x.GetAllCardSuits())
+                .Returns(new[] { CardSuit.Clubs, CardSuit.Diamonds, CardSuit.Hearts, CardSuit.Spades });
+            _mockCardUtility.Setup(x => x.GetAllCardFaces())
+                .Returns(new[] { CardFace.Five, CardFace.Six, CardFace.Seven, CardFace.Eight, CardFace.Nine,
+                                CardFace.Ten, CardFace.Jack, CardFace.Queen, CardFace.King, CardFace.Ace });
+            _mockCardUtility.Setup(x => x.GetCardFaceValues())
+                .Returns(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+            _mockCardUtility.Setup(x => x.GetCardPointValues())
+                .Returns(new[] { 0, 0, 0, 0, 0, 10, 2, 3, 4, 10 });
+        }
+
         private GameEventManager CreateEventManager()
         {
             return new GameEventManager();
@@ -275,7 +297,7 @@ namespace DeuxCentsCardGame.Tests.Managers
             var eventManager = CreateEventManager();
             var gameConfig = CreateMockGameConfig();
             var playerManager = new PlayerManager(eventManager, gameConfig.Object);
-            var deck = new Deck();
+            var deck = new Deck(_mockCardUtility.Object, _mockGameValidator.Object);
 
             // Add cards to all players
             for (int i = 0; i < 4; i++)
@@ -356,10 +378,10 @@ namespace DeuxCentsCardGame.Tests.Managers
                 PlayerType.Human);
 
             // Assert
-            Assert.Equal(PlayerType.Human, playerManager.GetPlayer(0).Type);
-            Assert.Equal(PlayerType.AI, playerManager.GetPlayer(1).Type);
-            Assert.Equal(PlayerType.AI, playerManager.GetPlayer(2).Type);
-            Assert.Equal(PlayerType.Human, playerManager.GetPlayer(3).Type);
+            Assert.Equal(PlayerType.Human, playerManager.GetPlayer(0).PlayerType);
+            Assert.Equal(PlayerType.AI, playerManager.GetPlayer(1).PlayerType);
+            Assert.Equal(PlayerType.AI, playerManager.GetPlayer(2).PlayerType);
+            Assert.Equal(PlayerType.Human, playerManager.GetPlayer(3).PlayerType);
         }
 
         [Fact]
@@ -386,7 +408,7 @@ namespace DeuxCentsCardGame.Tests.Managers
             var eventManager = CreateEventManager();
             var gameConfig = CreateMockGameConfig();
             var playerManager = new PlayerManager(eventManager, gameConfig.Object);
-            var deck = new Deck();
+            var deck = new Deck(_mockCardUtility.Object, _mockGameValidator.Object);
 
             // Act - Simulate a complete round
             // 1. Deal cards

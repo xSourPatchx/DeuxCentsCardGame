@@ -1,19 +1,36 @@
 using Moq;
 using DeuxCentsCardGame.Interfaces.Events;
+using DeuxCentsCardGame.Interfaces.Services;
+using DeuxCentsCardGame.Interfaces.Validators;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Models;
-
 
 namespace DeuxCentsCardGame.Tests.Managers
 {
     public class DealingManagerTests
     {
         private readonly Mock<IGameEventManager> _mockEventManager;
+        private readonly Mock<ICardUtility> _mockCardUtility;
+        private readonly Mock<IGameValidator> _mockGameValidator;
         private readonly DealingManager _dealingManager;
 
         public DealingManagerTests()
         {
             _mockEventManager = new Mock<IGameEventManager>();
+            _mockCardUtility = new Mock<ICardUtility>();
+            _mockGameValidator = new Mock<IGameValidator>();
+
+            // Setup card utility to return standard card game values
+            _mockCardUtility.Setup(x => x.GetAllCardSuits())
+                .Returns(new[] { CardSuit.Clubs, CardSuit.Diamonds, CardSuit.Hearts, CardSuit.Spades });
+            _mockCardUtility.Setup(x => x.GetAllCardFaces())
+                .Returns(new[] { CardFace.Five, CardFace.Six, CardFace.Seven, CardFace.Eight, CardFace.Nine,
+                                CardFace.Ten, CardFace.Jack, CardFace.Queen, CardFace.King, CardFace.Ace });
+            _mockCardUtility.Setup(x => x.GetCardFaceValues())
+                .Returns(new[] { 1, 2, 3, 4, 5, 6, 7, 8, 9, 10 });
+            _mockCardUtility.Setup(x => x.GetCardPointValues())
+                .Returns(new[] { 0, 0, 0, 0, 0, 10, 2, 3, 4, 10 });
+
             _dealingManager = new DealingManager(_mockEventManager.Object);
         }
 
@@ -21,7 +38,7 @@ namespace DeuxCentsCardGame.Tests.Managers
         public async Task DealCards_ClearsPlayerHandsBeforeDealing()
         {
             // Arrange
-            var deck = new Deck(); // Assuming Deck constructor creates 40-card deck
+            var deck = new Deck(_mockCardUtility.Object, _mockGameValidator.Object);
             var players = new List<Player>
             {
                 new Player("Player1"),
@@ -48,7 +65,7 @@ namespace DeuxCentsCardGame.Tests.Managers
         public async Task DealCards_DistributesAllCardsEvenly()
         {
             // Arrange
-            var deck = new Deck(); // 40 cards for modified deck
+            var deck = new Deck(_mockCardUtility.Object, _mockGameValidator.Object);
             var players = new List<Player>
             {
                 new Player("Player1"),
@@ -68,7 +85,7 @@ namespace DeuxCentsCardGame.Tests.Managers
         public async Task DealCards_DistributesCardsInRoundRobinFashion()
         {
             // Arrange
-            var deck = new Deck();
+            var deck = new Deck(_mockCardUtility.Object, _mockGameValidator.Object);
             var players = new List<Player>
             {
                 new Player("Player1"),
