@@ -6,11 +6,7 @@ Can you make my console app have SerializeField for Unity inspector where approp
 
 ---
 
-Can you review my code and any concrete dependencies in my events. If applicable, can you refactor my code to depend on the interface rather than the concrete class?
+Can you review my code for any concrete dependencies. If found, can you refactor my code to depend on the interface rather than the concrete class?
 
 ---
 
-
-
-
-changes made: GameController, GameEventHandler, ScoringManager, BettingManager, Deck

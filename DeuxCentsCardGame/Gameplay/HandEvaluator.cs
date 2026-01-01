@@ -1,15 +1,16 @@
+using DeuxCentsCardGame.Interfaces.Gameplay;
+using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.Gameplay
 {
     // Evaluates card hands for strength, composition, and strategic value.
     // Used by AI players for decision-making and can provide hints to human players.
-    public class HandEvaluator
+    public class HandEvaluator : IHandEvaluator
     {
-        private readonly CardCollectionHelper _cardHelper;
+        private readonly ICardCollectionHelper _cardHelper;
 
-        public HandEvaluator(CardCollectionHelper cardHelper)
+        public HandEvaluator(ICardCollectionHelper cardHelper)
         {
             _cardHelper = cardHelper ?? throw new ArgumentNullException(nameof(cardHelper));
         }

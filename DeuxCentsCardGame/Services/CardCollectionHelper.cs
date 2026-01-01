@@ -1,10 +1,11 @@
+using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Services
 {
     // Provides utility methods for common card collection operations.
     // Used for filtering, sorting, and analyzing collections of cards.
-    public class CardCollectionHelper
+    public class CardCollectionHelper : ICardCollectionHelper
     {
         // Filters cards by a specific suit.
         public List<Card> FilterBySuit(List<Card> cards, CardSuit suit)
@@ -236,7 +237,6 @@ namespace DeuxCentsCardGame.Services
         // Gets playable cards based on leading suit rules.
         // If no leading suit, all cards are playable.
         // If leading suit exists, must follow suit if possible.
-
         public List<Card> GetPlayableCards(List<Card> hand, CardSuit? leadingSuit)
         {
             if (hand == null || hand.Count == 0)

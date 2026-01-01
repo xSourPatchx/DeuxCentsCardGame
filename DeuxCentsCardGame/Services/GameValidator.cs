@@ -3,13 +3,12 @@ using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Services;
-using DeuxCentsCardGame.Interfaces.Validators;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Services
 {
-        public class GameValidator : IGameValidator
-        {
+    public class GameValidator : IGameValidator
+    {
         private readonly IGameConfig _gameConfig;
         private readonly IGameEventManager _eventManager;
         private readonly ICardUtility _cardUtility;

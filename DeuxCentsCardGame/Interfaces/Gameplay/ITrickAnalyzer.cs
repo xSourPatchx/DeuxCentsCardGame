@@ -10,7 +10,6 @@ namespace DeuxCentsCardGame.Interfaces.Gameplay
         List<Card> GetPlayableCards(List<Card> hand, CardSuit? leadingSuit);
         Card GetCurrentWinningCard(List<(Card card, Player player)> trick, CardSuit? trumpSuit, CardSuit? leadingSuit);
         int CalculateTrickValue(List<(Card card, Player player)> trick);
-        bool IsPartnerWinning(List<(Card card, Player player)> trick, int playerIndex, ITeamManager teamManager, CardSuit? trumpSuit, CardSuit? leadingSuit);
         bool IsPartnerWinning(List<(Card card, Player player)> trick, Player currentPlayer, List<Player> allPlayers, ITeamManager teamManager, CardSuit? trumpSuit, CardSuit? leadingSuit);
         List<Card> GetWinningCards(List<Card> hand, Card currentWinner, CardSuit? trumpSuit, CardSuit? leadingSuit);
         bool IsTrickValuable(List<(Card card, Player player)> trick, int threshold = 10);

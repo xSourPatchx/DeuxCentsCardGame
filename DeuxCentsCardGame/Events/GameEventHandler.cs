@@ -1,7 +1,6 @@
 using DeuxCentsCardGame.AI;
 using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Events.EventArgs;
-using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Models;

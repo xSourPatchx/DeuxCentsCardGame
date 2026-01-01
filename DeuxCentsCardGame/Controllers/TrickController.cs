@@ -2,7 +2,7 @@ using DeuxCentsCardGame.Interfaces.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Managers;
-using DeuxCentsCardGame.Interfaces.Validators;
+using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Controllers

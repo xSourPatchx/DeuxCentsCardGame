@@ -6,7 +6,7 @@ namespace DeuxCentsCardGame.Gameplay
 {
     // Analyzes trick state to determine winning cards, trick values, and strategic information.
     // Can be used by AI players, UI hints, and game analysis features.
-    public class TrickAnalyzer
+    public class TrickAnalyzer : ITrickAnalyzer
     {
         private readonly ICardLogic _cardLogic;
 

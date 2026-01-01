@@ -8,7 +8,6 @@ using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Interfaces.UI;
-using DeuxCentsCardGame.Interfaces.Validators;
 using DeuxCentsCardGame.Managers;
 using DeuxCentsCardGame.Services;
 using DeuxCentsCardGame.UI;
@@ -48,16 +47,15 @@ namespace DeuxCentsCardGame
 
             // Register services
             services.AddSingleton<IRandomService, RandomService>();
-            services.AddSingleton<CardCollectionHelper>();
+            services.AddSingleton<ICardCollectionHelper, CardCollectionHelper>();
             services.AddSingleton<ICardUtility, CardUtility>();
 
             // Register gameplay logic components
-            services.AddSingleton<CardLogic>();
-            services.AddSingleton<ICardLogic>(sp => sp.GetRequiredService<CardLogic>());
-            services.AddSingleton<BettingLogic>();
-            services.AddSingleton<ScoringLogic>();
-            services.AddSingleton<HandEvaluator>();
-            services.AddSingleton<TrickAnalyzer>();
+            services.AddSingleton<ICardLogic, CardLogic>();
+            services.AddSingleton<IBettingLogic, BettingLogic>();
+            services.AddSingleton<IScoringLogic, ScoringLogic>();
+            services.AddSingleton<IHandEvaluator, HandEvaluator>();
+            services.AddSingleton<ITrickAnalyzer, TrickAnalyzer>();
 
             // Register AI service
             services.AddSingleton<IAIService, AIService>();
@@ -67,8 +65,7 @@ namespace DeuxCentsCardGame
             services.AddSingleton<IUIGameView, UIGameView>();
 
             // Register event system
-            services.AddSingleton<GameEventManager>();
-            services.AddSingleton<IGameEventManager>(sp => sp.GetRequiredService<GameEventManager>());
+            services.AddSingleton<IGameEventManager, GameEventManager>();
             services.AddSingleton<IGameEventHandler, GameEventHandler>();
 
             // Register managers
@@ -83,7 +80,7 @@ namespace DeuxCentsCardGame
             services.AddSingleton<ITeamManager, TeamManager>();
 
             // Register GameValidator - depend on managers
-            services.AddSingleton<GameValidator>(sp =>
+            services.AddSingleton<IGameValidator>(sp =>
             {
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
                 var eventManager = sp.GetRequiredService<IGameEventManager>();
@@ -95,20 +92,19 @@ namespace DeuxCentsCardGame
                     cardUtility,
                     playerManager.Players.ToList());
             });
-            services.AddSingleton<IGameValidator>(sp => sp.GetRequiredService<GameValidator>());
         
             // Register DeckManager - depends on IGameValidator
             services.AddSingleton<IDeckManager, DeckManager>();
             services.AddSingleton<IDealingManager, DealingManager>();
 
             // Register BettingManager - depends on GameValidator
-            services.AddSingleton<BettingManager>(sp =>
+            services.AddSingleton<IBettingManager>(sp =>
             {
                 var playerManager = sp.GetRequiredService<IPlayerManager>();
                 var eventManager = sp.GetRequiredService<IGameEventManager>();
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
-                var gameValidator = sp.GetRequiredService<GameValidator>();
-                var bettingLogic = sp.GetRequiredService<BettingLogic>();
+                var gameValidator = sp.GetRequiredService<IGameValidator>();
+                var bettingLogic = sp.GetRequiredService<IBettingLogic>();
                 return new BettingManager(
                     playerManager.Players.ToList(),
                     gameConfig.InitialDealerIndex,
@@ -117,7 +113,6 @@ namespace DeuxCentsCardGame
                     gameValidator,
                     bettingLogic);
             });
-            services.AddSingleton<IBettingManager>(sp => sp.GetRequiredService<BettingManager>());
 
             services.AddSingleton<ITrumpSelectionManager, TrumpSelectionManager>();
 
@@ -126,7 +121,7 @@ namespace DeuxCentsCardGame
                 var eventManager = sp.GetRequiredService<IGameEventManager>();
                 var playerManager = sp.GetRequiredService<IPlayerManager>();
                 var teamManager = sp.GetRequiredService<ITeamManager>();
-                var scoringLogic = sp.GetRequiredService<ScoringLogic>();
+                var scoringLogic = sp.GetRequiredService<IScoringLogic>();
                 return new ScoringManager(
                     eventManager,
                     playerManager.Players.ToList(),
@@ -135,7 +130,7 @@ namespace DeuxCentsCardGame
             });
 
             // Register controllers
-            services.AddSingleton<RoundController>(sp =>
+            services.AddSingleton<IRoundController>(sp =>
             {
                 var gameConfig = sp.GetRequiredService<IGameConfig>();
                 return new RoundController(
@@ -149,7 +144,8 @@ namespace DeuxCentsCardGame
                     sp.GetRequiredService<IScoringManager>(),
                     gameConfig.InitialDealerIndex);
             });
-            services.AddSingleton<TrickController>();
+
+            services.AddSingleton<ITrickController, TrickController>();
 
             // Register game controller
             services.AddSingleton<IGameController, GameController>();
