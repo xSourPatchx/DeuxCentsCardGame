@@ -1,6 +1,6 @@
 using DeuxCentsCardGame.AI;
-using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.AI;
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
 
@@ -10,24 +10,23 @@ namespace DeuxCentsCardGame.Services
     {
         private readonly IRandomService _randomService;
         private readonly ICardUtility _cardUtility;
-        private readonly CardLogic _cardComparer;
-        private readonly HandEvaluator _handEvaluator;
-        private readonly CardCollectionHelper _cardHelper;
-        private readonly TrickAnalyzer _trickAnalyzer;
+        private readonly ICardLogic _cardLogic;
+        private readonly IHandEvaluator _handEvaluator;
+        private readonly ICardCollectionHelper _cardHelper;
+        private readonly ITrickAnalyzer _trickAnalyzer;
         private readonly Dictionary<AIDifficulty, IAIPlayer> _aiPlayers;
-
 
         public AIService(
             IRandomService randomService, 
             ICardUtility cardUtility, 
-            CardLogic cardComparer,
-            HandEvaluator handEvaluator,
-            CardCollectionHelper cardHelper,
-            TrickAnalyzer trickAnalyzer)
+            ICardLogic cardLogic,
+            IHandEvaluator handEvaluator,
+            ICardCollectionHelper cardHelper,
+            ITrickAnalyzer trickAnalyzer)
         {
             _randomService = randomService ?? throw new ArgumentNullException(nameof(randomService));
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
-            _cardComparer = cardComparer ?? throw new ArgumentNullException(nameof(cardComparer));
+            _cardLogic = cardLogic ?? throw new ArgumentNullException(nameof(cardLogic));
             _handEvaluator = handEvaluator ?? throw new ArgumentNullException(nameof(handEvaluator));
             _cardHelper = cardHelper ?? throw new ArgumentNullException(nameof(cardHelper));
             _trickAnalyzer = trickAnalyzer ?? throw new ArgumentNullException(nameof(trickAnalyzer));

@@ -1,7 +1,6 @@
-using DeuxCentsCardGame.Gameplay;
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.AI
 {
@@ -11,9 +10,9 @@ namespace DeuxCentsCardGame.AI
         public HardAIPlayer(
             IRandomService randomService, 
             ICardUtility cardUtility, 
-            HandEvaluator handEvaluator, 
-            CardCollectionHelper cardHelper, 
-            TrickAnalyzer trickAnalyzer) 
+            IHandEvaluator handEvaluator, 
+            ICardCollectionHelper cardHelper, 
+            ITrickAnalyzer trickAnalyzer) 
             : base(randomService, cardUtility, handEvaluator, trickAnalyzer, cardHelper, AIDifficulty.Hard)
         {
         }

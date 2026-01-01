@@ -1,8 +1,7 @@
-using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.AI;
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.AI
 {
@@ -10,17 +9,17 @@ namespace DeuxCentsCardGame.AI
     {
         protected readonly IRandomService _randomService;
         protected readonly ICardUtility _cardUtility;
-        protected readonly HandEvaluator _handEvaluator;
-        protected readonly TrickAnalyzer _trickAnalyzer;
-        protected readonly CardCollectionHelper _cardHelper;
+        protected readonly IHandEvaluator _handEvaluator;
+        protected readonly ITrickAnalyzer _trickAnalyzer;
+        protected readonly ICardCollectionHelper _cardHelper;
         protected readonly AIDifficulty _difficulty;
 
         protected BaseAIPlayer(
             IRandomService randomService, 
             ICardUtility cardUtility, 
-            HandEvaluator handEvaluator,
-            TrickAnalyzer trickAnalyzer,
-            CardCollectionHelper cardHelper,
+            IHandEvaluator handEvaluator,
+            ITrickAnalyzer trickAnalyzer,
+            ICardCollectionHelper cardHelper,
             AIDifficulty difficulty)
         {
             _randomService = randomService ?? throw new ArgumentNullException(nameof(randomService));

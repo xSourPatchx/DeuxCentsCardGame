@@ -1,6 +1,5 @@
 using DeuxCentsCardGame.Interfaces.Models;
 using DeuxCentsCardGame.Interfaces.Services;
-using DeuxCentsCardGame.Interfaces.Validators;
 
 namespace DeuxCentsCardGame.Models
 {

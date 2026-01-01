@@ -4,7 +4,6 @@ using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 using Moq;
-using Xunit;
 
 namespace DeuxCentsCardGame.Tests.Controllers
 {

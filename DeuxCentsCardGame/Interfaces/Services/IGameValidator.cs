@@ -1,6 +1,6 @@
 using DeuxCentsCardGame.Models;
 
-namespace DeuxCentsCardGame.Interfaces.Validators
+namespace DeuxCentsCardGame.Interfaces.Services
 {
     public interface IGameValidator
     {

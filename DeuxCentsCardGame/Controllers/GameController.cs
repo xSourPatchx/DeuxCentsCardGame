@@ -15,8 +15,8 @@ namespace DeuxCentsCardGame.Controllers
         private readonly Dictionary<GameState, Func<Task>> _gameStateHandlers;
 
         // Controllers
-        private readonly RoundController _roundController;
-        private readonly TrickController _trickController;
+        private readonly IRoundController _roundController;
+        private readonly ITrickController _trickController;
         private readonly IScoringManager _scoringManager;
 
         // Dealer starts at player 4 (index 3)
@@ -27,8 +27,8 @@ namespace DeuxCentsCardGame.Controllers
         private readonly IGameEventHandler _eventHandler;
 
         public GameController(
-            RoundController roundController,
-            TrickController trickController,
+            IRoundController roundController,
+            ITrickController trickController,
             IScoringManager scoringManager,
             IGameEventManager eventManager,
             IGameEventHandler eventHandler)

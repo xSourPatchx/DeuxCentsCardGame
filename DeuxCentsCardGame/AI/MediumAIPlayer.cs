@@ -1,7 +1,6 @@
-using DeuxCentsCardGame.Gameplay;
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.AI
 {
@@ -11,9 +10,9 @@ namespace DeuxCentsCardGame.AI
         public MediumAIPlayer(
             IRandomService randomService, 
             ICardUtility cardUtility, 
-            HandEvaluator handEvaluator,
-            CardCollectionHelper cardHelper,
-            TrickAnalyzer trickAnalyzer) 
+            IHandEvaluator handEvaluator,
+            ICardCollectionHelper cardHelper,
+            ITrickAnalyzer trickAnalyzer) 
             : base(randomService, cardUtility, handEvaluator, trickAnalyzer, cardHelper, AIDifficulty.Medium)
         {
         }
@@ -64,7 +63,6 @@ namespace DeuxCentsCardGame.AI
                                       List<(Card card, Player player)> cardsPlayedInTrick)
         {
             var playableCards = GetPlayableCards(hand, leadingSuit);
-
             Card selectedCard;
             
         if (cardsPlayedInTrick.Count == 0)

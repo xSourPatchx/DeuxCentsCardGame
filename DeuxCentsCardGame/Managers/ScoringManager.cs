@@ -1,6 +1,7 @@
 using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Managers;
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Managers
@@ -10,7 +11,7 @@ namespace DeuxCentsCardGame.Managers
         private readonly IGameEventManager _eventManager;
         private readonly List<Player> _players;
         private readonly ITeamManager _teamManager;
-        private readonly ScoringLogic _scoringLogic;
+        private readonly IScoringLogic _scoringLogic;
 
         public int TeamOneRoundPoints { get; private set; }
         public int TeamTwoRoundPoints { get; private set; }
@@ -21,7 +22,7 @@ namespace DeuxCentsCardGame.Managers
             IGameEventManager eventManager,
             List<Player> players, 
             ITeamManager teamManager,
-            ScoringLogic scoringLogic)
+            IScoringLogic scoringLogic)
         {
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
             _players = players ?? throw new ArgumentNullException(nameof(players));

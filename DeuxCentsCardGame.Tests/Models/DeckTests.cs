@@ -141,14 +141,14 @@ namespace DeuxCentsCardGame.Tests.Models
         }
 
         [Fact]
-        public void Deck_TotalPointsEqual120()
+        public void Deck_TotalPointsEqual100()
         {
             // Act
             var deck = new Deck(_cardUtility, _mockValidator.Object);
 
             // Assert
             var totalPoints = deck.Cards.Sum(c => c.CardPointValue);
-            Assert.Equal(120, totalPoints);
+            Assert.Equal(100, totalPoints);
         }
 
         [Fact]

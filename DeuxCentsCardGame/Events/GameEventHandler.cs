@@ -1,6 +1,7 @@
 using DeuxCentsCardGame.AI;
 using DeuxCentsCardGame.Constants;
 using DeuxCentsCardGame.Events.EventArgs;
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
 using DeuxCentsCardGame.Interfaces.Models;
@@ -14,7 +15,7 @@ namespace DeuxCentsCardGame.Events
     {
         private readonly ICardUtility _cardUtility;
         private readonly IGameConfig _gameConfig;
-        private readonly GameEventManager _eventManager;
+        private readonly IGameEventManager _eventManager;
         private readonly IUIGameView _ui;
         private readonly IAIService _aiService;
         private readonly AIDifficulty _defaultAIDifficulty = AIDifficulty.Medium;
@@ -22,7 +23,12 @@ namespace DeuxCentsCardGame.Events
         // Track current trick cards for AI decision-making
         private List<(Card card, Player player)> _currentTrickCards = [];
 
-        public GameEventHandler(GameEventManager eventManager, IUIGameView ui, IGameConfig gameConfig, ICardUtility cardUtility, IAIService aiService)
+        public GameEventHandler(
+            IGameEventManager eventManager, 
+            IUIGameView ui, 
+            IGameConfig gameConfig, 
+            ICardUtility cardUtility, 
+            IAIService aiService)
         {
             _cardUtility = cardUtility ?? throw new ArgumentNullException(nameof(cardUtility));
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));

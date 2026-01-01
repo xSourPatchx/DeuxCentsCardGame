@@ -1,6 +1,4 @@
 using DeuxCentsCardGame.Controllers;
-using DeuxCentsCardGame.GameStates;
-using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Models;
 
 namespace DeuxCentsCardGame.Services

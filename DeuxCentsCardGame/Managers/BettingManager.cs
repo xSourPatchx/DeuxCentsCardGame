@@ -2,9 +2,10 @@ using DeuxCentsCardGame.Events.EventArgs;
 using DeuxCentsCardGame.Gameplay;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.GameConfig;
+using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Managers;
+using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
-using DeuxCentsCardGame.Services;
 
 namespace DeuxCentsCardGame.Managers
 {
@@ -19,8 +20,8 @@ namespace DeuxCentsCardGame.Managers
         private readonly IGameConfig _gameConfig;
         private readonly List<Player> _players;
         private readonly IGameEventManager _eventManager;
-        private readonly GameValidator _gameValidator;
-        private readonly BettingLogic _bettingLogic;
+        private readonly IGameValidator _gameValidator;
+        private readonly IBettingLogic _bettingLogic;
         private int _dealerIndex;
 
         public BettingManager(
@@ -28,8 +29,8 @@ namespace DeuxCentsCardGame.Managers
             int dealerIndex,
             IGameEventManager eventManager,
             IGameConfig gameConfig,
-            GameValidator bettingValidator,
-            BettingLogic bettingLogic)
+            IGameValidator bettingValidator,
+            IBettingLogic bettingLogic)
         {
             _players = players ?? throw new ArgumentNullException(nameof(players));
             _eventManager = eventManager ?? throw new ArgumentNullException(nameof(eventManager));
