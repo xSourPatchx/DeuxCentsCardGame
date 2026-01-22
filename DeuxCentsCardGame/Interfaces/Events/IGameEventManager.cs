@@ -6,7 +6,46 @@ namespace DeuxCentsCardGame.Interfaces.Events
 {
     public interface IGameEventManager
     {
-        // Add these three methods
+        // Event properties that can be subscribed to
+        Action<RoundStartedEventArgs>? RoundStarted { get; set; }
+        Action<RoundEndedEventArgs>? RoundEnded { get; set; }
+        Action<DeckShuffledEventArgs>? DeckShuffled { get; set; }
+        Action<DeckCutInputEventArgs>? DeckCutInput { get; set; }
+        Action<DeckCutEventArgs>? DeckCut { get; set; }
+        Action<CardsDealtEventArgs>? CardsDealt { get; set; }
+        Action<InvalidMoveEventArgs>? InvalidMove { get; set; }
+
+        // Game state change events
+        Action<StateChangedEventArgs>? StateChanged { get; set; }
+        Action<GamePausedEventArgs>? GamePaused { get; set; }
+        Action<GameResumedEventArgs>? GameResumed { get; set; }
+
+        // Betting events
+        Action<BettingRoundStartedEventArgs>? BettingRoundStarted { get; set; }
+        Action<BetInputEventArgs>? BetInput { get; set; }
+        Action<BettingActionEventArgs>? BettingAction { get; set; }
+        Action<BettingCompletedEventArgs>? BettingCompleted { get; set; }
+
+        // Trump selection events
+        Action<TrumpSelectionInputEventArgs>? TrumpSelectionInput { get; set; }
+        Action<TrumpSelectedEventArgs>? TrumpSelected { get; set; }
+
+        // Card playing events
+        Action<PlayerTurnEventArgs>? PlayerTurn { get; set; }
+        Action<CardSelectionInputEventArgs>? CardSelectionInput { get; set; }
+        Action<CardPlayedEventArgs>? CardPlayed { get; set; }
+        Action<TrickCompletedEventArgs>? TrickCompleted { get; set; }
+
+        // Scoring events
+        Action<ScoreUpdatedEventArgs>? ScoreUpdated { get; set; }
+        Action<TeamScoringEventArgs>? TeamScoring { get; set; }
+        Action<TrickPointsAwardedEventArgs>? TrickPointsAwarded { get; set; }
+
+        // Game end events
+        Action<GameOverEventArgs>? GameOver { get; set; }
+        Action<NextRoundEventArgs>? NextRoundPrompt { get; set; }
+
+        // Methods to raise events
         Task RaiseStateChanged(GameState previousState, GameState newState);
         Task RaiseGamePaused(GameState currentState);
         Task RaiseGameResumed(GameState resumingToState);

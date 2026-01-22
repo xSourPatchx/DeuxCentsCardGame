@@ -8,43 +8,43 @@ namespace DeuxCentsCardGame.Events
     public class GameEventManager : IGameEventManager
     {
         // Round events
-        public Action<RoundStartedEventArgs> RoundStarted;
-        public Action<RoundEndedEventArgs> RoundEnded;
-        public Action<DeckShuffledEventArgs> DeckShuffled;
-        public Action<DeckCutInputEventArgs> DeckCutInput;
-        public Action<DeckCutEventArgs> DeckCut;
-        public Action<CardsDealtEventArgs> CardsDealt;
-        public Action<InvalidMoveEventArgs> InvalidMove;
+        public Action<RoundStartedEventArgs>? RoundStarted { get; set; }
+        public Action<RoundEndedEventArgs>? RoundEnded { get; set; }
+        public Action<DeckShuffledEventArgs>? DeckShuffled { get; set; }
+        public Action<DeckCutInputEventArgs>? DeckCutInput { get; set; }
+        public Action<DeckCutEventArgs>? DeckCut { get; set; }
+        public Action<CardsDealtEventArgs>? CardsDealt { get; set; }
+        public Action<InvalidMoveEventArgs>? InvalidMove { get; set; }
 
         // Game state change events
-        public Action<StateChangedEventArgs> StateChanged;
-        public Action<GamePausedEventArgs> GamePaused;
-        public Action<GameResumedEventArgs> GameResumed;
+        public Action<StateChangedEventArgs>? StateChanged { get; set; }
+        public Action<GamePausedEventArgs>? GamePaused { get; set; }
+        public Action<GameResumedEventArgs>? GameResumed { get; set; }
 
         // Betting events
-        public Action<BettingRoundStartedEventArgs> BettingRoundStarted;
-        public Action<BetInputEventArgs> BetInput;
-        public Action<BettingActionEventArgs> BettingAction;
-        public Action<BettingCompletedEventArgs> BettingCompleted;
+        public Action<BettingRoundStartedEventArgs>? BettingRoundStarted { get; set; }
+        public Action<BetInputEventArgs>? BetInput { get; set; }
+        public Action<BettingActionEventArgs>? BettingAction { get; set; }
+        public Action<BettingCompletedEventArgs>? BettingCompleted { get; set; }
 
         // Trump selection events
-        public Action<TrumpSelectionInputEventArgs> TrumpSelectionInput;
-        public Action<TrumpSelectedEventArgs> TrumpSelected;
+        public Action<TrumpSelectionInputEventArgs>? TrumpSelectionInput { get; set; }
+        public Action<TrumpSelectedEventArgs>? TrumpSelected { get; set; }
 
         // Card playing events
-        public Action<PlayerTurnEventArgs> PlayerTurn;
-        public Action<CardSelectionInputEventArgs> CardSelectionInput;
-        public Action<CardPlayedEventArgs> CardPlayed;
-        public Action<TrickCompletedEventArgs> TrickCompleted;
+        public Action<PlayerTurnEventArgs>? PlayerTurn { get; set; }
+        public Action<CardSelectionInputEventArgs>? CardSelectionInput { get; set; }
+        public Action<CardPlayedEventArgs>? CardPlayed { get; set; }
+        public Action<TrickCompletedEventArgs>? TrickCompleted { get; set; }
 
         // Scoring events
-        public Action<ScoreUpdatedEventArgs> ScoreUpdated;
-        public Action<TeamScoringEventArgs> TeamScoring;
-        public Action<TrickPointsAwardedEventArgs> TrickPointsAwarded;
+        public Action<ScoreUpdatedEventArgs>? ScoreUpdated { get; set; }
+        public Action<TeamScoringEventArgs>? TeamScoring { get; set; }
+        public Action<TrickPointsAwardedEventArgs>? TrickPointsAwarded { get; set; }
 
         // Game end events
-        public Action<GameOverEventArgs> GameOver;
-        public Action<NextRoundEventArgs> NextRoundPrompt;
+        public Action<GameOverEventArgs>? GameOver { get; set; }
+        public Action<NextRoundEventArgs>? NextRoundPrompt { get; set; }
 
 
         // Public methods to trigger events from game logic //
