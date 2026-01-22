@@ -2,10 +2,9 @@ using DeuxCentsCardGame.Controllers;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Gameplay;
 using DeuxCentsCardGame.Interfaces.Managers;
-using DeuxCentsCardGame.Interfaces.Validators;
+using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;
 using Moq;
-using Xunit;
 
 namespace DeuxCentsCardGame.Tests.Controllers
 {

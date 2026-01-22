@@ -1,7 +1,6 @@
 using DeuxCentsCardGame.Controllers;
 using DeuxCentsCardGame.Interfaces.Models;
 using DeuxCentsCardGame.Interfaces.Events;
-using DeuxCentsCardGame.Interfaces.Validators;
 using DeuxCentsCardGame.Interfaces.Managers;
 using DeuxCentsCardGame.Interfaces.Services;
 using DeuxCentsCardGame.Models;

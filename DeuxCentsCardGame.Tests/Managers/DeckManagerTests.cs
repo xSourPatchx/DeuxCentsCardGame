@@ -1,7 +1,6 @@
 using Moq;
 using DeuxCentsCardGame.Interfaces.Events;
 using DeuxCentsCardGame.Interfaces.Services;
-using DeuxCentsCardGame.Interfaces.Validators;
 using DeuxCentsCardGame.Managers;
 
 namespace DeuxCentsCardGame.Tests.Managers
